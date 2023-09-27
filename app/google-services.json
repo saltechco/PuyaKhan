@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "421757731158",
+    "project_id": "saltech-puyakhan-b8be3",
+    "storage_bucket": "saltech-puyakhan-b8be3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:421757731158:android:6aa506c20d795f101956f7",
+        "android_client_info": {
+          "package_name": "ir.saltech.puyakhan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBop7NfbsgTl5qlRIeutBVlNZbaqyy2vXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
