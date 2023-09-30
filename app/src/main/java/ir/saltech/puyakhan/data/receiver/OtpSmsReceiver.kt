@@ -99,9 +99,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					) != PackageManager.PERMISSION_GRANTED
 				) return
 			}
-			val randomInt = Random.nextInt(100000, 1000000)
-			Log.i("SmsReceiver", "notificationId: $randomInt")
-			notify(randomInt, builder.build())
+			notify(Random.nextInt(100000, 1000000), builder.build())
 		}
 	}
 
