@@ -1,5 +1,5 @@
 [versions]
-agp = "8.3.0-alpha05"
+agp = "8.3.0-alpha06"
 firebase-crashlytics-gradle = "2.9.9"
 google-services = "4.4.0"
 kotlin = "1.9.10"
@@ -9,16 +9,12 @@ androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 lifecycle-ktx = "2.6.2"
 activity-compose = "1.8.0-rc01"
-compose-bom = "2023.09.00"
-material3-compose = "1.2.0-alpha07"
-compose-ui = "1.6.0-alpha05"
+compose-bom = "2023.09.02"
+material3-compose = "1.2.0-alpha08"
+compose-ui = "1.6.0-alpha06"
 fragment = "1.7.0-alpha05"
-navigation = "2.7.3"
-firebase-bom = "32.3.1"
 
 [libraries]
-firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebase-crashlytics-gradle" }
-google-services = { module = "com.google.gms:google-services", version.ref = "google-services" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -36,11 +32,6 @@ ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", v
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "compose-ui" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-compose" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
-fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragment" }
-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
-firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 
 
 [plugins]

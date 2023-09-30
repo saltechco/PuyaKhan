@@ -1,8 +1,12 @@
-package ir.saltech.puyakhan
+package ir.saltech.puyakhan.ui.view.activity
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,8 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,37 +29,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.text.isDigitsOnly
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.analytics.ktx.logEvent
-import com.google.firebase.ktx.Firebase
-import ir.saltech.puyakhan.model.OtpSms
+import androidx.core.app.NotificationCompat
+import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getOtpFromSms
+import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getSmsList
+import ir.saltech.puyakhan.ui.manager.getDateTime
 import ir.saltech.puyakhan.ui.theme.PermissionNeeded
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.io.IOException
 import kotlin.system.exitProcess
 
-private const val MAX_OTP_LENGTH = 9
+private const val SMS_PERMISSION_REQUEST_CODE = 3093
 
 lateinit var activity: ComponentActivity
 
+internal const val NOTIFY_CHANNEL_ID = "otp_sms_codes"
+
 class MainActivity : ComponentActivity() {
-	private lateinit var analytics: FirebaseAnalytics
 	// TODO: At the publish moment, uncomment this line and use it instead of onRequestPermissionsResult
-	//private var requestPermissionLauncher: ActivityResultLauncher<String>
+	// private var requestPermissionLauncher: ActivityResultLauncher<String>
 
 	init {
 		activity = this
@@ -68,11 +62,7 @@ class MainActivity : ComponentActivity() {
 	}
 
 	private fun startProgram() {
-		analytics.logEvent(FirebaseAnalytics.Event.SELECT_ITEM) {
-			param(FirebaseAnalytics.Param.ITEM_ID, "Test")
-			param(FirebaseAnalytics.Param.ITEM_NAME, "A Test")
-			param(FirebaseAnalytics.Param.CONTENT_TYPE, "text")
-		}
+		createNotificationChannel(this)
 		setContent {
 			PuyaKhanTheme {
 				// A surface container using the 'background' color from the theme
@@ -81,7 +71,8 @@ class MainActivity : ComponentActivity() {
 					color = MaterialTheme.colorScheme.background
 				) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-						checkSelfPermission(android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+						(checkSelfPermission(android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+								|| checkSelfPermission(android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED)
 					) {
 						RequestPermission()
 					} else {
@@ -94,21 +85,45 @@ class MainActivity : ComponentActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		analytics = Firebase.analytics
 		startProgram()
 	}
 
-	@Deprecated("Deprecated but for live edit it's ok", replaceWith = ReplaceWith("requestPermissionLauncher.launch(android.Manifest.permission.READ_SMS)"))
+	@Deprecated(
+		"Deprecated but for live edit it's ok",
+		replaceWith = ReplaceWith("requestPermissionLauncher.launch(android.Manifest.permission.READ_SMS)")
+	)
 	override fun onRequestPermissionsResult(
 		requestCode: Int,
 		permissions: Array<out String>,
 		grantResults: IntArray
 	) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-		if (requestCode == 3093) {
+		if (requestCode == SMS_PERMISSION_REQUEST_CODE) {
 			val isGranted = (grantResults.isNotEmpty() &&
 					grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			if (isGranted) startProgram() else exitProcess(-1)
+		}
+	}
+
+	private fun createNotificationChannel(context: Context) {
+		// Create the NotificationChannel, but only on API 26+ because
+		// the NotificationChannel class is not in the Support Library.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			val name = "رمز های یکبار مصرف"
+			val descriptionText = "دریافت رمز های یکبار مصرف"
+			val importance = NotificationManager.IMPORTANCE_HIGH
+			val channel = NotificationChannel(NOTIFY_CHANNEL_ID, name, importance).apply {
+				description = descriptionText
+				lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
+			}
+			try {
+				// Register the channel with the system.
+				val notificationManager: NotificationManager =
+					context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+				notificationManager.createNotificationChannel(channel)
+			} catch (e: Exception) {
+				Log.e("SmsReceiver", "Exception smsReceiver: $e")
+			}
 		}
 	}
 }
@@ -116,12 +131,30 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RequestPermission(launcher: ActivityResultLauncher<String>? = null) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-		activity.checkSelfPermission(android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+		(activity.checkSelfPermission(android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+				|| activity.checkSelfPermission(android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED)
 	) {
 		when {
 			activity.shouldShowRequestPermissionRationale(android.Manifest.permission.READ_SMS) -> PermissionAlert()
 			// else -> launcher.launch(android.Manifest.permission.READ_SMS)
-			else -> activity.requestPermissions(arrayOf(android.Manifest.permission.READ_SMS), 3093)
+			else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				activity.requestPermissions(
+					arrayOf(
+						android.Manifest.permission.READ_SMS,
+						android.Manifest.permission.RECEIVE_SMS,
+						android.Manifest.permission.POST_NOTIFICATIONS
+					),
+					SMS_PERMISSION_REQUEST_CODE
+				)
+			} else {
+				activity.requestPermissions(
+					arrayOf(
+						android.Manifest.permission.READ_SMS,
+						android.Manifest.permission.RECEIVE_SMS
+					),
+					SMS_PERMISSION_REQUEST_CODE
+				)
+			}
 		}
 	}
 }
@@ -145,7 +178,7 @@ fun PermissionAlert(launcher: ActivityResultLauncher<String>? = null) {
 			TextButton(onClick = {
 				activity.requestPermissions(
 					arrayOf(android.Manifest.permission.READ_SMS),
-					3093
+					SMS_PERMISSION_REQUEST_CODE
 				)
 			}) {
 				Text(text = "OK")
@@ -159,44 +192,19 @@ fun PuyaKhanApp() {
 	Scaffold {
 		PuyaKhanView(it)
 	}
-//	Box (modifier = Modifier.background(MaterialTheme.colorScheme.tertiaryContainer)) {
-//
-//	}
 }
 
 @Composable
 fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 	val clipboardManager = LocalClipboardManager.current
 	val smsList = getSmsList()
-	Column (modifier = Modifier.safeDrawingPadding()) {
-		Text(text="Showing ${smsList.size} sms")
-		LazyColumn(modifier =  Modifier.weight(1f)) {
+	Column(modifier = Modifier.safeDrawingPadding()) {
+		Text(text = "Showing ${smsList.size} sms")
+		LazyColumn(modifier = Modifier.weight(1f), contentPadding = contentPadding) {
 			items(smsList) { sms ->
-				var otp by remember { mutableStateOf("") }
-				val smsBody = sms.body.split("\n").reversed()
-				for (line in smsBody) {
-					if (line.contains("رمز") || line.contains("پویا")) {
-						if (line.contains(":")) {
-							val splits = line.split(":")
-							otp = splits[splits.size - 1].trim()
-							if (otp.length > 10 || !otp.isDigitsOnly()) otp = ""
-							break
-						} else {
-							if (line.contains(" ")) {
-								val splits = line.split(" ")
-								otp = splits[splits.size - 1].trim()
-								if (otp.length > 10 || !otp.isDigitsOnly()) otp = ""
-								break
-							} else {
-								otp = line.trim()
-								if (otp.length > 10 || !otp.isDigitsOnly()) otp = ""
-								break
-							}
-						}
-					}
-				}
-				Text("$otp", modifier = Modifier.selectable(true) {
-					clipboardManager.setText(AnnotatedString("$otp"))
+				val (otp, bank) = getOtpFromSms(sms, true)!!
+				Text("$otp - From $bank", modifier = Modifier.selectable(true) {
+					clipboardManager.setText(AnnotatedString(otp))
 					Toast.makeText(activity, "Copied to Clipboard", Toast.LENGTH_SHORT).show()
 				})
 				Text("")
@@ -205,67 +213,20 @@ fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 				Text("-----------------------------------")
 			}
 		}
-		TextField(value = "", onValueChange = {  }, placeholder = { Text("Placeholder") }, modifier = Modifier
-			.fillMaxWidth())
+		TextField(
+			value = "",
+			onValueChange = { throw IOException("Implementation Failed") },
+			placeholder = { Text("Placeholder") },
+			modifier = Modifier
+				.fillMaxWidth()
+		)
 	}
-}
-
-fun getSmsList(): List<OtpSms> {
-	val otpSmsList = mutableListOf<OtpSms>()
-	val resolver = activity.contentResolver
-	val cursor = resolver.query(
-		android.provider.Telephony.Sms.Inbox.CONTENT_URI,
-		arrayOf("body", "date"),
-		"((body like \"%بلو%\") or (body like \"%بانک%\")) and ((body like \"%رمز%\") or (body like \"%پویا%\")) and (body like \"%مبلغ%\") and (not body like \"%کارمزد%\") ",
-		null,
-		null
-	)
-	cursor.use { c ->
-		while (c!!.moveToNext()) {
-			otpSmsList += OtpSms(
-				c.getString(c.getColumnIndexOrThrow("body")),
-				getDateTime(c.getString(c.getColumnIndexOrThrow("date")))
-			)
-		}
-	}
-	return otpSmsList
-}
-
-@Composable
-fun HeroesApp() {
-	Scaffold(modifier = Modifier.fillMaxSize(), topBar = { HeroesAppTopBar() }) {
-		HeroesView(contentPadding = it)
-	}
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HeroesAppTopBar(modifier: Modifier = Modifier) {
-	CenterAlignedTopAppBar(
-		title = {
-			Text(
-				text = stringResource(R.string.app_name),
-				style = MaterialTheme.typography.displayLarge,
-			)
-		},
-		modifier = modifier
-	)
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun OverallPreview() {
 	PuyaKhanTheme {
-		HeroesApp()
-	}
-}
-
-private fun getDateTime(s: String): String {
-	return try {
-		val sdf = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH)
-		val netDate = Date(s.toLong())
-		sdf.format(netDate)
-	} catch (e: Exception) {
-		e.toString()
+		PuyaKhanApp()
 	}
 }

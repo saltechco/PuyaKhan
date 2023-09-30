@@ -1,8 +1,6 @@
 plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
-	id("com.google.gms.google-services")
-	id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -15,7 +13,7 @@ android {
 		minSdk = 21
 		targetSdk = 34
 		versionCode = 1
-		versionName = "1.0"
+		versionName = "1.3.68"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -67,17 +65,11 @@ dependencies {
 	implementation(libs.ui.tooling.preview)
 	implementation(libs.material3)
 	implementation(libs.fragment.ktx)
-	implementation(libs.navigation.compose)
-	implementation(libs.lifecycle.viewmodel.compose)
-	implementation(platform(libs.firebase.bom))
-	implementation(libs.firebase.crashlytics)
-	implementation(libs.firebase.analytics)
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(libs.espresso.core)
 	androidTestImplementation(platform(libs.compose.bom))
 	androidTestImplementation(libs.ui.test.junit4)
 	debugImplementation(libs.ui.tooling)
-	debugImplementation(libs.fragment.testing)
 	debugImplementation(libs.ui.test.manifest)
 }
