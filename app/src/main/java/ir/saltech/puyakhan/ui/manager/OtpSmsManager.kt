@@ -3,15 +3,16 @@ package ir.saltech.puyakhan.ui.manager
 import android.content.Context
 import androidx.core.text.isDigitsOnly
 import ir.saltech.puyakhan.data.model.OtpSms
-import ir.saltech.puyakhan.ui.view.activity.activity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val OTP_WORDS_PREFERENCES = "otp_words"
+
+const val OTP_SMS_EXPIRATION_TIME = 120_000L
+
 internal const val OTP_CODE_KEY = "otp_code"
 
-class OtpSmsManager(context: Context) {
+class OtpSmsManager {
 
 	object Actions {
 		const val COPY_OTP_ACTION = "ir.saltech.puyakhan.COPY_OTP_ACTION"
@@ -21,21 +22,13 @@ class OtpSmsManager(context: Context) {
 		private var selectionWords = "بانک|بلو&رمز|پویا&مبلغ&!کارمزد"
 		private var recognitionWords = "رمز|پویا"
 
-		fun updateOtpWords(
-			newSelectionWords: String = selectionWords,
-			newRecognitionWords: String = recognitionWords
-		) {
-			selectionWords = newSelectionWords
-			recognitionWords = newRecognitionWords
-		}
-
-		fun getOtpFromSms(sms: OtpSms, showBankName: Boolean = false): Pair<String, String?>? {
+		fun getOtpFromSms(sms: OtpSms, showBankName: Boolean = false): Pair<String, String>? {
 			var otpTemp: String
 			val smsBody = sms.body.split("\n").reversed()
 			val bankName = if (showBankName && (
 						smsBody.last().contains("بانک") || smsBody.last().contains("بلو")
 						)
-			) smsBody.last().trim() else null
+			) smsBody.last().trim() else return null
 			for (line in smsBody) {
 				if (recognizeOtpWords(line)) {
 					if (line.contains(":")) {
@@ -66,9 +59,9 @@ class OtpSmsManager(context: Context) {
 			return null
 		}
 
-		fun getSmsList(): List<OtpSms> {
+		fun getSmsList(context: Context): List<OtpSms> {
 			val otpSmsList = mutableListOf<OtpSms>()
-			val resolver = activity.contentResolver
+			val resolver = context.contentResolver
 			val cursor = resolver.query(
 				android.provider.Telephony.Sms.Inbox.CONTENT_URI,
 				arrayOf("body", "date"),
@@ -118,7 +111,6 @@ class OtpSmsManager(context: Context) {
 				query.delete(query.length - 2, query.length).append(") and")
 			}
 
-			//query.append("((body like \"%بلو%\") or (body like \"%بانک%\")) and ((body like \"%رمز%\") or (body like \"%پویا%\")) and (body like \"%مبلغ%\") and (not body like \"%کارمزد%\") ")
 			return query.removeRange(query.length - 4..<query.length).trim().toString()
 		}
 	}

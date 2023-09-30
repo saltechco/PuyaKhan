@@ -1,11 +1,16 @@
 package ir.saltech.puyakhan.ui.view.activity
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -31,6 +36,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,18 +48,18 @@ import ir.saltech.puyakhan.ui.theme.PermissionNeeded
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import kotlin.system.exitProcess
 
-private const val SMS_PERMISSION_REQUEST_CODE = 3093
 
-lateinit var activity: ComponentActivity
+private const val SMS_PERMISSIONS_REQUEST_CODE = 3093
 
 internal const val NOTIFY_CHANNEL_ID = "otp_sms_codes"
+
+internal const val NOTIFY_GROUP_ID = "ir.saltech.puyakhan.otp_sms_codes"
 
 class MainActivity : ComponentActivity() {
 	// TODO: At the publish moment, uncomment this line and use it instead of onRequestPermissionsResult
 	// private var requestPermissionLauncher: ActivityResultLauncher<String>
 
 	init {
-		activity = this
 		// requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
 		//				isGranted: Boolean ->
 		//			if (isGranted) startProgram() else exitProcess(-1)
@@ -62,6 +68,7 @@ class MainActivity : ComponentActivity() {
 
 	private fun startProgram() {
 		createNotificationChannel(this)
+		disableBatteryLimitations()
 		setContent {
 			PuyaKhanTheme {
 				// A surface container using the 'background' color from the theme
@@ -82,9 +89,78 @@ class MainActivity : ComponentActivity() {
 		}
 	}
 
+	private fun grantScreenOverlayPermission() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (!Settings.canDrawOverlays(this)) {
+				startActivityForResult(
+					Intent(
+						Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+						Uri.parse("package:$packageName")
+					), 9583
+				)
+			}
+		}
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		grantScreenOverlayPermission()
 		startProgram()
+	}
+
+	@RequiresApi(Build.VERSION_CODES.M)
+	@Composable
+	fun RequestPermission(launcher: ActivityResultLauncher<String>? = null) {
+		when {
+			shouldShowRequestPermissionRationale(android.Manifest.permission.READ_SMS) -> PermissionAlert()
+			// else -> launcher.launch(android.Manifest.permission.READ_SMS)
+			else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				requestPermissions(
+					arrayOf(
+						android.Manifest.permission.READ_SMS,
+						android.Manifest.permission.RECEIVE_SMS,
+						android.Manifest.permission.POST_NOTIFICATIONS
+					),
+					SMS_PERMISSIONS_REQUEST_CODE
+				)
+			} else {
+				requestPermissions(
+					arrayOf(
+						android.Manifest.permission.READ_SMS,
+						android.Manifest.permission.RECEIVE_SMS
+					),
+					SMS_PERMISSIONS_REQUEST_CODE
+				)
+			}
+		}
+	}
+
+	@RequiresApi(Build.VERSION_CODES.M)
+	@Composable
+	fun PermissionAlert() {
+		AlertDialog(
+			icon = {
+				Icon(
+					imageVector = PermissionNeeded(),
+					contentDescription = "Permission Needed Icon"
+				)
+			},
+			onDismissRequest = {
+				// Do nothing
+			},
+			title = { Text(text = "Permission Required") },
+			text = { Text(text = "This app requires access to your SMS messages.") },
+			confirmButton = {
+				TextButton(onClick = {
+					requestPermissions(
+						arrayOf(android.Manifest.permission.READ_SMS),
+						SMS_PERMISSIONS_REQUEST_CODE
+					)
+				}) {
+					Text(text = "OK")
+				}
+			},
+		)
 	}
 
 	@Deprecated(
@@ -97,7 +173,7 @@ class MainActivity : ComponentActivity() {
 		grantResults: IntArray
 	) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-		if (requestCode == SMS_PERMISSION_REQUEST_CODE) {
+		if (requestCode == SMS_PERMISSIONS_REQUEST_CODE) {
 			val isGranted = (grantResults.isNotEmpty() &&
 					grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			if (isGranted) startProgram() else exitProcess(-1)
@@ -108,8 +184,8 @@ class MainActivity : ComponentActivity() {
 		// Create the NotificationChannel, but only on API 26+ because
 		// the NotificationChannel class is not in the Support Library.
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			val name = "رمز های یکبار مصرف"
-			val descriptionText = "دریافت رمز های یکبار مصرف"
+			val name = "اعلان رمز یکبار مصرف"
+			val descriptionText = "هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن نمایش داده می شود."
 			val importance = NotificationManager.IMPORTANCE_HIGH
 			val channel = NotificationChannel(NOTIFY_CHANNEL_ID, name, importance).apply {
 				description = descriptionText
@@ -125,65 +201,20 @@ class MainActivity : ComponentActivity() {
 			}
 		}
 	}
-}
 
-@Composable
-fun RequestPermission(launcher: ActivityResultLauncher<String>? = null) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-		(activity.checkSelfPermission(android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
-				|| activity.checkSelfPermission(android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED)
-	) {
-		when {
-			activity.shouldShowRequestPermissionRationale(android.Manifest.permission.READ_SMS) -> PermissionAlert()
-			// else -> launcher.launch(android.Manifest.permission.READ_SMS)
-			else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-				activity.requestPermissions(
-					arrayOf(
-						android.Manifest.permission.READ_SMS,
-						android.Manifest.permission.RECEIVE_SMS,
-						android.Manifest.permission.POST_NOTIFICATIONS
-					),
-					SMS_PERMISSION_REQUEST_CODE
-				)
-			} else {
-				activity.requestPermissions(
-					arrayOf(
-						android.Manifest.permission.READ_SMS,
-						android.Manifest.permission.RECEIVE_SMS
-					),
-					SMS_PERMISSION_REQUEST_CODE
-				)
+	@SuppressLint("BatteryLife")
+	private fun disableBatteryLimitations() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			val intent = Intent()
+			val packageName = packageName
+			val pm = getSystemService(POWER_SERVICE) as PowerManager
+			if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+				intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+				intent.setData(Uri.parse("package:$packageName"))
+				startActivity(intent)
 			}
 		}
 	}
-}
-
-@RequiresApi(Build.VERSION_CODES.M)
-@Composable
-fun PermissionAlert(launcher: ActivityResultLauncher<String>? = null) {
-	AlertDialog(
-		icon = {
-			Icon(
-				imageVector = PermissionNeeded(),
-				contentDescription = "Permission Needed Icon"
-			)
-		},
-		onDismissRequest = {
-			// Do nothing
-		},
-		title = { Text(text = "Permission Required") },
-		text = { Text(text = "This app requires access to your SMS messages.") },
-		confirmButton = {
-			TextButton(onClick = {
-				activity.requestPermissions(
-					arrayOf(android.Manifest.permission.READ_SMS),
-					SMS_PERMISSION_REQUEST_CODE
-				)
-			}) {
-				Text(text = "OK")
-			}
-		},
-	)
 }
 
 @Composable
@@ -196,7 +227,8 @@ fun PuyaKhanApp() {
 @Composable
 fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 	val clipboardManager = LocalClipboardManager.current
-	val smsList = getSmsList()
+	val context = LocalContext.current
+	val smsList = getSmsList(context)
 	Column(modifier = Modifier.safeDrawingPadding()) {
 		Text(text = "Showing ${smsList.size} sms")
 		LazyColumn(modifier = Modifier.weight(1f), contentPadding = contentPadding) {
@@ -204,7 +236,7 @@ fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 				val (otp, bank) = getOtpFromSms(sms, true)!!
 				Text("$otp - From $bank", modifier = Modifier.selectable(true) {
 					clipboardManager.setText(AnnotatedString(otp))
-					Toast.makeText(activity, "Copied to Clipboard", Toast.LENGTH_SHORT).show()
+					Toast.makeText(context, "Copied to Clipboard", Toast.LENGTH_SHORT).show()
 				})
 				Text("")
 				Text("sent on based ${sms.date}")
