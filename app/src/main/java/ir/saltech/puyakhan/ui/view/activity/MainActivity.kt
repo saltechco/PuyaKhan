@@ -40,7 +40,6 @@ import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getSmsList
 import ir.saltech.puyakhan.ui.manager.getDateTime
 import ir.saltech.puyakhan.ui.theme.PermissionNeeded
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
-import java.io.IOException
 import kotlin.system.exitProcess
 
 private const val SMS_PERMISSION_REQUEST_CODE = 3093
@@ -215,7 +214,7 @@ fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 		}
 		TextField(
 			value = "",
-			onValueChange = { throw IOException("Implementation Failed") },
+			onValueChange = { },
 			placeholder = { Text("Placeholder") },
 			modifier = Modifier
 				.fillMaxWidth()
