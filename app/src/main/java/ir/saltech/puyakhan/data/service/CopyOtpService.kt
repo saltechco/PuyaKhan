@@ -1,28 +1,61 @@
 package ir.saltech.puyakhan.data.service
 
 import android.app.Service
-import android.content.ClipData
-import android.content.ClipboardManager
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
-import ir.saltech.puyakhan.ui.manager.OTP_CODE_KEY
+import com.google.android.gms.auth.api.phone.SmsRetriever
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.gms.common.api.Status
+
+internal val CREDENTIAL_PICKER_REQUEST = 42913  // Set to an unused request code
+internal val SMS_CONSENT_REQUEST = 2  // Set to an unused request code
 
 class CopyOtpService : Service() {
+	private val smsVerificationReceiver = object : BroadcastReceiver() {
+		override fun onReceive(context: Context, intent: Intent) {
+			if (SmsRetriever.SMS_RETRIEVED_ACTION == intent.action) {
+				val extras = intent.extras
+				val smsRetrieverStatus = extras?.get(SmsRetriever.EXTRA_STATUS) as Status
+
+				when (smsRetrieverStatus.statusCode) {
+					CommonStatusCodes.SUCCESS -> {
+						// Get consent intent
+						val consentIntent =
+							extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
+						try {
+							// Start activity to show consent dialog to user, activity must be started in
+							// 5 minutes, otherwise you'll receive another TIMEOUT intent
+							Log.i("TAG", "An SMS Received")
+							startActivity(consentIntent!!)
+						} catch (e: ActivityNotFoundException) {
+							// Handle the exception ...
+						}
+					}
+
+					CommonStatusCodes.TIMEOUT -> {
+						// Time out occurred, handle the error.
+					}
+				}
+			}
+		}
+	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		val bundle = intent?.extras!!
-		Log.i("TAG", "Service started!")
-		if (bundle.containsKey(OTP_CODE_KEY)) {
-			val otp = bundle.getString(OTP_CODE_KEY)!!
-			val clipboardManager =
-				getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-			clipboardManager.setPrimaryClip(
-				ClipData(ClipData.newPlainText("otp_code", otp))
-			)
-			Log.i("SmsReceiver", "New OTP Code: $otp")
-		}
+		val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+
+		registerReceiver(
+			smsVerificationReceiver,
+			intentFilter,
+			SmsRetriever.SEND_PERMISSION,
+			null,
+			RECEIVER_EXPORTED
+		)
+
 		return START_STICKY
 	}
 

@@ -55,7 +55,6 @@ android {
 }
 
 dependencies {
-
 	implementation(libs.core.ktx)
 	implementation(libs.lifecycle.runtime.ktx)
 	implementation(libs.lifecycle.viewmodel.compose)
@@ -66,6 +65,8 @@ dependencies {
 	implementation(libs.ui.tooling.preview)
 	implementation(libs.material3)
 	implementation(libs.fragment.ktx)
+	implementation(libs.play.services.auth)
+	implementation(libs.play.services.auth.api)
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(libs.espresso.core)

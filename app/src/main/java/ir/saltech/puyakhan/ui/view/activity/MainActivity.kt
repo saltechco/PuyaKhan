@@ -1,6 +1,7 @@
 package ir.saltech.puyakhan.ui.view.activity
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -41,6 +42,13 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
+import com.google.android.gms.auth.api.credentials.Credential
+import com.google.android.gms.auth.api.credentials.CredentialPickerConfig
+import com.google.android.gms.auth.api.credentials.Credentials
+import com.google.android.gms.auth.api.credentials.HintRequest
+import com.google.android.gms.auth.api.phone.SmsRetriever
+import ir.saltech.puyakhan.data.service.CREDENTIAL_PICKER_REQUEST
+import ir.saltech.puyakhan.data.service.SMS_CONSENT_REQUEST
 import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getOtpFromSms
 import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getSmsList
 import ir.saltech.puyakhan.ui.manager.getDateTime
@@ -53,9 +61,11 @@ private const val SMS_PERMISSIONS_REQUEST_CODE = 3093
 
 internal const val NOTIFY_CHANNEL_ID = "otp_sms_codes"
 
-internal const val NOTIFY_GROUP_ID = "ir.saltech.puyakhan.otp_sms_codes"
+private var wantedAddNewNumber = false
 
 class MainActivity : ComponentActivity() {
+
+
 	// TODO: At the publish moment, uncomment this line and use it instead of onRequestPermissionsResult
 	// private var requestPermissionLauncher: ActivityResultLauncher<String>
 
@@ -67,8 +77,6 @@ class MainActivity : ComponentActivity() {
 	}
 
 	private fun startProgram() {
-		createNotificationChannel(this)
-		disableBatteryLimitations()
 		setContent {
 			PuyaKhanTheme {
 				// A surface container using the 'background' color from the theme
@@ -89,6 +97,58 @@ class MainActivity : ComponentActivity() {
 		}
 	}
 
+	// Construct a request for phone numbers and show the picker
+	private fun requestHint() {
+		val hintRequest = HintRequest.Builder()
+			.setPhoneNumberIdentifierSupported(true)
+			.setHintPickerConfig(
+				CredentialPickerConfig.Builder().setPrompt(8).setShowAddAccountButton(true)
+					.setShowCancelButton(false).build()
+			)
+			.build()
+		val credentialsClient = Credentials.getClient(this)
+		val intent = credentialsClient.getHintPickerIntent(hintRequest)
+		startIntentSenderForResult(
+			intent.intentSender,
+			CREDENTIAL_PICKER_REQUEST,
+			null, 0, 0, 0
+		)
+	}
+
+	@Deprecated("Deprecated in Java")
+	public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		super.onActivityResult(requestCode, resultCode, data)
+		when (requestCode) {
+			CREDENTIAL_PICKER_REQUEST -> {
+				// Obtain the phone number from the result
+				if (resultCode == Activity.RESULT_OK && data != null) {
+					val credential = data.getParcelableExtra<Credential>(Credential.EXTRA_KEY)
+					Toast.makeText(this, "Phone number: " + credential?.id, Toast.LENGTH_SHORT)
+						.show()
+				} else if (resultCode == 1000) {
+					wantedAddNewNumber = true
+				}
+				startProgram()
+			}
+
+			SMS_CONSENT_REQUEST ->
+				// Obtain the phone number from the result
+				if (resultCode == Activity.RESULT_OK && data != null) {
+					// Get SMS message content
+					val message = data.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE)
+					// Extract one-time code from the message and complete verification
+					// `message` contains the entire text of the SMS message, so you will need
+					// to parse the string.
+					Toast.makeText(this, "One time code: $message", Toast.LENGTH_SHORT).show()
+
+					// send one time code to the server
+				} else {
+					// Consent denied. User can type OTC manually.
+				}
+			// ...
+		}
+	}
+
 	private fun grantScreenOverlayPermission() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			if (!Settings.canDrawOverlays(this)) {
@@ -104,7 +164,10 @@ class MainActivity : ComponentActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		grantScreenOverlayPermission()
+		createNotificationChannel(this)
+		//disableBatteryLimitations()
+		//grantScreenOverlayPermission()
+		requestHint()
 		startProgram()
 	}
 
@@ -219,7 +282,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PuyaKhanApp() {
+	if (wantedAddNewNumber) {
+		Toast.makeText(LocalContext.current, "Add new number", Toast.LENGTH_SHORT).show()
+	}
 	Scaffold {
+		val context = LocalContext.current
+		val task = SmsRetriever.getClient(LocalContext.current).startSmsUserConsent(null)
+		task.addOnFailureListener {
+			Toast.makeText(context, "Task failed", Toast.LENGTH_SHORT).show()
+		}.addOnCompleteListener {
+			Toast.makeText(context, "Task completed", Toast.LENGTH_SHORT).show()
+		}
 		PuyaKhanView(it)
 	}
 }
