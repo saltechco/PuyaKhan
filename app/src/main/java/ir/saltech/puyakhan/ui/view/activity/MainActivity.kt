@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -51,9 +50,8 @@ import kotlin.system.exitProcess
 
 private const val SMS_PERMISSIONS_REQUEST_CODE = 3093
 
-internal const val NOTIFY_CHANNEL_ID = "otp_sms_codes"
-
-internal const val NOTIFY_GROUP_ID = "ir.saltech.puyakhan.otp_sms_codes"
+internal const val NOTIFY_OTP_CHANNEL_ID = "ir.saltech.puyakhan.OTP_SMS_CODES"
+internal const val NOTIFY_SERVICE_CHANNEL_ID = "ir.saltech.puyakhan.BACKGROUND_SERVICES"
 
 class MainActivity : ComponentActivity() {
 	// TODO: At the publish moment, uncomment this line and use it instead of onRequestPermissionsResult
@@ -67,8 +65,6 @@ class MainActivity : ComponentActivity() {
 	}
 
 	private fun startProgram() {
-		createNotificationChannel(this)
-		disableBatteryLimitations()
 		setContent {
 			PuyaKhanTheme {
 				// A surface container using the 'background' color from the theme
@@ -89,23 +85,32 @@ class MainActivity : ComponentActivity() {
 		}
 	}
 
-	private fun grantScreenOverlayPermission() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			if (!Settings.canDrawOverlays(this)) {
-				startActivityForResult(
-					Intent(
-						Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-						Uri.parse("package:$packageName")
-					), 9583
-				)
-			}
-		}
-	}
-
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		grantScreenOverlayPermission()
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			createOtpNotifyChannel()
+			createServicesNotifyChannel()
+		}
+		disableBatteryLimitations()
 		startProgram()
+	}
+
+	@Deprecated(
+		"Deprecated but for live edit it's ok",
+		replaceWith = ReplaceWith("requestPermissionLauncher.launch(android.Manifest.permission.READ_SMS)")
+	)
+	override fun onRequestPermissionsResult(
+		requestCode: Int,
+		permissions: Array<out String>,
+		grantResults: IntArray
+	) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+		if (requestCode == SMS_PERMISSIONS_REQUEST_CODE) {
+			val isGranted = (grantResults.isNotEmpty() &&
+					grantResults[0] == PackageManager.PERMISSION_GRANTED)
+			if (isGranted) startProgram() else exitProcess(-1)
+		}
 	}
 
 	@RequiresApi(Build.VERSION_CODES.M)
@@ -163,41 +168,42 @@ class MainActivity : ComponentActivity() {
 		)
 	}
 
-	@Deprecated(
-		"Deprecated but for live edit it's ok",
-		replaceWith = ReplaceWith("requestPermissionLauncher.launch(android.Manifest.permission.READ_SMS)")
-	)
-	override fun onRequestPermissionsResult(
-		requestCode: Int,
-		permissions: Array<out String>,
-		grantResults: IntArray
-	) {
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-		if (requestCode == SMS_PERMISSIONS_REQUEST_CODE) {
-			val isGranted = (grantResults.isNotEmpty() &&
-					grantResults[0] == PackageManager.PERMISSION_GRANTED)
-			if (isGranted) startProgram() else exitProcess(-1)
+	@RequiresApi(Build.VERSION_CODES.O)
+	private fun createOtpNotifyChannel() {
+		val name = "اعلان رمز یکبار مصرف"
+		val descriptionText = "هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن نمایش داده می شود."
+		val importance = NotificationManager.IMPORTANCE_HIGH
+		val channel = NotificationChannel(NOTIFY_OTP_CHANNEL_ID, name, importance).apply {
+			description = descriptionText
+			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
+		(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+			.createNotificationChannel(channel)
 	}
 
-	private fun createNotificationChannel(context: Context) {
-		// Create the NotificationChannel, but only on API 26+ because
-		// the NotificationChannel class is not in the Support Library.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			val name = "اعلان رمز یکبار مصرف"
-			val descriptionText = "هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن نمایش داده می شود."
-			val importance = NotificationManager.IMPORTANCE_HIGH
-			val channel = NotificationChannel(NOTIFY_CHANNEL_ID, name, importance).apply {
-				description = descriptionText
-				lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
-			}
-			try {
-				// Register the channel with the system.
-				val notificationManager: NotificationManager =
-					context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-				notificationManager.createNotificationChannel(channel)
-			} catch (e: Exception) {
-				Log.e("SmsReceiver", "Exception smsReceiver: $e")
+	@RequiresApi(Build.VERSION_CODES.O)
+	private fun createServicesNotifyChannel() {
+		val name = "نمایش رمز یکبار مصرف"
+		val descriptionText =
+			"هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن به صورت پنجره، نمایش داده می شود."
+		val importance = NotificationManager.IMPORTANCE_LOW
+		val channel = NotificationChannel(NOTIFY_SERVICE_CHANNEL_ID, name, importance).apply {
+			description = descriptionText
+			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
+		}
+		(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+			.createNotificationChannel(channel)
+	}
+
+	private fun grantScreenOverlayPermission() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (!Settings.canDrawOverlays(this)) {
+				startActivityForResult(
+					Intent(
+						Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+						Uri.parse("package:$packageName")
+					), 9583
+				)
 			}
 		}
 	}

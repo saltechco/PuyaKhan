@@ -11,17 +11,20 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.telephony.SmsMessage
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.startForegroundService
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpSms
+import ir.saltech.puyakhan.data.service.OtpOverlayService
 import ir.saltech.puyakhan.ui.manager.OTP_CODE_KEY
 import ir.saltech.puyakhan.ui.manager.OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.ui.manager.OtpSmsManager
-import ir.saltech.puyakhan.ui.view.activity.NOTIFY_CHANNEL_ID
+import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import kotlin.random.Random
 
 
@@ -53,13 +56,28 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		clipboardManager.setPrimaryClip(
 			ClipData(ClipData.newPlainText("otp_code", otp))
 		)
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			// check if the user has already granted
+			// the Draw over other apps permission
+			if (Settings.canDrawOverlays(context)) {
+				// start the service based on the android version
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					startForegroundService(context, Intent(context, OtpOverlayService::class.java))
+				} else {
+					context.startService(Intent(context, OtpOverlayService::class.java))
+				}
+			}
+		} else {
+			context.startService(Intent(context, OtpOverlayService::class.java))
+		}
 	}
 
 	private fun showOtpNotification(context: Context, otp: String, bank: String?) {
 		val bigTextStyle = NotificationCompat.BigTextStyle()
 		bigTextStyle.bigText("رمز یکبارمصرف شما $otp می باشد.")
 		bigTextStyle.setBigContentTitle("از طرف ${bank ?: "بانک ناشناخته"}")
-		val builder = NotificationCompat.Builder(context, NOTIFY_CHANNEL_ID)
+		val builder = NotificationCompat.Builder(context, NOTIFY_OTP_CHANNEL_ID)
 			.setOnlyAlertOnce(true)
 			.setSmallIcon(R.drawable.one_time_password_icon)
 			.setContentTitle("رمز یکبار مصرف جدید")
@@ -83,7 +101,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				).build()
 			)
 			.setPriority(NotificationCompat.PRIORITY_HIGH)
-			.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+			.setVisibility(NotificationCompat.VISIBILITY_SECRET)
 			.setTimeoutAfter(OTP_SMS_EXPIRATION_TIME)
 			.setAutoCancel(false)
 			.setUsesChronometer(true)

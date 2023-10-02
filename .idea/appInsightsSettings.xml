@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="ir.saltech.puyakhan" />
-                  <option name="mobileSdkAppId" value="1:406752408726:android:a64fadfd67f23e80d5beb7" />
-                  <option name="projectId" value="saltech-puyakhan-33412" />
-                  <option name="projectNumber" value="406752408726" />
+                  <option name="appId" value="PLACEHOLDER" />
+                  <option name="mobileSdkAppId" value="" />
+                  <option name="projectId" value="" />
+                  <option name="projectNumber" value="" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
