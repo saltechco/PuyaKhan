@@ -5,8 +5,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import ir.saltech.puyakhan.ui.manager.OTP_CODE_KEY
+import android.widget.Toast
+import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.ui.view.components.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.ui.view.components.manager.OTP_CODE_KEY
 
 
 class CopyOtpReceiver : BroadcastReceiver() {
@@ -17,12 +19,12 @@ class CopyOtpReceiver : BroadcastReceiver() {
 			val clipboardManager =
 				context!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 			clipboardManager.setPrimaryClip(
-				ClipData(ClipData.newPlainText("otp_code", otp))
+				ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otp))
 			)
-			Log.i(
-				"SmsReceiver",
-				"New OTP Code: ${clipboardManager.primaryClip?.getItemAt(0)?.text}"
-			)
+			Toast.makeText(
+				context,
+				context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+			).show()
 		}
 	}
 

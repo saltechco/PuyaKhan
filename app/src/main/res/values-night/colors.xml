@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#9CCC65</color>
+    <color name="colorPrimaryDark">#8BC34A</color>
+    <color name="colorOnPrimary">#223600</color>
+    <color name="colorAccent">#26A69A</color>
+    <color name="colorOnAccent">#004D40</color>
+    <color name="colorBackground">#212529</color>
+    <color name="colorOnBackground">#E4E4E4</color>
+    <color name="colorError">#FFB4AB</color>
+    <color name="colorOnError">#690005</color>
+    <color name="colorOutline">#75786C</color>
+    <color name="otpCardBackground">#A6004D40</color>
+    <color name="otpExpiredCardBackground">#A6626262</color>
+    <color name="otpTimeExpireText">#C7E0F2F1</color>
+</resources>

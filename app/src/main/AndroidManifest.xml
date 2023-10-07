@@ -41,7 +41,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".data.service.OtpOverlayService"
+            android:name=".data.service.SelectOtpService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="specialUse"

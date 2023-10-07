@@ -40,11 +40,13 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
-import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getOtpFromSms
-import ir.saltech.puyakhan.ui.manager.OtpSmsManager.Companion.getSmsList
-import ir.saltech.puyakhan.ui.manager.getDateTime
+import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.ui.theme.PermissionNeeded
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
+import ir.saltech.puyakhan.ui.view.components.compose.SettingsView
+import ir.saltech.puyakhan.ui.view.components.manager.OtpManager.Companion.getCodeList
+import ir.saltech.puyakhan.ui.view.components.manager.getDateTime
 import kotlin.system.exitProcess
 
 
@@ -92,6 +94,7 @@ class MainActivity : ComponentActivity() {
 			createOtpNotifyChannel()
 			createServicesNotifyChannel()
 		}
+		val appSettings = App.getSettings(this)
 		disableBatteryLimitations()
 		startProgram()
 	}
@@ -226,7 +229,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PuyaKhanApp() {
 	Scaffold {
-		PuyaKhanView(it)
+		//PuyaKhanView(it)
+		SettingsView()
 	}
 }
 
@@ -234,19 +238,22 @@ fun PuyaKhanApp() {
 fun PuyaKhanView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
 	val clipboardManager = LocalClipboardManager.current
 	val context = LocalContext.current
-	val smsList = getSmsList(context)
+	val codeList = getCodeList(context)
 	Column(modifier = Modifier.safeDrawingPadding()) {
-		Text(text = "Showing ${smsList.size} sms")
+		Text(text = "Showing ${codeList.size} sms")
 		LazyColumn(modifier = Modifier.weight(1f), contentPadding = contentPadding) {
-			items(smsList) { sms ->
-				val (otp, bank) = getOtpFromSms(sms, true)!!
+			items(codeList) { (otp, bank, expire) ->
 				Text("$otp - From $bank", modifier = Modifier.selectable(true) {
 					clipboardManager.setText(AnnotatedString(otp))
-					Toast.makeText(context, "Copied to Clipboard", Toast.LENGTH_SHORT).show()
+					Toast.makeText(
+						context,
+						context.getString(R.string.otp_copied_to_clipboard),
+						Toast.LENGTH_SHORT
+					).show()
 				})
 				Text("")
-				Text("sent on based ${sms.date}")
-				Text("and now date is: ${getDateTime(System.currentTimeMillis().toString())}")
+				Text("sent on based ${expire}")
+				Text("and now date is: ${getDateTime(System.currentTimeMillis())}")
 				Text("-----------------------------------")
 			}
 		}

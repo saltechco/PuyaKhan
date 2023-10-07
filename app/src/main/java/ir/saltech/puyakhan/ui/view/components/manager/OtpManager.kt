@@ -1,18 +1,17 @@
-package ir.saltech.puyakhan.ui.manager
+package ir.saltech.puyakhan.ui.view.components.manager
 
 import android.content.Context
+import android.util.Log
 import androidx.core.text.isDigitsOnly
+import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.model.OtpSms
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
-
-const val OTP_SMS_EXPIRATION_TIME = 120_000L
-
+internal const val OTP_SMS_EXPIRATION_TIME = 120_000L
 internal const val OTP_CODE_KEY = "otp_code"
+internal const val CLIPBOARD_OTP_CODE = "otp_code"
 
-class OtpSmsManager {
+class OtpManager {
 
 	object Actions {
 		const val COPY_OTP_ACTION = "ir.saltech.puyakhan.COPY_OTP_ACTION"
@@ -22,35 +21,38 @@ class OtpSmsManager {
 		private var selectionWords = "بانک|بلو&رمز|پویا&مبلغ&!کارمزد"
 		private var recognitionWords = "رمز|پویا"
 
-		fun getOtpFromSms(sms: OtpSms, showBankName: Boolean = false): Pair<String, String>? {
+		fun getOtpFromSms(sms: OtpSms): OtpCode? {
 			var otpTemp: String
 			val smsBody = sms.body.split("\n").reversed()
-			val bankName = if (showBankName && (
-						smsBody.last().contains("بانک") || smsBody.last().contains("بلو")
-						)
+			val bankName = if (
+				smsBody.last().contains("بانک") ||
+				smsBody.last().contains("بلو")
 			) smsBody.last().trim() else return null
 			for (line in smsBody) {
 				if (recognizeOtpWords(line)) {
 					if (line.contains(":")) {
 						val splits = line.split(":")
 						otpTemp = splits[splits.size - 1].trim()
-						if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return Pair(
+						if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
 							otpTemp,
-							bankName
+							bankName,
+							sms.date
 						)
 					} else {
 						if (line.contains(" ")) {
 							val splits = line.split(" ")
 							otpTemp = splits[splits.size - 1].trim()
-							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return Pair(
+							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
 								otpTemp,
-								bankName
+								bankName,
+								sms.date
 							)
 						} else {
 							otpTemp = line.trim()
-							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return Pair(
+							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
 								otpTemp,
-								bankName
+								bankName,
+								sms.date
 							)
 						}
 					}
@@ -59,7 +61,7 @@ class OtpSmsManager {
 			return null
 		}
 
-		fun getSmsList(context: Context): List<OtpSms> {
+		private fun getSmsList(context: Context): List<OtpSms> {
 			val otpSmsList = mutableListOf<OtpSms>()
 			val resolver = context.contentResolver
 			val cursor = resolver.query(
@@ -73,11 +75,16 @@ class OtpSmsManager {
 				while (c!!.moveToNext()) {
 					otpSmsList += OtpSms(
 						c.getString(c.getColumnIndexOrThrow("body")),
-						getDateTime(c.getString(c.getColumnIndexOrThrow("date")))
+						c.getLong(c.getColumnIndexOrThrow("date"))
 					)
 				}
 			}
 			return otpSmsList
+		}
+
+		fun getCodeList(context: Context) = getSmsList(context).mapNotNull {
+			Log.i("TAG", "${getOtpFromSms(it)}")
+			getOtpFromSms(it)
 		}
 
 		private fun recognizeOtpWords(
@@ -93,10 +100,11 @@ class OtpSmsManager {
 
 		private fun generateSelectionQuery(
 			column: String = "body",
-			newWords: String = selectionWords
+			newWords: String = selectionWords,
 		): String {
 			selectionWords = newWords
 			val query = StringBuilder()
+			val filterTime = System.currentTimeMillis() - OTP_SMS_EXPIRATION_TIME
 			for (andPairedWords in selectionWords.split("&")) {
 				query.append(" (")
 				for (orPairedWord in andPairedWords.split("|")) {
@@ -110,18 +118,11 @@ class OtpSmsManager {
 				}
 				query.delete(query.length - 2, query.length).append(") and")
 			}
-
-			return query.removeRange(query.length - 4..<query.length).trim().toString()
+			return "${
+				query.removeRange(query.length - 4..<query.length).trim()
+			} and date > $filterTime"
 		}
 	}
 }
 
-fun getDateTime(s: String): String {
-	return try {
-		val sdf = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH)
-		val netDate = Date(s.toLong())
-		sdf.format(netDate)
-	} catch (e: Exception) {
-		e.toString()
-	}
-}
+fun getDateTime(timestamp: Long) = Date(timestamp)

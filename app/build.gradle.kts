@@ -13,7 +13,7 @@ android {
 		minSdk = 21
 		targetSdk = 34
 		versionCode = 1
-		versionName = "1.3.68"
+		versionName = "1.4.91"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -65,8 +65,9 @@ dependencies {
 	implementation(libs.ui.graphics)
 	implementation(libs.ui.tooling.preview)
 	implementation(libs.material3)
-	implementation(libs.fragment.ktx)
 	implementation(libs.androidx.cardview)
+	implementation(libs.androidx.recyclerview)
+	implementation(libs.datastore.preferences)
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(libs.espresso.core)

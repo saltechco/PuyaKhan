@@ -11,20 +11,20 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.telephony.SmsMessage
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.startForegroundService
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpSms
-import ir.saltech.puyakhan.data.service.OtpOverlayService
-import ir.saltech.puyakhan.ui.manager.OTP_CODE_KEY
-import ir.saltech.puyakhan.ui.manager.OTP_SMS_EXPIRATION_TIME
-import ir.saltech.puyakhan.ui.manager.OtpSmsManager
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
+import ir.saltech.puyakhan.ui.view.components.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.ui.view.components.manager.OTP_CODE_KEY
+import ir.saltech.puyakhan.ui.view.components.manager.OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.ui.view.components.manager.OtpManager
+import ir.saltech.puyakhan.ui.view.components.window.SelectOtpWindow
 import kotlin.random.Random
 
 
@@ -36,15 +36,15 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			if (bundle != null) {
 				val otpSms = getNewOtpSms(bundle)
 				if (otpSms != null) {
-					val (otp, bank) = OtpSmsManager.getOtpFromSms(otpSms, true)
+					val (otp, bank) = OtpManager.getOtpFromSms(otpSms)
 						?: return
-					if (otp.isNotEmpty() && bank.isNotEmpty()) {
+					if (otp.isNotEmpty() && (bank ?: return).isNotEmpty()) {
 						copyOtpToClipboard(context, otp)
-						Log.i("SmsReceiver", "New OTP Code from $bank: $otp")
 						showOtpNotification(context, otp, bank)
+						SelectOtpWindow.show(context)
 					}
 				}
-			} // bundle is null
+			}
 		} catch (e: Exception) {
 			Log.e("SmsReceiver", "Exception smsReceiver: $e")
 		}
@@ -54,23 +54,12 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		val clipboardManager =
 			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText("otp_code", otp))
+			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otp))
 		)
-
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			// check if the user has already granted
-			// the Draw over other apps permission
-			if (Settings.canDrawOverlays(context)) {
-				// start the service based on the android version
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-					startForegroundService(context, Intent(context, OtpOverlayService::class.java))
-				} else {
-					context.startService(Intent(context, OtpOverlayService::class.java))
-				}
-			}
-		} else {
-			context.startService(Intent(context, OtpOverlayService::class.java))
-		}
+		Toast.makeText(
+			context,
+			context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+		).show()
 	}
 
 	private fun showOtpNotification(context: Context, otp: String, bank: String?) {
@@ -87,13 +76,13 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			.setStyle(bigTextStyle)
 			.addAction(
 				NotificationCompat.Action.Builder(
-					R.drawable.otp_password_copy,
+					R.drawable.otp_action_copy,
 					"کپی کردن",
 					PendingIntent.getBroadcast(
 						context,
 						6749,
 						Intent(context, CopyOtpReceiver::class.java).apply {
-							action = OtpSmsManager.Actions.COPY_OTP_ACTION
+							action = OtpManager.Actions.COPY_OTP_ACTION
 							putExtra(OTP_CODE_KEY, otp)
 						},
 						PendingIntent.FLAG_IMMUTABLE
@@ -128,7 +117,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				if (pdus != null) {
 					val pdusObj = pdus as Array<*>
 					var message = ""
-					var date = ""
+					var date = 0L
 					for (i in pdusObj.indices) {
 						val currentMessage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?, "3gpp")
@@ -136,7 +125,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?)
 						}
 						message += currentMessage.displayMessageBody
-						date = currentMessage.timestampMillis.toString()
+						date = currentMessage.timestampMillis
 					} // end for loop
 					return OtpSms(message, date)
 				} else {

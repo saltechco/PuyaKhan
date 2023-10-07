@@ -5,18 +5,18 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
-import ir.saltech.puyakhan.ui.view.components.OtpOverlayWindow
+import ir.saltech.puyakhan.ui.view.components.window.SelectOtpWindow
 
 private const val OTP_OVERLAY_SERVICE_ID = 8482
 
-class OtpOverlayService : Service() {
+class SelectOtpService : Service() {
 	override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-		startOtpOverlay()
-		OtpOverlayWindow(this).open()
+		showWindowNotification()
+		SelectOtpWindow(this)
 		return START_STICKY
 	}
 
-	private fun startOtpOverlay() {
+	private fun showWindowNotification() {
 		val builder = NotificationCompat.Builder(this, NOTIFY_SERVICE_CHANNEL_ID)
 			.setOnlyAlertOnce(true)
 			.setSilent(true)
