@@ -10,8 +10,8 @@ import ir.saltech.puyakhan.ui.view.components.manager.OTP_SMS_EXPIRATION_TIME
 
 object App {
 	data class Settings(
-		val presentMethod: Int = PresentMethod.Otp.Notify,
-		val expireTime: Long = OTP_SMS_EXPIRATION_TIME,
+		var presentMethod: Int = PresentMethod.Otp.Notify,
+		var expireTime: Long = OTP_SMS_EXPIRATION_TIME,
 	)
 
 	object Keys {
