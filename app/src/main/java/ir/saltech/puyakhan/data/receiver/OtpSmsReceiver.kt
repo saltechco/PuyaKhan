@@ -17,36 +17,52 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpSms
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
-import ir.saltech.puyakhan.ui.view.components.manager.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.ui.view.components.manager.OTP_CODE_KEY
-import ir.saltech.puyakhan.ui.view.components.manager.OTP_SMS_EXPIRATION_TIME
-import ir.saltech.puyakhan.ui.view.components.manager.OtpManager
-import ir.saltech.puyakhan.ui.view.components.window.SelectOtpWindow
+import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.ui.view.component.manager.OTP_CODE_KEY
+import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
+import ir.saltech.puyakhan.ui.view.component.window.SelectOtpWindow
+import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import kotlin.random.Random
 
 
 class OtpSmsReceiver : BroadcastReceiver() {
+	private lateinit var appSettings: App.Settings
+
 	@SuppressLint("UnsafeProtectedBroadcastReceiver")
 	override fun onReceive(context: Context, intent: Intent) {
 		try {
-			val bundle = intent.extras
-			if (bundle != null) {
-				val otpSms = getNewOtpSms(bundle)
-				if (otpSms != null) {
-					val (otp, bank) = OtpManager.getOtpFromSms(otpSms)
-						?: return
-					if (otp.isNotEmpty() && (bank ?: return).isNotEmpty()) {
-						copyOtpToClipboard(context, otp)
-						showOtpNotification(context, otp, bank)
-						SelectOtpWindow.show(context)
-					}
-				}
+			appSettings = App.getSettings(context)
+			val (otp, bank) = OtpManager.getOtpFromSms(getNewOtpSms(intent.extras!!)!!)
+				?: return
+			if (otp.isNotEmpty() && (bank ?: return).isNotEmpty()) {
+				handleReceivedOtp(context, otp, bank)
 			}
 		} catch (e: Exception) {
 			Log.e("SmsReceiver", "Exception smsReceiver: $e")
+		}
+	}
+
+	private fun handleReceivedOtp(context: Context, otp: String, bank: String) {
+		for (presentMethod in appSettings.presentMethods) {
+			when (presentMethod) {
+				App.PresentMethod.Otp.Copy ->
+					copyOtpToClipboard(context, otp)
+
+				App.PresentMethod.Otp.Notify ->
+					showOtpNotification(context, otp, bank)
+
+				App.PresentMethod.Otp.Select ->
+					SelectOtpWindow.show(context)
+
+				else -> throw UnknownPresentMethodException("The Present method must be either of Copy, Notify or Select")
+			}
 		}
 	}
 
@@ -63,6 +79,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	}
 
 	private fun showOtpNotification(context: Context, otp: String, bank: String?) {
+		val expireTime = appSettings.expireTime
 		val bigTextStyle = NotificationCompat.BigTextStyle()
 		bigTextStyle.bigText("رمز یکبارمصرف شما $otp می باشد.")
 		bigTextStyle.setBigContentTitle("از طرف ${bank ?: "بانک ناشناخته"}")
@@ -70,7 +87,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			.setOnlyAlertOnce(true)
 			.setSmallIcon(R.drawable.one_time_password_icon)
 			.setContentTitle("رمز یکبار مصرف جدید")
-			.setWhen(System.currentTimeMillis() + OTP_SMS_EXPIRATION_TIME)
+			.setWhen(System.currentTimeMillis() + expireTime)
 			.setShowWhen(true)
 			.setContentText("برای مشاهده رمز، این را به پایین بکشید.")
 			.setStyle(bigTextStyle)
@@ -91,10 +108,10 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			)
 			.setPriority(NotificationCompat.PRIORITY_HIGH)
 			.setVisibility(NotificationCompat.VISIBILITY_SECRET)
-			.setTimeoutAfter(OTP_SMS_EXPIRATION_TIME)
+			.setTimeoutAfter(expireTime)
 			.setAutoCancel(false)
 			.setUsesChronometer(true)
-			.setWhen(System.currentTimeMillis() + OTP_SMS_EXPIRATION_TIME)
+			.setWhen(System.currentTimeMillis() + expireTime)
 			.setShowWhen(true)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
 			builder.setChronometerCountDown(true)

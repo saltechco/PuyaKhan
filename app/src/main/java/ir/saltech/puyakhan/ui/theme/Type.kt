@@ -12,12 +12,26 @@ import ir.saltech.puyakhan.R
 val Vazir = FontFamily(
 	Font(R.font.vazir_black, FontWeight.Black),
 	Font(R.font.vazir_bold, FontWeight.Bold),
-	Font(R.font.vazir_light, FontWeight.Light),
-	Font(R.font.vazir_regular, FontWeight.Normal)
+	Font(R.font.vazir_regular, FontWeight.Normal),
+	Font(R.font.vazir_light, FontWeight.Light)
 )
 
 // Set of Material typography styles to start with
 val Typography = Typography(
+	headlineMedium = TextStyle(
+		fontFamily = Vazir,
+		fontWeight = FontWeight.Normal,
+		fontSize = 28.sp,
+		lineHeight = 14.sp,
+		letterSpacing = 2.sp
+	),
+	displayMedium = TextStyle(
+		fontFamily = Vazir,
+		fontWeight = FontWeight.Normal,
+		fontSize = 24.sp,
+		lineHeight = 32.sp,
+		letterSpacing = 0.5.sp
+	),
 	bodyLarge = TextStyle(
 		fontFamily = Vazir,
 		fontWeight = FontWeight.Normal,
@@ -25,19 +39,32 @@ val Typography = Typography(
 		lineHeight = 24.sp,
 		letterSpacing = 0.5.sp
 	),
-	displayLarge = TextStyle(
+	bodyMedium = TextStyle(
 		fontFamily = Vazir,
 		fontWeight = FontWeight.Normal,
-		fontSize = 30.sp
+		fontSize = 16.sp,
+		lineHeight = 20.sp,
+		letterSpacing = 0.5.sp
 	),
-	displayMedium = TextStyle(
+	labelLarge = TextStyle(
 		fontFamily = Vazir,
-		fontWeight = FontWeight.Bold,
-		fontSize = 20.sp
+		fontWeight = FontWeight.Normal,
+		fontSize = 14.sp,
+		lineHeight = 18.sp,
+		letterSpacing = 0.5.sp
 	),
-	displaySmall = TextStyle(
+	labelMedium = TextStyle(
 		fontFamily = Vazir,
-		fontWeight = FontWeight.Bold,
-		fontSize = 20.sp
+		fontWeight = FontWeight.Light,
+		fontSize = 12.sp,
+		lineHeight = 18.sp,
+		letterSpacing = 0.5.sp
+	),
+	labelSmall = TextStyle(
+		fontFamily = Vazir,
+		fontWeight = FontWeight.Light,
+		fontSize = 10.sp,
+		lineHeight = 14.sp,
+		letterSpacing = 0.5.sp
 	)
 )

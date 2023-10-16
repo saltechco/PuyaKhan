@@ -2,6 +2,12 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="OtpCardPreview">
+        <State />
+      </entry>
+      <entry key="SettingsPreview">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>

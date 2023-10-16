@@ -1,4 +1,4 @@
-package ir.saltech.puyakhan.ui.view.components.adapter
+package ir.saltech.puyakhan.ui.view.component.adapter
 
 import android.annotation.SuppressLint
 import android.content.ClipData
@@ -18,9 +18,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.ui.view.components.manager.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.ui.view.components.manager.OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 
 
 private const val INTERVAL = 1000L
@@ -28,6 +28,7 @@ private const val INTERVAL = 1000L
 class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 	Adapter<OtpCodesViewAdapter.OtpCodesViewHolder>() {
 	private lateinit var context: Context
+	private lateinit var appSettings: App.Settings
 
 	class OtpCodesViewHolder(v: View) : ViewHolder(v) {
 		val otpCard: CardView = v.findViewById(R.id.otp_card)
@@ -39,6 +40,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 
 	override fun onCreateViewHolder(p0: ViewGroup, p1: Int): OtpCodesViewHolder {
 		context = p0.context
+		appSettings = App.getSettings(context)
 		return OtpCodesViewHolder(
 			LayoutInflater.from(p0.context).inflate(R.layout.layout_template_otp, p0, false)
 		)
@@ -64,7 +66,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		) {
 			override fun onTick(millisUntilFinished: Long) {
 				holder.codeExpireBar.progress =
-					100 - (((System.currentTimeMillis() - otpCodes[position].sentTime).toDouble() / OTP_SMS_EXPIRATION_TIME.toDouble()) * 100).toInt()
+					100 - (((System.currentTimeMillis() - otpCodes[position].sentTime).toDouble() / appSettings.expireTime.toDouble()) * 100).toInt()
 
 				if (holder.codeExpireBar.progress == 0) {
 					Toast.makeText(
@@ -123,7 +125,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 	}
 
 	private fun getOtpCodeText(otpCode: String, bank: String?): String {
-		return "رمز پویا من برای یک تراکنش، در  $bank، $otpCode می باشد."
+		return context.getString(R.string.share_otp_code_text, bank, otpCode)
 	}
 
 	private fun shareOtpCode(otpCode: String, bank: String?) {

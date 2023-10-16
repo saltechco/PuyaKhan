@@ -1,4 +1,4 @@
-package ir.saltech.puyakhan.ui.view.components.window
+package ir.saltech.puyakhan.ui.view.component.window
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -23,12 +23,13 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
-import ir.saltech.puyakhan.ui.view.components.adapter.OtpCodesViewAdapter
-import ir.saltech.puyakhan.ui.view.components.manager.OtpManager
+import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
+import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
 import kotlin.math.roundToInt
 
 private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
@@ -36,11 +37,12 @@ private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
 @SuppressLint("InflateParams")
 class SelectOtpWindow(private val context: Context) {
 	private var wait: Int = 0
-	private val vibrator: Vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+	private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 	private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 	private val layoutInflater =
 		context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 	private val view = layoutInflater.inflate(R.layout.layout_window_select_otp, null)
+	private val appSettings = App.getSettings(context)
 	private var windowParams = WindowManager.LayoutParams(
 		WindowManager.LayoutParams.WRAP_CONTENT,
 		WindowManager.LayoutParams.WRAP_CONTENT,
@@ -73,6 +75,15 @@ class SelectOtpWindow(private val context: Context) {
 		setupWindowDrag(windowDragHandle, windowParent)
 	}
 
+	private fun setupWindowLocation(view: View) {
+		val windowPosition = appSettings.otpWindowPos
+		if (windowPosition != null) {
+			windowParams.x = windowPosition.x
+			windowParams.y = windowPosition.y
+			windowManager.updateViewLayout(view, windowParams)
+		}
+	}
+
 	@SuppressLint("ClickableViewAccessibility")
 	private fun setupWindowDrag(handle: View, parent: View) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -92,13 +103,15 @@ class SelectOtpWindow(private val context: Context) {
 								(e.rawX - (parent.measuredWidth / 1.25.dp)).roundToInt()
 							windowParams.y =
 								(e.rawY - (parent.measuredHeight * 2.25.dp)).roundToInt()
-							Log.d("TAG", "Motion X: ${e.rawX}, Motion Y: ${e.rawY}")
-							Log.d(
-								"TAG",
-								"Window WIDTH: ${parent.measuredWidth}, Window HEIGHT: ${parent.measuredHeight}"
-							)
-							Log.d("TAG", "Window X: ${windowParams.x}, Window Y: ${windowParams.y}")
+//							Log.d("TAG", "Motion X: ${e.rawX}, Motion Y: ${e.rawY}")
+//							Log.d(
+//								"TAG",
+//								"Window WIDTH: ${parent.measuredWidth}, Window HEIGHT: ${parent.measuredHeight}"
+//							)
+//							Log.d("TAG", "Window X: ${windowParams.x}, Window Y: ${windowParams.y}")
 							windowManager.updateViewLayout(parent, windowParams)
+							appSettings.otpWindowPos = App.WindowPosition(windowParams.x, windowParams.y)
+							App.setSettings(context, appSettings)
 						} else {
 							wait += 100
 							Log.e("TAG", "Waiting for ... $wait")
@@ -143,6 +156,7 @@ class SelectOtpWindow(private val context: Context) {
 						er.printStackTrace()
 					} finally {
 						windowManager.addView(view, windowParams)
+						setupWindowLocation(view)
 					}
 				}
 			}

@@ -91,7 +91,9 @@ private fun setupEdgeToEdge(view: View, darkTheme: Boolean, colorScheme: ColorSc
 	WindowCompat.setDecorFitsSystemWindows(window, false)
 	window.statusBarColor = Color.Transparent.toArgb()
 	val navigationBarColor = when {
-		Build.VERSION.SDK_INT >= 29 -> Color(colorScheme.background.toArgb()).copy(alpha = 0.9f).toArgb()
+		Build.VERSION.SDK_INT >= 29 -> Color(colorScheme.background.toArgb()).copy(alpha = 0.9f)
+			.toArgb()
+
 		Build.VERSION.SDK_INT >= 26 -> Color(0xFF, 0xFF, 0xFF, 0x63).toArgb()
 		// Min sdk version for this app is 24, this block is for SDK versions 24 and 25
 		else -> Color(0x00, 0x00, 0x00, 0x50).toArgb()

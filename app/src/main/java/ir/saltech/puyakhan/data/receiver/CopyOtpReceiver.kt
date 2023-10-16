@@ -7,8 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.ui.view.components.manager.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.ui.view.components.manager.OTP_CODE_KEY
+import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.ui.view.component.manager.OTP_CODE_KEY
 
 
 class CopyOtpReceiver : BroadcastReceiver() {

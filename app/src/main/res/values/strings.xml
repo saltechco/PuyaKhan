@@ -17,4 +17,6 @@
     <string name="delete_otp_code_message">آیا از حذف این رمز پویا اطمینان دارید؟</string>
     <string name="otp_codes_empty_view">رمز پویایی وجود ندارد!</string>
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
+    <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
+    <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
 </resources>

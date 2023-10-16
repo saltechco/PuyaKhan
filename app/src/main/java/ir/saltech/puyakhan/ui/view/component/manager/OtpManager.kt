@@ -1,8 +1,9 @@
-package ir.saltech.puyakhan.ui.view.components.manager
+package ir.saltech.puyakhan.ui.view.component.manager
 
 import android.content.Context
 import android.util.Log
 import androidx.core.text.isDigitsOnly
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.model.OtpSms
 import java.util.Date
@@ -67,7 +68,7 @@ class OtpManager {
 			val cursor = resolver.query(
 				android.provider.Telephony.Sms.Inbox.CONTENT_URI,
 				arrayOf("body", "date"),
-				generateSelectionQuery(),
+				generateSelectionQuery(context),
 				null,
 				null
 			)
@@ -99,12 +100,13 @@ class OtpManager {
 		}
 
 		private fun generateSelectionQuery(
+			context: Context,
 			column: String = "body",
-			newWords: String = selectionWords,
+			newWords: String = selectionWords
 		): String {
 			selectionWords = newWords
 			val query = StringBuilder()
-			val filterTime = System.currentTimeMillis() - OTP_SMS_EXPIRATION_TIME
+			val filterTime = System.currentTimeMillis() - App.getSettings(context).expireTime
 			for (andPairedWords in selectionWords.split("&")) {
 				query.append(" (")
 				for (orPairedWord in andPairedWords.split("|")) {

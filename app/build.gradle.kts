@@ -4,6 +4,20 @@ plugins {
 }
 
 android {
+	signingConfigs {
+		getByName("debug") {
+			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
+			storePassword = "SalTech#1402"
+			keyAlias = "PuyaKhan"
+			keyPassword = "SalTech#1402"
+		}
+		create("release") {
+			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
+			storePassword = "SalTech#1402"
+			keyAlias = "PuyaKhan"
+			keyPassword = "SalTech#1402"
+		}
+	}
 	namespace = "ir.saltech.puyakhan"
 	compileSdk = 34
 	buildToolsVersion = "34.0.0"
@@ -12,14 +26,14 @@ android {
 		applicationId = "ir.saltech.puyakhan"
 		minSdk = 21
 		targetSdk = 34
-		versionCode = 1
-		versionName = "1.4.91"
+		versionCode = 1758
+		versionName = "1.7.58"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
 			useSupportLibrary = true
 		}
-		signingConfig = signingConfigs.getByName("debug")
+		signingConfig = signingConfigs.getByName("release")
 		multiDexEnabled = true
 	}
 
@@ -29,6 +43,7 @@ android {
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 			)
+			signingConfig = signingConfigs.getByName("release")
 		}
 		getByName("debug") {
 			signingConfig = signingConfigs.getByName("debug")
@@ -61,6 +76,7 @@ dependencies {
 	implementation(libs.lifecycle.viewmodel.compose)
 	implementation(libs.activity.compose)
 	implementation(platform(libs.compose.bom))
+	implementation(libs.runtime.livedata)
 	implementation(libs.ui)
 	implementation(libs.ui.graphics)
 	implementation(libs.ui.tooling.preview)
