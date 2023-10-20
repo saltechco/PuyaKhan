@@ -19,4 +19,5 @@
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
     <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
     <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
+    <string name="title_activity_background">BackgroundActivity</string>
 </resources>

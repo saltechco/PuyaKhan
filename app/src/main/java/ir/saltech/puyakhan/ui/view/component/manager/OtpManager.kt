@@ -62,13 +62,13 @@ class OtpManager {
 			return null
 		}
 
-		private fun getSmsList(context: Context): List<OtpSms> {
+		private fun getSmsList(context: Context, appSettings: App.Settings): List<OtpSms> {
 			val otpSmsList = mutableListOf<OtpSms>()
 			val resolver = context.contentResolver
 			val cursor = resolver.query(
 				android.provider.Telephony.Sms.Inbox.CONTENT_URI,
 				arrayOf("body", "date"),
-				generateSelectionQuery(context),
+				generateSelectionQuery(appSettings),
 				null,
 				null
 			)
@@ -83,8 +83,7 @@ class OtpManager {
 			return otpSmsList
 		}
 
-		fun getCodeList(context: Context) = getSmsList(context).mapNotNull {
-			Log.i("TAG", "${getOtpFromSms(it)}")
+		fun getCodeList(context: Context, appSettings: App.Settings) = getSmsList(context, appSettings).mapNotNull {
 			getOtpFromSms(it)
 		}
 
@@ -100,13 +99,13 @@ class OtpManager {
 		}
 
 		private fun generateSelectionQuery(
-			context: Context,
+			appSettings: App.Settings,
 			column: String = "body",
 			newWords: String = selectionWords
 		): String {
 			selectionWords = newWords
 			val query = StringBuilder()
-			val filterTime = System.currentTimeMillis() - App.getSettings(context).expireTime
+			val filterTime = System.currentTimeMillis() - appSettings.expireTime
 			for (andPairedWords in selectionWords.split("&")) {
 				query.append(" (")
 				for (orPairedWord in andPairedWords.split("|")) {

@@ -63,7 +63,7 @@ class SelectOtpWindow(private val context: Context) {
 		val otpCodesView = view.findViewById<RecyclerView>(R.id.otp_codes_view)
 		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
 		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
-		val otpCodes = OtpManager.getCodeList(context)
+		val otpCodes = OtpManager.getCodeList(context, appSettings)
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
 			otpCodesView.visibility = View.GONE

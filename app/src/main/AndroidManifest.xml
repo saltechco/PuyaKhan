@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -26,12 +27,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PuyaKhan"
-        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.view.activity.BackgroundActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PuyaKhan">
+            <intent-filter>
+                <action android:name="ir.saltech.puyakhan.action.COPY_OTP_CODE" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.view.activity.MainActivity"
             android:exported="true"
-            android:permission="android.permission.RECEIVE_SMS"
             android:theme="@style/Theme.PuyaKhan"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -40,30 +47,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
             android:name=".data.service.SelectOtpService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="specialUse"
             android:permission="android.permission.FOREGROUND_SERVICE" />
+
         <receiver
             android:name=".data.receiver.OtpSmsReceiver"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.RECEIVE_SMS">
+            android:permission="android.permission.BROADCAST_SMS">
             <intent-filter android:priority="999">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
-            <intent-filter android:priority="998">
+            <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".data.receiver.CopyOtpReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="ir.saltech.puyakhan.action.COPY_OTP_CODE" />
             </intent-filter>
         </receiver>
     </application>

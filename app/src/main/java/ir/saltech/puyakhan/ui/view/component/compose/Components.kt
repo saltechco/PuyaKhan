@@ -170,7 +170,7 @@ fun MinimalHelpText(text: String) {
 }
 
 @Composable
-fun ErrorOutlinedButton(
+fun OutlinedErrorButton(
 	onClick: () -> Unit,
 	content: @Composable () -> Unit
 ) {

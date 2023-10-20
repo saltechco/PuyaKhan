@@ -5,12 +5,6 @@ plugins {
 
 android {
 	signingConfigs {
-		getByName("debug") {
-			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
-			storePassword = "SalTech#1402"
-			keyAlias = "PuyaKhan"
-			keyPassword = "SalTech#1402"
-		}
 		create("release") {
 			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
 			storePassword = "SalTech#1402"
@@ -26,8 +20,8 @@ android {
 		applicationId = "ir.saltech.puyakhan"
 		minSdk = 21
 		targetSdk = 34
-		versionCode = 1758
-		versionName = "1.7.58"
+		versionCode = 159114
+		versionName = "1.5.9.114"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -84,11 +78,13 @@ dependencies {
 	implementation(libs.androidx.cardview)
 	implementation(libs.androidx.recyclerview)
 	implementation(libs.datastore.preferences)
+	implementation(platform(libs.compose.bom))
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(libs.espresso.core)
 	androidTestImplementation(platform(libs.compose.bom))
 	androidTestImplementation(libs.ui.test.junit4)
+	androidTestImplementation(platform(libs.compose.bom))
 	debugImplementation(libs.ui.tooling)
 	debugImplementation(libs.ui.test.manifest)
 }

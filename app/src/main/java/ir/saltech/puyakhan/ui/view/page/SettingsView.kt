@@ -109,6 +109,8 @@ fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
 
 @Composable
 fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
+	val context = LocalContext.current
+	val appSettings = App.getSettings(context)
 	LazyColumn(
 		modifier = Modifier
 			.padding(paddingValues)
@@ -120,8 +122,6 @@ fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 			)
 	) {
 		items(1) {
-			val context = LocalContext.current
-			val appSettings = App.getSettings(context)
 			MethodSelection(context, appSettings)
 			Spacer(modifier = Modifier.height(4.dp))
 			ExpireTimeSelection(context, appSettings)
@@ -220,7 +220,7 @@ fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 						expireTime = 0
 						return@OutlinedTextField
 					}
-					if (time.toIntOrNull() in 1..180) {
+					if (time.toIntOrNull() in 1..3) {
 						expireTime = time.toLong() * 60_000
 						appSettings.expireTime = expireTime
 						App.setSettings(context, appSettings)
@@ -252,6 +252,7 @@ fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 	}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MethodSelection(context: Context, appSettings: App.Settings) {
 	var preferredMethod by remember {
@@ -346,9 +347,10 @@ private fun grantScreenOverlayPermission(context: Context) {
 				activity,
 				Intent(
 					Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-					Uri.parse("package:${context.packageName}")
+					Uri.parse("package:" + context.applicationContext.packageName)
 				), OVERLAY_PERMISSIONS_REQUEST_CODE, null
 			)
+
 		} else {
 			Toast.makeText(context, "این مجوز قبلاً اخذ گردیده است.", Toast.LENGTH_SHORT).show()
 		}

@@ -23,6 +23,7 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpSms
+import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.ui.view.component.manager.OTP_CODE_KEY
@@ -95,12 +96,12 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				NotificationCompat.Action.Builder(
 					R.drawable.otp_action_copy,
 					"کپی کردن",
-					PendingIntent.getBroadcast(
+					PendingIntent.getActivity(
 						context,
 						6749,
-						Intent(context, CopyOtpReceiver::class.java).apply {
-							action = OtpManager.Actions.COPY_OTP_ACTION
-							putExtra(OTP_CODE_KEY, otp)
+						Intent(OtpManager.Actions.COPY_OTP_ACTION).apply {
+							setClass(context.applicationContext, BackgroundActivity::class.java)
+							//putExtra(OTP_CODE_KEY, otp)
 						},
 						PendingIntent.FLAG_IMMUTABLE
 					)

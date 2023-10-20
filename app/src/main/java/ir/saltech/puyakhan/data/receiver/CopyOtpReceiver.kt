@@ -10,7 +10,7 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.ui.view.component.manager.OTP_CODE_KEY
 
-
+@Deprecated(message = "Use BackgroundActivity instead")
 class CopyOtpReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) {
 		val bundle = intent?.extras!!
@@ -23,7 +23,7 @@ class CopyOtpReceiver : BroadcastReceiver() {
 			)
 			Toast.makeText(
 				context,
-				context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+				"رمز پویا $otp کپی شد.", Toast.LENGTH_SHORT
 			).show()
 		}
 	}

@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -252,19 +253,9 @@ fun PuyaKhanContent(
 ) {
 	val context = LocalContext.current
 	val appSettings = App.getSettings(context)
-	val codeList by otpCodesVM.otpCodes.observeAsState(getCodeList(context))
+	val codeList by otpCodesVM.otpCodes.observeAsState(getCodeList(context, appSettings))
 
-	SideEffect {
-		object : CountDownTimer(1000000000, 100) {
-			override fun onTick(millisUntilFinished: Long) {
-				otpCodesVM.onOtpCodesChanged(getCodeList(context))
-			}
-
-			override fun onFinish() {
-				otpCodesVM.onOtpCodesChanged(getCodeList(context))
-			}
-		}.start()
-	}
+	RefreshSmsList(otpCodesVM, context, appSettings)
 
 	AnimatedVisibility(visible = codeList.isEmpty()) {
 		Column(
@@ -296,6 +287,26 @@ fun PuyaKhanContent(
 				}
 			}
 		}
+	}
+}
+
+@Composable
+private fun RefreshSmsList(
+	otpCodesVM: OtpCodesVM,
+	context: Context, appSettings: App.Settings
+) {
+	SideEffect {
+		object : CountDownTimer(10000000000, 3000) {
+
+			override fun onTick(millisUntilFinished: Long) {
+				otpCodesVM.onOtpCodesChanged(getCodeList(context, appSettings))
+			}
+
+			override fun onFinish() {
+				Log.i("TAG", "Sms Code Live Checker has been ended!")
+				this.start()
+			}
+		}.start()
 	}
 }
 
