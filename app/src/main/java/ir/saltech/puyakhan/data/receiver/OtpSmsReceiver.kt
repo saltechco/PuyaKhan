@@ -28,7 +28,7 @@ import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.ui.view.component.manager.OTP_CODE_KEY
 import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
-import ir.saltech.puyakhan.ui.view.component.window.SelectOtpWindow
+import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import kotlin.random.Random
 

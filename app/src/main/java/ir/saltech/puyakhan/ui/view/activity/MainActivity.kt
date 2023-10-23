@@ -1,6 +1,7 @@
 package ir.saltech.puyakhan.ui.view.activity
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
@@ -14,6 +15,7 @@ import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,35 +24,53 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DismissibleNavigationDrawer
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
@@ -59,12 +79,15 @@ import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.LockedDirection
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
+import ir.saltech.puyakhan.ui.view.component.compose.MemorySafety
 import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
 import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
 import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.ui.view.component.manager.OtpManager.Companion.getCodeList
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import ir.saltech.puyakhan.ui.view.page.SettingsView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 
@@ -75,6 +98,7 @@ internal const val NOTIFY_SERVICE_CHANNEL_ID = "ir.saltech.puyakhan.BACKGROUND_S
 
 internal lateinit var activity: ComponentActivity
 internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+internal var memoryLeaked: Boolean = false
 
 class MainActivity : ComponentActivity() {
 	private val permissions =
@@ -121,14 +145,64 @@ class MainActivity : ComponentActivity() {
 						modifier = Modifier.fillMaxSize(),
 						color = MaterialTheme.colorScheme.background
 					) {
+						val appSettings = App.getSettings(this)
 						if (checkAppPermissions()) {
-							PuyaKhanApp()
+							if (appSettings.disclaimerAccepted) {
+								PuyaKhanApp()
+							} else {
+								DisclaimerAcceptation {
+									appSettings.disclaimerAccepted = true
+									App.setSettings(this, appSettings)
+									startProgram()
+								}
+							}
 						} else {
 							RequestPermission()
 						}
 					}
 				}
 			}
+		}
+	}
+
+	@Composable
+	fun DisclaimerAcceptation(
+		dismissible: Boolean = false,
+		onConfirm: () -> Unit
+	) {
+		var dismiss by remember { mutableStateOf(false) }
+		if (!dismiss) {
+			AlertDialog(
+				icon = {
+					Icon(
+						imageVector = Symbols.Default.Disclaimer,
+						contentDescription = "Disclaimer Dialog"
+					)
+				},
+				onDismissRequest = {
+					dismiss = dismissible
+				},
+				title = {
+					Text(
+						text = "سلب مسئولیت",
+						style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)
+					)
+				},
+				text = {
+					Text(
+						text = stringResource(R.string.disclaimer_text),
+						style = MaterialTheme.typography.bodyLarge.copy(
+							textDirection = TextDirection.ContentOrRtl,
+							textAlign = TextAlign.Justify
+						)
+					)
+				},
+				confirmButton = {
+					TextButton(onClick = onConfirm) {
+						Text(text = "پذیرش و ادامه")
+					}
+				}
+			)
 		}
 	}
 
@@ -205,7 +279,7 @@ fun PuyaKhanApp() {
 		mutableStateOf(App.Page.Main)
 	}
 	AnimatedVisibility(visible = page == App.Page.Main) {
-		PuyaKhanView { page = it }
+		PuyaKhanView(page) { page = it }
 	}
 	AnimatedVisibility(visible = page == App.Page.Settings) {
 		SettingsView { page = it }
@@ -213,23 +287,145 @@ fun PuyaKhanApp() {
 }
 
 @Composable
-fun PuyaKhanView(onPageChanged: (App.Page) -> Unit) {
-	Scaffold(
-		topBar = { PuyaKhanTopBar { onPageChanged(it) } }
+fun PuyaKhanView(page: App.Page, onPageChanged: (App.Page) -> Unit) {
+	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+	val scope = rememberCoroutineScope()
+	BackHandler(drawerState.isOpen) {
+		closeDrawer(scope, drawerState)
+	}
+	DismissibleNavigationDrawer(
+		drawerState = drawerState,
+		drawerContent = {
+			ModalDrawerSheet {
+				Spacer(modifier = Modifier.fillMaxHeight(0.45f))
+				Text(
+					"¯\\_( ͡° ͜ʖ ͡°)_/¯",
+					style = MaterialTheme.typography.displaySmall.copy(textAlign = TextAlign.Center),
+					modifier = Modifier
+						.fillMaxWidth()
+				)
+//				Text(
+//					"هنوز ایده\u200cای نداریم!",
+//					style = MaterialTheme.typography.displaySmall.copy(
+//						textAlign = TextAlign.Center,
+//						textDirection = TextDirection.ContentOrRtl,
+//						fontSize = 21.sp,
+//						fontWeight = FontWeight.Light
+//					),
+//					modifier = Modifier
+//						.fillMaxWidth()
+//				)
+
+				//PublishMenu(page, onPageChanged, scope, drawerState)
+			}
+		}
 	) {
-		PuyaKhanContent(it)
+		Scaffold(
+			topBar = {
+				PuyaKhanTopBar(
+					drawerState,
+					onPageChanged = { onPageChanged(it) },
+					onNavigated = {
+						scope.launch {
+							drawerState.apply {
+								if (isClosed) open() else close()
+							}
+						}
+					}
+				)
+			},
+		) {
+			PuyaKhanContent(it)
+		}
+	}
+}
+
+@Deprecated("Currently, There is no any idea for customizing this menu.")
+@Composable
+private fun PublishMenu(
+	page: App.Page,
+	onPageChanged: (App.Page) -> Unit,
+	scope: CoroutineScope,
+	drawerState: DrawerState
+) {
+	Spacer(modifier = Modifier.height(24.dp))
+	NavigationDrawerItem(
+		label = { Text(text = "صفحه اصلی") },
+		icon = {
+			Icon(
+				if (page == App.Page.Main) Symbols.Filled.Home else Symbols.Default.Home,
+				contentDescription = "Home",
+				modifier = Modifier.size(36.dp)
+			)
+		},
+		selected = page == App.Page.Main,
+		onClick = { onPageChanged(App.Page.Main); closeDrawer(scope, drawerState) }
+	)
+	Spacer(modifier = Modifier.height(8.dp))
+	NavigationDrawerItem(
+		label = { Text(text = "درباره ما") },
+		icon = {
+			Icon(
+				if (page == App.Page.Info) Symbols.Filled.Info else Symbols.Default.Info,
+				contentDescription = "Info",
+				modifier = Modifier.size(36.dp)
+			)
+		},
+		selected = page == App.Page.Info,
+		onClick = { onPageChanged(App.Page.Info); closeDrawer(scope, drawerState) }
+	)
+	Spacer(modifier = Modifier.height(8.dp))
+	NavigationDrawerItem(
+		label = { Text(text = "حمایت از ما") },
+		icon = {
+			Icon(
+				if (page == App.Page.RateUs) Symbols.Filled.Rate else Symbols.Default.Rate,
+				contentDescription = "Rate us",
+				modifier = Modifier.size(36.dp)
+			)
+		},
+		selected = page == App.Page.RateUs,
+		onClick = { onPageChanged(App.Page.RateUs); closeDrawer(scope, drawerState) }
+	)
+	Spacer(modifier = Modifier.height(24.dp))
+}
+
+private fun closeDrawer(
+	scope: CoroutineScope,
+	drawerState: DrawerState
+) {
+	scope.launch {
+		drawerState.apply { close() }
 	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PuyaKhanTopBar(onPageChanged: (App.Page) -> Unit) {
+fun PuyaKhanTopBar(
+	drawerState: DrawerState,
+	onPageChanged: (App.Page) -> Unit,
+	onNavigated: () -> Unit
+) {
 	CenterAlignedTopAppBar(
 		title = {
 			Text(
 				stringResource(id = R.string.app_name),
 				style = MaterialTheme.typography.displayMedium
 			)
+		},
+		navigationIcon = {
+			Row {
+				Spacer(modifier = Modifier.width(16.dp))
+				Icon(
+					modifier = Modifier
+						.size(26.dp)
+						.align(Alignment.Bottom)
+						.clickable { onNavigated() },
+					imageVector = if (drawerState.isClosed) Icons.Rounded.Menu else Icons.Rounded.Close,
+					contentDescription = "Show more items"
+				)
+				Spacer(modifier = Modifier.width(16.dp))
+			}
 		},
 		actions = {
 			Spacer(modifier = Modifier.width(16.dp))
@@ -238,7 +434,7 @@ fun PuyaKhanTopBar(onPageChanged: (App.Page) -> Unit) {
 					.size(26.dp)
 					.align(Alignment.Bottom)
 					.clickable { onPageChanged(App.Page.Settings) },
-				imageVector = Symbols.Settings,
+				imageVector = Symbols.Default.Settings,
 				contentDescription = "App Settings"
 			)
 			Spacer(modifier = Modifier.width(16.dp))
@@ -255,7 +451,9 @@ fun PuyaKhanContent(
 	val appSettings = App.getSettings(context)
 	val codeList by otpCodesVM.otpCodes.observeAsState(getCodeList(context, appSettings))
 
-	RefreshSmsList(otpCodesVM, context, appSettings)
+	MemorySafety {
+		RefreshSmsList(otpCodesVM, context, appSettings)
+	}
 
 	AnimatedVisibility(visible = codeList.isEmpty()) {
 		Column(

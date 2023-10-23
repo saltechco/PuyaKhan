@@ -72,7 +72,7 @@ import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
 
 @Composable
 fun SettingsView(onPageChanged: (App.Page) -> Unit) {
-	BackHandler(true) {
+	BackHandler {
 		onPageChanged(App.Page.Main)
 	}
 	Scaffold(topBar = { SettingsTopBar() { onPageChanged(it) } }) {
@@ -98,7 +98,7 @@ fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
 						.size(26.dp)
 						.align(Alignment.Bottom)
 						.clickable { onPageChanged(App.Page.Main) },
-					imageVector = Symbols.Back,
+					imageVector = Symbols.Default.Back,
 					contentDescription = "Back to the main page"
 				)
 				Spacer(modifier = Modifier.width(16.dp))

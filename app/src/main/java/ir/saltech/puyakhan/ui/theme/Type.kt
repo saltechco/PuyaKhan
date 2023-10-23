@@ -25,10 +25,24 @@ val Typography = Typography(
 		lineHeight = 14.sp,
 		letterSpacing = 2.sp
 	),
+	headlineSmall = TextStyle(
+		fontFamily = Vazir,
+		fontWeight = FontWeight.Normal,
+		fontSize = 24.sp,
+		lineHeight = 14.sp,
+		letterSpacing = 2.sp
+	),
 	displayMedium = TextStyle(
 		fontFamily = Vazir,
 		fontWeight = FontWeight.Normal,
 		fontSize = 24.sp,
+		lineHeight = 32.sp,
+		letterSpacing = 0.5.sp
+	),
+	displaySmall = TextStyle(
+		fontFamily = Vazir,
+		fontWeight = FontWeight.Normal,
+		fontSize = 26.sp,
 		lineHeight = 32.sp,
 		letterSpacing = 0.5.sp
 	),

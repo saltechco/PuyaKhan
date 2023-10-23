@@ -1,4 +1,4 @@
-package ir.saltech.puyakhan.ui.view.component.window
+package ir.saltech.puyakhan.ui.view.window
 
 import android.annotation.SuppressLint
 import android.content.Context

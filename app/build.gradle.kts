@@ -5,6 +5,12 @@ plugins {
 
 android {
 	signingConfigs {
+		getByName("debug") {
+			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
+			storePassword = "SalTech#1402"
+			keyAlias = "PuyaKhan"
+			keyPassword = "SalTech#1402"
+		}
 		create("release") {
 			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
 			storePassword = "SalTech#1402"
@@ -20,8 +26,8 @@ android {
 		applicationId = "ir.saltech.puyakhan"
 		minSdk = 21
 		targetSdk = 34
-		versionCode = 159114
-		versionName = "1.5.9.114"
+		versionCode = 100145
+		versionName = "1.5.10.129 RC"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {

@@ -1,9 +1,12 @@
 package ir.saltech.puyakhan.ui.view.component.compose
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.CountDownTimer
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
@@ -45,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -80,15 +84,15 @@ fun PermissionAlert(
 		AlertDialog(
 			icon = {
 				Icon(
-					imageVector = Symbols.PermissionNeeded,
+					imageVector = Symbols.Default.PermissionNeeded,
 					contentDescription = "Permission Needed Icon"
 				)
 			},
 			onDismissRequest = {
 				dismiss = dismissible
 			},
-			title = { Text(text = title) },
-			text = { Text(text = text) },
+			title = { Text(text = title, style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)) },
+			text = { Text(text = text, style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify)) },
 			confirmButton = {
 				TextButton(onClick = onConfirm) {
 					Text(text = "باشه؛ مشکلی نیست")
@@ -96,6 +100,29 @@ fun PermissionAlert(
 			}
 		)
 	}
+}
+
+
+@Composable
+fun MemorySafety(
+	showMessage: Boolean = true,
+	content:
+		@Composable () -> Unit
+) {
+	val context = LocalContext.current
+	val activityManager =
+		context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+	if (!activityManager.isLowRamDevice)
+		content()
+	else
+		if (showMessage)
+			Toast.makeText(
+				context,
+				stringResource(R.string.memory_leaked_error),
+				Toast.LENGTH_SHORT
+			).show()
+		else
+			Log.e("MEMORY_SAFETY", "Memory Leaked Detected! Some features have disabled.")
 }
 
 @Composable
@@ -118,7 +145,7 @@ fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () 
 				.align(Alignment.CenterVertically)
 		) {
 			Icon(
-				imageVector = Symbols.NewTab,
+				imageVector = Symbols.Default.NewTab,
 				contentDescription = contentDescription,
 				modifier = Modifier
 					.padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
@@ -161,7 +188,7 @@ fun MinimalHelpText(text: String) {
 			Spacer(modifier = Modifier.height(4.dp))
 			Icon(
 				modifier = Modifier.size(18.dp),
-				imageVector = Symbols.Info,
+				imageVector = Symbols.Default.Info,
 				contentDescription = "A Help Text",
 				tint = MaterialTheme.colorScheme.outline
 			)
@@ -198,20 +225,24 @@ fun OtpCodeCard(
 	code: OtpCode,
 	onCodeExpired: () -> Unit
 ) {
+	var showRemainingTime by remember { mutableStateOf(false) }
 	var showActions by remember { mutableStateOf(false) }
 	var consumedTime by remember { mutableLongStateOf(System.currentTimeMillis() past code.sentTime) }
 	if (consumedTime <= 0) onCodeExpired()
-	SideEffect {
-		object : CountDownTimer(10000000, 1000) {
-			override fun onTick(millisUntilFinished: Long) {
-				consumedTime = System.currentTimeMillis() past code.sentTime
-				if (consumedTime >= appSettings.expireTime) onFinish()
-			}
+	MemorySafety {
+		showRemainingTime = true
+		SideEffect {
+			object : CountDownTimer(10000000, 1000) {
+				override fun onTick(millisUntilFinished: Long) {
+					consumedTime = System.currentTimeMillis() past code.sentTime
+					if (consumedTime >= appSettings.expireTime) onFinish()
+				}
 
-			override fun onFinish() {
-				onCodeExpired()
-			}
-		}.start()
+				override fun onFinish() {
+					onCodeExpired()
+				}
+			}.start()
+		}
 	}
 	AnimatedVisibility(visible = consumedTime > 0) {
 		Card(
@@ -235,7 +266,9 @@ fun OtpCodeCard(
 					.fillMaxWidth()
 			) {
 				Spacer(modifier = Modifier.height(13.dp))
-				RemainingTime(appSettings.expireTime past consumedTime, appSettings)
+				if (showRemainingTime) {
+					RemainingTime(appSettings.expireTime past consumedTime, appSettings)
+				}
 				// TODO: Redesign the time layout for more icon appearance.
 //				Row {
 //					Spacer(modifier = Modifier.weight(0.9f))
@@ -337,9 +370,7 @@ fun OtpCardPreview() {
 	val otpCode = OtpCode("4729912", "بانک صادرات ایران", 1697436005137)
 	val appSettings = App.getSettings(context)
 	PuyaKhanTheme {
-		OtpCodeCard(context, appSettings, otpCode) {
-
-		}
+		OtpCodeCard(context, appSettings, otpCode) {}
 	}
 }
 

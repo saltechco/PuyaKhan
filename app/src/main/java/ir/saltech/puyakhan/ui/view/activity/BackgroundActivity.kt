@@ -1,12 +1,8 @@
 package ir.saltech.puyakhan.ui.view.activity
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,28 +16,24 @@ class BackgroundActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContent {
-			val context = LocalContext.current
-			val appSettings = App.getSettings(context)
-			val code = OtpManager.getCodeList(context, appSettings).first()
-			// Nothing ...
-			copySelectedCode(context, code)
-			finish()
+			DoCopyTask()
+			finishAffinity()
 		}
 	}
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-	Text(
-		text = "Hello $name!",
-		modifier = modifier
-	)
+fun DoCopyTask() {
+	val context = LocalContext.current
+	val appSettings = App.getSettings(context)
+	val code = OtpManager.getCodeList(context, appSettings).first()
+	copySelectedCode(context, code)
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun BackgroundPreview() {
 	PuyaKhanTheme {
-		Greeting("Android")
+		DoCopyTask()
 	}
 }

@@ -24,20 +24,24 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = APP
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? {
 	var dataFlow: T? = null
 	runBlocking {
-		dataFlow = data.map { preferences ->
-			preferences[key]
-		}.first()
-		Log.w("TAG", "Loading app settings...")
+		launch {
+			dataFlow = data.map { preferences ->
+				preferences[key]
+			}.first()
+			Log.w("TAG", "Loading app settings...")
+		}
 	}
 	return dataFlow
 }
 
 operator fun <T> DataStore<Preferences>.set(key: Preferences.Key<T>, value: T) {
 	runBlocking {
-		edit { preferences ->
-			preferences[key] = value
+		launch {
+			edit { preferences ->
+				preferences[key] = value
+			}
+			Log.w("TAG", "Setting app settings...")
 		}
-		Log.w("TAG", "Setting app settings...")
 	}
 }
 

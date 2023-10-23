@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
-import ir.saltech.puyakhan.ui.view.component.window.SelectOtpWindow
+import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 
 private const val OTP_OVERLAY_SERVICE_ID = 8482
 
