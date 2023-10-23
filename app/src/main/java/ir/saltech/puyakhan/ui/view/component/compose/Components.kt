@@ -26,7 +26,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +36,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -47,12 +47,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ir.saltech.puyakhan.R
@@ -73,60 +75,53 @@ internal object SegmentedButtonOrder {
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
-fun PermissionAlert(
-	title: String,
-	text: String,
-	onConfirm: () -> Unit,
-	dismissible: Boolean = false
+internal fun PermissionAlert(
+	title: String, text: String, onConfirm: () -> Unit, dismissible: Boolean = false
 ) {
 	var dismiss by remember { mutableStateOf(false) }
 	if (!dismiss) {
-		AlertDialog(
-			icon = {
-				Icon(
-					imageVector = Symbols.Default.PermissionNeeded,
-					contentDescription = "Permission Needed Icon"
+		AlertDialog(icon = {
+			Icon(
+				imageVector = Symbols.Default.PermissionNeeded,
+				contentDescription = "Permission Needed Icon"
+			)
+		}, onDismissRequest = {
+			dismiss = dismissible
+		}, title = {
+			Text(
+				text = title,
+				style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)
+			)
+		}, text = {
+			Text(
+				text = text, style = MaterialTheme.typography.bodyLarge.copy(
+					textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify
 				)
-			},
-			onDismissRequest = {
-				dismiss = dismissible
-			},
-			title = { Text(text = title, style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)) },
-			text = { Text(text = text, style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify)) },
-			confirmButton = {
-				TextButton(onClick = onConfirm) {
-					Text(text = "باشه؛ مشکلی نیست")
-				}
+			)
+		}, confirmButton = {
+			TextButton(onClick = onConfirm) {
+				Text(text = "باشه؛ مشکلی نیست")
 			}
-		)
+		})
 	}
 }
 
 
 @Composable
-fun MemorySafety(
-	showMessage: Boolean = true,
-	content:
-		@Composable () -> Unit
+internal fun MemorySafety(
+	showMessage: Boolean = true, content: @Composable () -> Unit
 ) {
 	val context = LocalContext.current
-	val activityManager =
-		context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-	if (!activityManager.isLowRamDevice)
-		content()
-	else
-		if (showMessage)
-			Toast.makeText(
-				context,
-				stringResource(R.string.memory_leaked_error),
-				Toast.LENGTH_SHORT
-			).show()
-		else
-			Log.e("MEMORY_SAFETY", "Memory Leaked Detected! Some features have disabled.")
+	val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+	if (!activityManager.isLowRamDevice) content()
+	else if (showMessage) Toast.makeText(
+		context, stringResource(R.string.memory_leaked_error), Toast.LENGTH_SHORT
+	).show()
+	else Log.e("MEMORY_SAFETY", "Memory Leaked Detected! Some features have disabled.")
 }
 
 @Composable
-fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () -> Unit) {
+internal fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () -> Unit) {
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -134,8 +129,7 @@ fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () 
 			.clip(MaterialTheme.shapes.large)
 			.background(MaterialTheme.colorScheme.surfaceVariant)
 			.selectable(
-				selected = false,
-				onClick = onClick
+				selected = false, onClick = onClick
 			),
 	) {
 		Row(
@@ -166,20 +160,18 @@ fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () 
 }
 
 @Composable
-fun MinimalHelpText(text: String) {
+internal fun MinimalHelpText(text: String) {
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(horizontal = 13.dp, vertical = 8.dp)
 	) {
 		Text(
-			text = text,
-			style = MaterialTheme.typography.labelMedium.copy(
+			text = text, style = MaterialTheme.typography.labelMedium.copy(
 				textAlign = TextAlign.Justify,
 				textDirection = TextDirection.ContentOrRtl,
 				color = MaterialTheme.colorScheme.outline
-			),
-			modifier = Modifier
+			), modifier = Modifier
 				.align(Alignment.CenterVertically)
 				.fillMaxWidth(0.9f)
 		)
@@ -197,33 +189,17 @@ fun MinimalHelpText(text: String) {
 }
 
 @Composable
-fun OutlinedErrorButton(
-	onClick: () -> Unit,
-	content: @Composable () -> Unit
+internal fun LockedDirection(
+	direction: LayoutDirection = LayoutDirection.Ltr, content: @Composable () -> Unit
 ) {
-	OutlinedButton(
-		onClick = onClick,
-		border = BorderStroke(
-			width = 1.dp,
-			color = MaterialTheme.colorScheme.error
-		),
-		colors = ButtonDefaults.outlinedButtonColors(
-			contentColor = MaterialTheme.colorScheme.error,
-			disabledContentColor = MaterialTheme.colorScheme.outline,
-			disabledContainerColor = MaterialTheme.colorScheme.outlineVariant
-		)
-	) {
+	CompositionLocalProvider(LocalLayoutDirection provides direction) {
 		content()
 	}
 }
 
-
 @Composable
-fun OtpCodeCard(
-	context: Context,
-	appSettings: App.Settings,
-	code: OtpCode,
-	onCodeExpired: () -> Unit
+internal fun OtpCodeCard(
+	context: Context, appSettings: App.Settings, code: OtpCode, onCodeExpired: () -> Unit
 ) {
 	var showRemainingTime by remember { mutableStateOf(false) }
 	var showActions by remember { mutableStateOf(false) }
@@ -262,8 +238,7 @@ fun OtpCodeCard(
 			)
 		) {
 			Column(
-				modifier = Modifier
-					.fillMaxWidth()
+				modifier = Modifier.fillMaxWidth()
 			) {
 				Spacer(modifier = Modifier.height(13.dp))
 				if (showRemainingTime) {
@@ -281,8 +256,7 @@ fun OtpCodeCard(
 						.padding(16.dp)
 						.wrapContentHeight(Alignment.Top)
 				) {
-					Text(
-						code.otp,
+					Text(code.otp,
 						style = MaterialTheme.typography.headlineMedium,
 						modifier = Modifier.clickable { copySelectedCode(context, code) })
 					Text(
@@ -298,17 +272,18 @@ fun OtpCodeCard(
 							.padding(8.dp)
 					) {
 						Spacer(modifier = Modifier.weight(1f, true))
-						// TODO: Fix this bug for deleting a otp code
-//						ErrorOutlinedButton(onClick = { consumedTime = 0 }) {
-//							Text("حذف", style = MaterialTheme.typography.labelSmall)
-//						}
-//						Spacer(modifier = Modifier.width(8.dp))
 						OutlinedButton(onClick = { shareSelectedCode(context, code) }) {
-							Text("اشتراک", style = MaterialTheme.typography.labelSmall)
+							Text(
+								stringResource(R.string.otp_card_share),
+								style = MaterialTheme.typography.labelSmall
+							)
 						}
 						Spacer(modifier = Modifier.width(8.dp))
 						Button(onClick = { copySelectedCode(context, code) }) {
-							Text("کپی", style = MaterialTheme.typography.labelSmall)
+							Text(
+								stringResource(R.string.otp_card_copy),
+								style = MaterialTheme.typography.labelSmall
+							)
 						}
 						Spacer(modifier = Modifier.width(8.dp))
 					}
@@ -320,39 +295,31 @@ fun OtpCodeCard(
 
 @Composable
 private fun RemainingTime(
-	remainingTime: Long,
-	appSettings: App.Settings
+	remainingTime: Long, appSettings: App.Settings
 ) {
 	Row {
 		Spacer(modifier = Modifier.width(13.dp))
 		Box(modifier = Modifier.size(28.dp)) {
 			CircularProgressIndicator(
-				progress = remainingTime div appSettings.expireTime,
-				strokeWidth = 2.25.dp
+				progress = remainingTime div appSettings.expireTime, strokeWidth = 2.25.dp
 			)
 			Icon(
 				painter = painterResource(id = R.drawable.otp_code_expiration_remaining_time),
-				contentDescription = "Code Expiration Time",
+				contentDescription = stringResource(R.string.code_expiration_time_cd),
 				tint = MaterialTheme.colorScheme.primary,
 				modifier = Modifier.padding(4.75.dp),
 			)
 		}
 		Spacer(modifier = Modifier.width(5.dp))
 		Text(
-			printTime(remainingTime),
-			style = MaterialTheme.typography.bodyLarge.copy(
-				fontWeight = FontWeight.Bold,
-				letterSpacing = 2.sp,
-				fontSize = 18.sp
-			),
-			textAlign = TextAlign.Center,
-			modifier = Modifier
-				.align(Alignment.Bottom)
+			printTime(remainingTime), style = MaterialTheme.typography.bodyLarge.copy(
+				fontWeight = FontWeight.Bold, letterSpacing = 2.sp, fontSize = 18.sp
+			), textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.Bottom)
 		)
 	}
 }
 
-fun printTime(t: Long): String {
+internal fun printTime(t: Long): String {
 	val minutes = t / 60000
 	val seconds = (t % 60000) / 1000
 	fun twoDigit(number: Long) = if (number < 10) "0" else ""
@@ -365,7 +332,7 @@ fun printTime(t: Long): String {
 	uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
-fun OtpCardPreview() {
+private fun OtpCardPreview() {
 	val context = LocalContext.current
 	val otpCode = OtpCode("4729912", "بانک صادرات ایران", 1697436005137)
 	val appSettings = App.getSettings(context)

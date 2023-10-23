@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ir.saltech.puyakhan.data.model.OtpCode
 
-class OtpCodesVM : ViewModel() {
+internal class OtpCodesVM : ViewModel() {
 
 	private val _otpCodes = MutableLiveData<List<OtpCode>>()
 	val otpCodes: LiveData<List<OtpCode>> = _otpCodes

@@ -11,10 +11,7 @@ import ir.saltech.puyakhan.ui.view.component.manager.OTP_SMS_EXPIRATION_TIME
 
 object App {
 	enum class Page {
-		Main,
-		Settings,
-		RateUs,
-		Info
+		Main, Settings
 	}
 
 	data class Settings(
@@ -32,8 +29,7 @@ object App {
 	}
 
 	data class WindowPosition(
-		var x: Int,
-		var y: Int
+		var x: Int, var y: Int
 	) {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
@@ -66,8 +62,8 @@ object App {
 	fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-		if (settings.otpWindowPos != null)
-			context.dataStore[Key.WindowPosition] = settings.otpWindowPos!!.toStringSet()
+		if (settings.otpWindowPos != null) context.dataStore[Key.WindowPosition] =
+			settings.otpWindowPos!!.toStringSet()
 		context.dataStore[Key.DisclaimerAccepted] = settings.disclaimerAccepted
 	}
 }

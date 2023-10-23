@@ -25,12 +25,12 @@ import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
 
 private const val INTERVAL = 1000L
 
-class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
+internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 	Adapter<OtpCodesViewAdapter.OtpCodesViewHolder>() {
 	private lateinit var context: Context
 	private lateinit var appSettings: App.Settings
 
-	class OtpCodesViewHolder(v: View) : ViewHolder(v) {
+	internal inner class OtpCodesViewHolder(v: View) : ViewHolder(v) {
 		val otpCard: CardView = v.findViewById(R.id.otp_card)
 		val otpCode: TextView = v.findViewById(R.id.otp_code)
 		val copyOtpCode: ImageButton = v.findViewById(R.id.copy_otp_code)
@@ -47,8 +47,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 	}
 
 	override fun onBindViewHolder(
-		holder: OtpCodesViewHolder,
-		@SuppressLint("RecyclerView") position: Int
+		holder: OtpCodesViewHolder, @SuppressLint("RecyclerView") position: Int
 	) {
 		holder.otpCode.text = otpCodes[position].otp
 		holder.copyOtpCode.setOnClickListener {
@@ -56,13 +55,11 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		}
 		holder.shareOtpCode.setOnClickListener {
 			shareOtpCode(
-				otpCodes[position].otp,
-				otpCodes[position].bank
+				otpCodes[position].otp, otpCodes[position].bank
 			)
 		}
 		object : CountDownTimer(
-			100000000,
-			INTERVAL
+			100000000, INTERVAL
 		) {
 			override fun onTick(millisUntilFinished: Long) {
 				holder.codeExpireBar.progress =
@@ -71,7 +68,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 				if (holder.codeExpireBar.progress == 0) {
 					Toast.makeText(
 						context,
-						"مهلت استفاده از رمز پویا ${otpCodes[position].otp} به پایان رسید.",
+						context.getString(R.string.otp_code_expired, otpCodes[position].otp),
 						Toast.LENGTH_SHORT
 					).show()
 					showAsExpiredCode(holder)
@@ -88,8 +85,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 	private fun showAsExpiredCode(holder: OtpCodesViewHolder) {
 		holder.otpCard.setCardBackgroundColor(
 			ContextCompat.getColor(
-				context,
-				R.color.otpExpiredCardBackground
+				context, R.color.otpExpiredCardBackground
 			)
 		)
 		holder.otpCard.isClickable = false
@@ -104,9 +100,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		if (position >= 0) {
 			otpCodes = otpCodes.minusElement(otpCodes[position])
 			Toast.makeText(
-				context,
-				context.getString(R.string.otp_code_deleted),
-				Toast.LENGTH_SHORT
+				context, context.getString(R.string.otp_code_deleted), Toast.LENGTH_SHORT
 			).show()
 			notifyDataSetChanged()
 		}
@@ -119,8 +113,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otpCode))
 		)
 		Toast.makeText(
-			context,
-			context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
 		).show()
 	}
 
@@ -134,8 +127,7 @@ class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		shareIntent.putExtra(Intent.EXTRA_TEXT, getOtpCodeText(otpCode, bank))
 		context.startActivity(
 			Intent.createChooser(
-				shareIntent,
-				context.getString(R.string.send_otp_to)
+				shareIntent, context.getString(R.string.send_otp_to)
 			).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 		)
 	}

@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 
@@ -20,7 +21,7 @@ class SelectOtpService : Service() {
 		val builder = NotificationCompat.Builder(this, NOTIFY_SERVICE_CHANNEL_ID)
 			.setOnlyAlertOnce(true)
 			.setSilent(true)
-			.setContentTitle("در حال نمایش پنجره رمز یکبار مصرف")
+			.setContentTitle(getString(R.string.otp_sms_window_alert))
 			.setPriority(NotificationCompat.PRIORITY_LOW)
 			.setVisibility(NotificationCompat.VISIBILITY_SECRET)
 			.setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -28,6 +29,6 @@ class SelectOtpService : Service() {
 	}
 
 	override fun onBind(intent: Intent): IBinder? {
-		throw UnsupportedOperationException("Not yet implemented")
+		return null
 	}
 }

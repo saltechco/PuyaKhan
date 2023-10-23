@@ -94,8 +94,7 @@ class SelectOtpWindow(private val context: Context) {
 							if (wait == 1000) {
 								vibrator.vibrate(50)
 								handle.backgroundTintList = ContextCompat.getColorStateList(
-									context,
-									R.color.colorAccent
+									context, R.color.colorAccent
 								)
 								wait++
 							}
@@ -103,14 +102,9 @@ class SelectOtpWindow(private val context: Context) {
 								(e.rawX - (parent.measuredWidth / 1.25.dp)).roundToInt()
 							windowParams.y =
 								(e.rawY - (parent.measuredHeight * 2.25.dp)).roundToInt()
-//							Log.d("TAG", "Motion X: ${e.rawX}, Motion Y: ${e.rawY}")
-//							Log.d(
-//								"TAG",
-//								"Window WIDTH: ${parent.measuredWidth}, Window HEIGHT: ${parent.measuredHeight}"
-//							)
-//							Log.d("TAG", "Window X: ${windowParams.x}, Window Y: ${windowParams.y}")
 							windowManager.updateViewLayout(parent, windowParams)
-							appSettings.otpWindowPos = App.WindowPosition(windowParams.x, windowParams.y)
+							appSettings.otpWindowPos =
+								App.WindowPosition(windowParams.x, windowParams.y)
 							App.setSettings(context, appSettings)
 						} else {
 							wait += 100
@@ -121,8 +115,7 @@ class SelectOtpWindow(private val context: Context) {
 
 					MotionEvent.ACTION_UP -> {
 						handle.backgroundTintList = ContextCompat.getColorStateList(
-							context,
-							R.color.otpExpiredCardBackground
+							context, R.color.otpExpiredCardBackground
 						)
 						wait = 0
 					}
@@ -181,8 +174,7 @@ class SelectOtpWindow(private val context: Context) {
 				if (Settings.canDrawOverlays(context)) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 						ContextCompat.startForegroundService(
-							context,
-							Intent(context, SelectOtpService::class.java)
+							context, Intent(context, SelectOtpService::class.java)
 						)
 					} else {
 						context.startService(Intent(context, SelectOtpService::class.java))

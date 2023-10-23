@@ -1,18 +1,15 @@
 package ir.saltech.puyakhan.ui.view.component.manager
 
 import android.content.Context
-import android.util.Log
 import androidx.core.text.isDigitsOnly
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.model.OtpSms
-import java.util.Date
 
 internal const val OTP_SMS_EXPIRATION_TIME = 120_000L
-internal const val OTP_CODE_KEY = "otp_code"
 internal const val CLIPBOARD_OTP_CODE = "otp_code"
 
-class OtpManager {
+internal class OtpManager {
 
 	object Actions {
 		const val COPY_OTP_ACTION = "ir.saltech.puyakhan.COPY_OTP_ACTION"
@@ -25,9 +22,8 @@ class OtpManager {
 		fun getOtpFromSms(sms: OtpSms): OtpCode? {
 			var otpTemp: String
 			val smsBody = sms.body.split("\n").reversed()
-			val bankName = if (
-				smsBody.last().contains("بانک") ||
-				smsBody.last().contains("بلو")
+			val bankName = if (smsBody.last().contains("بانک") || smsBody.last()
+					.contains("بلو")
 			) smsBody.last().trim() else return null
 			for (line in smsBody) {
 				if (recognizeOtpWords(line)) {
@@ -35,25 +31,19 @@ class OtpManager {
 						val splits = line.split(":")
 						otpTemp = splits[splits.size - 1].trim()
 						if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-							otpTemp,
-							bankName,
-							sms.date
+							otpTemp, bankName, sms.date
 						)
 					} else {
 						if (line.contains(" ")) {
 							val splits = line.split(" ")
 							otpTemp = splits[splits.size - 1].trim()
 							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-								otpTemp,
-								bankName,
-								sms.date
+								otpTemp, bankName, sms.date
 							)
 						} else {
 							otpTemp = line.trim()
 							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-								otpTemp,
-								bankName,
-								sms.date
+								otpTemp, bankName, sms.date
 							)
 						}
 					}
@@ -83,13 +73,13 @@ class OtpManager {
 			return otpSmsList
 		}
 
-		fun getCodeList(context: Context, appSettings: App.Settings) = getSmsList(context, appSettings).mapNotNull {
-			getOtpFromSms(it)
-		}
+		fun getCodeList(context: Context, appSettings: App.Settings) =
+			getSmsList(context, appSettings).mapNotNull {
+				getOtpFromSms(it)
+			}
 
 		private fun recognizeOtpWords(
-			otpSmsLine: String,
-			newWords: String = recognitionWords
+			otpSmsLine: String, newWords: String = recognitionWords
 		): Boolean {
 			recognitionWords = newWords
 			for (otpWord in recognitionWords) {
@@ -99,9 +89,7 @@ class OtpManager {
 		}
 
 		private fun generateSelectionQuery(
-			appSettings: App.Settings,
-			column: String = "body",
-			newWords: String = selectionWords
+			appSettings: App.Settings, column: String = "body", newWords: String = selectionWords
 		): String {
 			selectionWords = newWords
 			val query = StringBuilder()
@@ -125,5 +113,3 @@ class OtpManager {
 		}
 	}
 }
-
-fun getDateTime(timestamp: Long) = Date(timestamp)

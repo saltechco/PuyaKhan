@@ -38,7 +38,6 @@ import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,9 +58,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.checkSelfPermission
 import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat.startActivity
+import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.App.PresentMethod
-import ir.saltech.puyakhan.data.util.LockedDirection
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.OVERLAY_PERMISSIONS_REQUEST_CODE
@@ -71,44 +71,41 @@ import ir.saltech.puyakhan.ui.view.component.compose.OpenReferenceButton
 import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
 
 @Composable
-fun SettingsView(onPageChanged: (App.Page) -> Unit) {
+internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
 	BackHandler {
 		onPageChanged(App.Page.Main)
 	}
-	Scaffold(topBar = { SettingsTopBar() { onPageChanged(it) } }) {
+	Scaffold(topBar = { SettingsTopBar { onPageChanged(it) } }) {
 		SettingsContent(it)
 	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
-	CenterAlignedTopAppBar(
-		title = {
-			Text(
-				"تنظیمات",
-				style = MaterialTheme.typography.displayMedium
+private fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
+	CenterAlignedTopAppBar(title = {
+		Text(
+			stringResource(R.string.settings_view_title),
+			style = MaterialTheme.typography.displayMedium
+		)
+	}, navigationIcon = {
+		Row {
+			Spacer(modifier = Modifier.width(16.dp))
+			Icon(
+				modifier = Modifier
+					.size(26.dp)
+					.align(Alignment.Bottom)
+					.clickable { onPageChanged(App.Page.Main) },
+				imageVector = Symbols.Default.Back,
+				contentDescription = stringResource(R.string.back_to_the_main_page_cd)
 			)
-		},
-		navigationIcon = {
-			Row {
-				Spacer(modifier = Modifier.width(16.dp))
-				Icon(
-					modifier = Modifier
-						.size(26.dp)
-						.align(Alignment.Bottom)
-						.clickable { onPageChanged(App.Page.Main) },
-					imageVector = Symbols.Default.Back,
-					contentDescription = "Back to the main page"
-				)
-				Spacer(modifier = Modifier.width(16.dp))
-			}
+			Spacer(modifier = Modifier.width(16.dp))
 		}
-	)
+	})
 }
 
 @Composable
-fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
+private fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 	val context = LocalContext.current
 	val appSettings = App.getSettings(context)
 	LazyColumn(
@@ -117,8 +114,7 @@ fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 			.scrollable(
 				state = rememberScrollableState { delta ->
 					delta
-				},
-				orientation = Orientation.Vertical
+				}, orientation = Orientation.Vertical
 			)
 	) {
 		items(1) {
@@ -127,7 +123,7 @@ fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 			ExpireTimeSelection(context, appSettings)
 			Spacer(modifier = Modifier.height(44.dp))
 			Text(
-				"تنظیمات ارجاعی",
+				stringResource(R.string.referenced_settings),
 				style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
 				modifier = Modifier
 					.fillMaxWidth()
@@ -139,8 +135,7 @@ fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 			GrantWindowOverlayPermission(context)
 			AllowBatteryOptimization(context)
 			Spacer(modifier = Modifier.height(16.dp))
-			if (Build.MANUFACTURER == "Xiaomi")
-				XiaomiUsingWithCaution()
+			if (Build.MANUFACTURER == "Xiaomi") XiaomiUsingWithCaution()
 			SomeUsefulHelps()
 			Spacer(modifier = Modifier.height(16.dp))
 		}
@@ -148,23 +143,22 @@ fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
 }
 
 @Composable
-fun SomeUsefulHelps() {
-	MinimalHelpText(text = "زمانی از غیرفعال کردن محدودیت\u200cهای باتری استفاده کنید که برنامه به خوبی در همه مواقع کار نمی کند.\nسعی کنید حتی الامکان از این کار پرهیز کنید!")
-	// Spacer(modifier = Modifier.height(8.dp))
-	MinimalHelpText(text = "در صورت غیر فعال بودن بعضی از گزینه های نحوه نمایش، مجوز های آنها را اعطا کنید تا فعال شوند.")
+private fun SomeUsefulHelps() {
+	MinimalHelpText(text = stringResource(R.string.disable_battery_limitations_help_text))
+	MinimalHelpText(text = stringResource(R.string.disabled_buttons_help_text))
 }
 
 @Composable
-fun XiaomiUsingWithCaution() {
-	MinimalHelpText(text = "شما از دستگاه شیائومی استفاده می کنید که ممکن است استفاده از ویژگی کپی کردن رمز پویا به صورت مستقیم، به درستی کار نکند.")
+private fun XiaomiUsingWithCaution() {
+	MinimalHelpText(text = stringResource(R.string.xiaomi_device_assertion))
 }
 
 @Composable
-fun GrantWindowOverlayPermission(context: Context) {
+private fun GrantWindowOverlayPermission(context: Context) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 		OpenReferenceButton(
-			title = "اعطای مجوز نمایش پنجره",
-			contentDescription = "Grant Show Small Window permission"
+			title = stringResource(R.string.overlay_window_permission_button),
+			contentDescription = stringResource(R.string.overlay_window_permission_cd)
 		) {
 			grantScreenOverlayPermission(context)
 		}
@@ -172,11 +166,11 @@ fun GrantWindowOverlayPermission(context: Context) {
 }
 
 @Composable
-fun GrantNotificationPermission(context: Context) {
+private fun GrantNotificationPermission(context: Context) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 		OpenReferenceButton(
-			title = "اعطای مجوز دسترسی به اعلان",
-			contentDescription = "Grant Post notification permission"
+			title = stringResource(R.string.notification_permission_request_button),
+			contentDescription = stringResource(R.string.notification_permission_request_cd)
 		) {
 			grantNotificationPermission(context)
 		}
@@ -184,17 +178,17 @@ fun GrantNotificationPermission(context: Context) {
 }
 
 @Composable
-fun AllowBatteryOptimization(context: Context) {
+private fun AllowBatteryOptimization(context: Context) {
 	OpenReferenceButton(
-		title = "غیرفعال کردن محدودیت\u200Cهای باتری",
-		contentDescription = "Disable Battery Limitations"
+		title = stringResource(R.string.disable_battery_limitations_button),
+		contentDescription = stringResource(R.string.disable_battery_limitations_cd)
 	) {
 		disableBatteryLimitations(context)
 	}
 }
 
 @Composable
-fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
+private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 	var expireTime by remember {
 		mutableLongStateOf(appSettings.expireTime)
 	}
@@ -213,8 +207,7 @@ fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 				.padding(16.dp)
 				.fillMaxWidth()
 		) {
-			OutlinedTextField(
-				value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
+			OutlinedTextField(value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
 				onValueChange = { time ->
 					if (time.isEmpty()) {
 						expireTime = 0
@@ -228,21 +221,22 @@ fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 				},
 				placeholder = {
 					Text(
-						"0",
-						textAlign = TextAlign.Center,
-						modifier = Modifier.fillMaxWidth()
+						"0", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
 					)
 				},
 				singleLine = true,
 				textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Center),
 				shape = RoundedCornerShape(15.dp),
-				modifier = Modifier
-					.weight(1.2f),
-				prefix = { Text("دقیقه", modifier = Modifier.padding(end = 8.dp)) }
-			)
+				modifier = Modifier.weight(1.2f),
+				prefix = {
+					Text(
+						stringResource(R.string.code_expiration_time_unit),
+						modifier = Modifier.padding(end = 8.dp)
+					)
+				})
 			Spacer(modifier = Modifier.width(8.dp))
 			Text(
-				":مدت انقضای رمز",
+				stringResource(R.string.code_expiration_time_title),
 				textAlign = TextAlign.Center,
 				modifier = Modifier
 					.weight(1f)
@@ -254,7 +248,7 @@ fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MethodSelection(context: Context, appSettings: App.Settings) {
+private fun MethodSelection(context: Context, appSettings: App.Settings) {
 	var preferredMethod by remember {
 		mutableStateOf(appSettings.presentMethods)
 	}
@@ -271,7 +265,7 @@ fun MethodSelection(context: Context, appSettings: App.Settings) {
 		Column(modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)) {
 			Text(
 				modifier = Modifier.fillMaxWidth(),
-				text = "نحوه دسترسی به رمز پویا جدید",
+				text = stringResource(R.string.otp_code_present_method),
 				style = MaterialTheme.typography.bodyLarge,
 				textAlign = TextAlign.Center
 			)
@@ -289,12 +283,11 @@ fun MethodSelection(context: Context, appSettings: App.Settings) {
 					shape = SegmentedButtonOrder.First,
 					//icon = { Icon(imageVector = Symbols.CopyCode, contentDescription = "Copy code method") },
 				) {
-					Text(text = "کپی")
+					Text(text = stringResource(R.string.otp_copy_method))
 				}
 				SegmentedButton(
 					enabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (checkSelfPermission(
-						context,
-						android.Manifest.permission.POST_NOTIFICATIONS
+						context, android.Manifest.permission.POST_NOTIFICATIONS
 					) == PackageManager.PERMISSION_GRANTED) else true,
 					checked = preferredMethod.contains(PresentMethod.Otp.Notify),
 					onCheckedChange = {
@@ -304,10 +297,9 @@ fun MethodSelection(context: Context, appSettings: App.Settings) {
 							)
 						updatePreferredMethods(appSettings, preferredMethod, context)
 					},
-					//icon = { Icon(imageVector = Symbols.NotifyCode, contentDescription = "Notification code method") },
 					shape = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) SegmentedButtonOrder.Middle else SegmentedButtonOrder.Last
 				) {
-					Text(text = "اعلان")
+					Text(text = stringResource(R.string.otp_notify_method))
 				}
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 					SegmentedButton(
@@ -321,9 +313,8 @@ fun MethodSelection(context: Context, appSettings: App.Settings) {
 							updatePreferredMethods(appSettings, preferredMethod, context)
 						},
 						shape = SegmentedButtonOrder.Last,
-						//icon = { Icon(imageVector = Symbols.ShowCode, contentDescription = "Show a window for code method") },
 					) {
-						Text(text = "نمایش")
+						Text(text = stringResource(R.string.otp_show_method))
 					}
 				}
 			}
@@ -332,9 +323,7 @@ fun MethodSelection(context: Context, appSettings: App.Settings) {
 }
 
 private fun updatePreferredMethods(
-	appSettings: App.Settings,
-	preferredMethod: Set<String>,
-	context: Context
+	appSettings: App.Settings, preferredMethod: Set<String>, context: Context
 ) {
 	appSettings.presentMethods = preferredMethod
 	App.setSettings(context, appSettings)
@@ -344,42 +333,32 @@ private fun grantScreenOverlayPermission(context: Context) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 		if (!Settings.canDrawOverlays(context)) {
 			startActivityForResult(
-				activity,
-				Intent(
+				activity, Intent(
 					Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
 					Uri.parse("package:" + context.applicationContext.packageName)
 				), OVERLAY_PERMISSIONS_REQUEST_CODE, null
 			)
 
 		} else {
-			Toast.makeText(context, "این مجوز قبلاً اخذ گردیده است.", Toast.LENGTH_SHORT).show()
+			Toast.makeText(
+				context, context.getString(R.string.permission_granted_recently), Toast.LENGTH_SHORT
+			).show()
 		}
-	} else {
-		Toast.makeText(
-			context,
-			"نیازی به اخذ این مجوز، برای دستگاه شما نمی باشد.",
-			Toast.LENGTH_SHORT
-		).show()
 	}
 }
 
 private fun grantNotificationPermission(context: Context) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 		if (checkSelfPermission(
-				context,
-				android.Manifest.permission.POST_NOTIFICATIONS
+				context, android.Manifest.permission.POST_NOTIFICATIONS
 			) != PackageManager.PERMISSION_GRANTED
 		) {
 			permissionLauncher.launch(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS))
 		} else {
-			Toast.makeText(context, "این مجوز قبلاً اخذ گردیده است.", Toast.LENGTH_SHORT).show()
+			Toast.makeText(
+				context, context.getString(R.string.permission_granted_recently), Toast.LENGTH_SHORT
+			).show()
 		}
-	} else {
-		Toast.makeText(
-			context,
-			"نیازی به اخذ این مجوز، برای دستگاه شما نمی باشد.",
-			Toast.LENGTH_SHORT
-		).show()
 	}
 }
 
@@ -396,13 +375,14 @@ private fun disableBatteryLimitations(context: Context) {
 		} else {
 			Toast.makeText(
 				context,
-				"محدودیت\u200Cهای باتری قبلاً خاموش شده اند!",
+				context.getString(R.string.battery_optimization_disabled),
 				Toast.LENGTH_SHORT
 			).show()
 		}
 	} else {
-		Toast.makeText(context, "این دستگاه از این قابلیت پشتیبانی نمی‌کند.", Toast.LENGTH_SHORT)
-			.show()
+		Toast.makeText(
+			context, context.getString(R.string.device_doesnt_support), Toast.LENGTH_SHORT
+		).show()
 	}
 }
 
@@ -411,7 +391,7 @@ private fun disableBatteryLimitations(context: Context) {
 	uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
-fun SettingsPreview() {
+private fun SettingsPreview() {
 	PuyaKhanTheme {
 		SettingsView {}
 	}

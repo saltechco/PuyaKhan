@@ -105,12 +105,11 @@ private fun setupEdgeToEdge(view: View, darkTheme: Boolean, colorScheme: ColorSc
 }
 
 @Composable
-fun PuyaKhanTheme(
+internal fun PuyaKhanTheme(
 	darkTheme: Boolean = isSystemInDarkTheme(),
 	// Dynamic color is available on Android 12+
 	// Dynamic color in this app is turned off for learning purposes
-	dynamicColor: Boolean = true,
-	content: @Composable () -> Unit
+	dynamicColor: Boolean = true, content: @Composable () -> Unit
 ) {
 	val colorScheme = when {
 		dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -129,9 +128,6 @@ fun PuyaKhanTheme(
 	}
 
 	MaterialTheme(
-		colorScheme = colorScheme,
-		typography = Typography,
-		shapes = Shapes,
-		content = content
+		colorScheme = colorScheme, typography = Typography, shapes = Shapes, content = content
 	)
 }

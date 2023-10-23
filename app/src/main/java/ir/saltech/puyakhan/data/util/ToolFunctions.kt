@@ -19,63 +19,46 @@ import kotlinx.coroutines.runBlocking
 
 private const val APPLICATION_DATASTORE = "app_data"
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = APPLICATION_DATASTORE)
+private const val DATASTORE_TAG = "APP_DATA_STORE"
 
-operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? {
+internal val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = APPLICATION_DATASTORE)
+
+internal operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? {
 	var dataFlow: T? = null
 	runBlocking {
 		launch {
 			dataFlow = data.map { preferences ->
 				preferences[key]
 			}.first()
-			Log.w("TAG", "Loading app settings...")
+			Log.w(DATASTORE_TAG, "Loading app settings...")
 		}
 	}
 	return dataFlow
 }
 
-operator fun <T> DataStore<Preferences>.set(key: Preferences.Key<T>, value: T) {
+internal operator fun <T> DataStore<Preferences>.set(key: Preferences.Key<T>, value: T) {
 	runBlocking {
 		launch {
 			edit { preferences ->
 				preferences[key] = value
 			}
-			Log.w("TAG", "Setting app settings...")
+			Log.w(DATASTORE_TAG, "Saving app settings...")
 		}
 	}
 }
 
-fun until(end: Long, start: Long = System.currentTimeMillis(), action: (Long) -> Unit) {
-	runBlocking {
-		launch {
-			repeat((end - start).toInt()) {
-				action(start + it.toLong())
-				delay(1000)
-			}
-		}
-	}
-}
-
-operator fun Int.div(dp: Dp): Float {
+internal operator fun Int.div(dp: Dp): Float {
 	return this / dp.value
 }
 
-operator fun Float.minus(dp: Dp): Float {
+internal operator fun Float.minus(dp: Dp): Float {
 	return this - dp.value
 }
 
-infix fun Long.past(much: Long): Long {
+internal infix fun Long.past(much: Long): Long {
 	return this - much
 }
 
-infix operator fun Long.div(l: Long): Float {
+internal infix operator fun Long.div(l: Long): Float {
 	return (this.toDouble() / l.toDouble()).toFloat()
 }
-
-@Composable
-fun LockedDirection(direction: LayoutDirection = LayoutDirection.Ltr, content: @Composable () -> Unit) {
-	CompositionLocalProvider(LocalLayoutDirection provides direction) {
-		content()
-	}
-}
-
