@@ -1,4 +1,4 @@
-# PuyaKhan   ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)
+# PuyaKhan   ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=1.9.10&color=purple)
 ###### Made By SalTech
 
 Nowadays, Payment and Banking services are online, so it isn't necessary to go to an ATM and do your work through it.
