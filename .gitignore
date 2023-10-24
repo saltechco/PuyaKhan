@@ -14,3 +14,5 @@
 .cxx
 local.properties
 /AppKey.jks
+/app/build/
+/app/release/
