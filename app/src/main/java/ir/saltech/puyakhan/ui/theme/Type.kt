@@ -10,8 +10,6 @@ import ir.saltech.puyakhan.R
 
 
 val Vazir = FontFamily(
-	Font(R.font.vazir_black, FontWeight.Black),
-	Font(R.font.vazir_bold, FontWeight.Bold),
 	Font(R.font.vazir_regular, FontWeight.Normal),
 	Font(R.font.vazir_light, FontWeight.Light)
 )
