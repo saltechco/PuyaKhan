@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Content Descriptions -->
-    <string name="otp_code_icon_cd">OTP Code</string>
-    <string name="app_settings_cd">App Settings</string>
-    <string name="copy_otp_code_cd">Copy OTP Code</string>
-    <string name="share_otp_code_cd">Share OTP Code</string>
-    <string name="delete_otp_code_cd">Delete OTP Code</string>
-    <string name="close_select_otp_code_cd">Close select OTP code</string>
-    <string name="select_otp_code_icon_cd">SelectOTP Code Icon</string>
-    <string name="back_to_the_main_page_cd">Back to the main page</string>
-    <string name="disclaimer_dialog_cd">Disclaimer Dialog</string>
-    <string name="code_expiration_time_cd">Code Expiration Time</string>
-    <string name="disable_battery_limitations_cd">Disable Battery Limitations</string>
-    <string name="notification_permission_request_cd">Grant Post notification permission</string>
-    <string name="overlay_window_permission_cd">Grant Show Small Window permission</string>
+    <string name="otp_code_icon_cd" translatable="false">OTP Code</string>
+    <string name="app_settings_cd" translatable="false">App Settings</string>
+    <string name="copy_otp_code_cd" translatable="false">Copy OTP Code</string>
+    <string name="share_otp_code_cd" translatable="false">Share OTP Code</string>
+    <string name="delete_otp_code_cd" translatable="false">Delete OTP Code</string>
+    <string name="close_select_otp_code_cd" translatable="false">Close select OTP code</string>
+    <string name="select_otp_code_icon_cd" translatable="false">SelectOTP Code Icon</string>
+    <string name="back_to_the_main_page_cd" translatable="false">Back to the main page</string>
+    <string name="disclaimer_dialog_cd" translatable="false">Disclaimer Dialog</string>
+    <string name="code_expiration_time_cd" translatable="false">Code Expiration Time</string>
+    <string name="disable_battery_limitations_cd" translatable="false">Disable Battery Limitations</string>
+    <string name="notification_permission_request_cd" translatable="false">Grant Post notification permission</string>
+    <string name="overlay_window_permission_cd" translatable="false">Grant Show Small Window permission</string>
 
     <!-- Common Strings -->
     <string name="app_name">پویا خوان</string>
