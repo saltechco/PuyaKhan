@@ -13,7 +13,7 @@
     <string name="code_expiration_time_cd" translatable="false">Code Expiration Time</string>
     <string name="disable_battery_limitations_cd" translatable="false">Disable Battery Limitations</string>
     <string name="notification_permission_request_cd" translatable="false">Grant Post notification permission</string>
-    <string name="overlay_window_permission_cd" translatable="false">Grant Show Small Window permission</string>
+    <string name="overlay_window_permission_cd">Grant Show Small Window permission</string>
 
     <!-- Common Strings -->
     <string name="app_name">پویا خوان</string>
