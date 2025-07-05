@@ -7,12 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.checkSelfPermission
 import androidx.core.app.ActivityCompat.startActivityForResult
-import androidx.core.content.ContextCompat.startActivity
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.App.PresentMethod
@@ -69,6 +66,7 @@ import ir.saltech.puyakhan.ui.view.activity.permissionLauncher
 import ir.saltech.puyakhan.ui.view.component.compose.MinimalHelpText
 import ir.saltech.puyakhan.ui.view.component.compose.OpenReferenceButton
 import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
+import androidx.core.net.toUri
 
 @Composable
 internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
@@ -323,7 +321,7 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 }
 
 private fun updatePreferredMethods(
-	appSettings: App.Settings, preferredMethod: Set<String>, context: Context
+	appSettings: App.Settings, preferredMethod: Set<String>, context: Context,
 ) {
 	appSettings.presentMethods = preferredMethod
 	App.setSettings(context, appSettings)
@@ -335,7 +333,7 @@ private fun grantScreenOverlayPermission(context: Context) {
 			startActivityForResult(
 				activity, Intent(
 					Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-					Uri.parse("package:" + context.applicationContext.packageName)
+					("package:" + context.applicationContext.packageName).toUri()
 				), OVERLAY_PERMISSIONS_REQUEST_CODE, null
 			)
 
@@ -367,11 +365,11 @@ private fun disableBatteryLimitations(context: Context) {
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 		val intent = Intent()
 		val packageName = context.packageName
-		val pm = context.getSystemService(ComponentActivity.POWER_SERVICE) as PowerManager
+		val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
 		if (!pm.isIgnoringBatteryOptimizations(packageName)) {
 			intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-			intent.setData(Uri.parse("package:$packageName"))
-			startActivity(context, intent, null)
+			intent.setData("package:$packageName".toUri())
+			context.startActivity(intent, null)
 		} else {
 			Toast.makeText(
 				context,

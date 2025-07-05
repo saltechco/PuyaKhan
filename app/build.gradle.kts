@@ -1,6 +1,7 @@
 plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
+	alias(libs.plugins.kotlinCompose)
 }
 
 android {
@@ -19,8 +20,7 @@ android {
 		}
 	}
 	namespace = "ir.saltech.puyakhan"
-	compileSdk = 34
-	buildToolsVersion = "34.0.0"
+	compileSdk = 36
 
 	defaultConfig {
 		applicationId = "ir.saltech.puyakhan"
@@ -50,17 +50,11 @@ android {
 		}
 	}
 	compileOptions {
-		sourceCompatibility = JavaVersion.VERSION_17
-		targetCompatibility = JavaVersion.VERSION_17
-	}
-	kotlinOptions {
-		jvmTarget = "17"
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
 	}
 	buildFeatures {
 		compose = true
-	}
-	composeOptions {
-		kotlinCompilerExtensionVersion = "1.5.3"
 	}
 	packaging {
 		resources {
