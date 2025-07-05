@@ -16,7 +16,7 @@ internal class OtpManager {
 	}
 
 	companion object {
-		private var selectionWords = "بانک|بلو&رمز|پویا&مبلغ&!کارمزد"
+		private var selectionWords = "بانک|بلو|محرمانه&رمز|پویا&مبلغ&!کارمزد"
 		private var recognitionWords = "رمز|پویا"
 
 		fun getOtpFromSms(sms: OtpSms): OtpCode? {

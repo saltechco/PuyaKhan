@@ -16,3 +16,9 @@ local.properties
 /AppKey.jks
 /app/build/
 /app/release/
+/*.jks
+*.aar
+*.jar
+*.pom
+*.module
+maven-metadata-local.xml
