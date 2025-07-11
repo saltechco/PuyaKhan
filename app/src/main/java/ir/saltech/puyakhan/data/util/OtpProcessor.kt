@@ -43,12 +43,28 @@ private val englishNegative = listOf(
  * @return The extracted OTP as a String, or null if no valid OTP is found.
  */
 fun extractOtp(message: String): String? {
+	val allNumericSequences = findItems(message, "(?<!\\d)(\\d{4,8})(?!\\d)")
+
+	// 2. Post-filter to remove numbers that are clearly part of a date or time.
+	val codeCandidates = allNumericSequences.filterNot { candidate ->
+		val indexAfterCode = candidate.index + candidate.text.length
+		if (indexAfterCode < message.length) {
+			val charAfter = message[indexAfterCode]
+			// Filter out if followed by a date separator
+			if (charAfter == '/' || charAfter == '-') return@filterNot true
+		}
+		val indexBeforeCode = candidate.index - 1
+		if (indexBeforeCode >= 0) {
+			val charBefore = message[indexBeforeCode]
+			// Filter out if preceded by a date or time separator
+			if (charBefore == '/' || charBefore == '-' || charBefore == ':') return@filterNot true
+		}
+		false
+	}
+
 
 	// 1. Find all potential numeric codes in the message
-	val codeCandidates = mutableListOf<FoundItem>()
-	Pattern.compile("\\b(\\d{4,8})\\b").matcher(message).results().forEach {
-		codeCandidates.add(FoundItem(it.group(1), it.start(1)))
-	}
+//	val codeCandidates = findItems(message)
 
 	if (codeCandidates.isEmpty()) {
 		return null
@@ -60,8 +76,18 @@ fun extractOtp(message: String): String? {
 
 	// Handle ambiguous "کد" and "code"
 	val ambiguousKeywords = findKeywords(message, listOf("کد", "code"))
-	val allNegativeContextKeywords = negativeKeywords + findAmbiguousNegative(message, ambiguousKeywords, persianNegative, englishNegative)
-	val allPositiveContextKeywords = positiveKeywords + findAmbiguousPositive(message, ambiguousKeywords, persianNegative, englishNegative)
+	val allNegativeContextKeywords = negativeKeywords + findAmbiguousNegative(
+		message,
+		ambiguousKeywords,
+		persianNegative,
+		englishNegative
+	)
+	val allPositiveContextKeywords = positiveKeywords + findAmbiguousPositive(
+		message,
+		ambiguousKeywords,
+		persianNegative,
+		englishNegative
+	)
 
 	if (allPositiveContextKeywords.isEmpty()) {
 		return null // No positive signal in the message
@@ -87,12 +113,25 @@ fun extractOtp(message: String): String? {
 	return scoredCandidates.filter { it.score != -1 }.minByOrNull { it.score }?.code
 }
 
+private fun findItems(message: String, regex: String): MutableList<FoundItem> {
+	val foundItems = mutableListOf<FoundItem>()
+	Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(message)
+		.results().forEach {
+			foundItems.add(FoundItem(it.group(1), it.start(1)))
+		}
+	return foundItems
+}
+
 // Helper function to find all occurrences of a list of keywords
 private fun findKeywords(message: String, keywords: List<String>): List<FoundItem> {
 	val found = mutableListOf<FoundItem>()
 	keywords.forEach { keyword ->
 		// Use regex for whole-word matching for English keywords
-		val pattern = if (keyword.first().isLetter() && keyword.first() <= 'z') "\\b${Pattern.quote(keyword)}\\b" else Pattern.quote(keyword)
+		val pattern = if (keyword.first().isLetter() && keyword.first() <= 'z') "\\b${
+			Pattern.quote(
+				keyword
+			)
+		}\\b" else Pattern.quote(keyword)
 		Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(message).results().forEach {
 			found.add(FoundItem(keyword, it.start()))
 		}
@@ -101,57 +140,77 @@ private fun findKeywords(message: String, keywords: List<String>): List<FoundIte
 }
 
 // Helper to find ambiguous keywords that are likely negative
-private fun findAmbiguousNegative(message: String, ambiguous: List<FoundItem>, pNeg: List<String>, eNeg: List<String>): List<FoundItem> {
+private fun findAmbiguousNegative(
+	message: String,
+	ambiguous: List<FoundItem>,
+	pNeg: List<String>,
+	eNeg: List<String>,
+): List<FoundItem> {
 	return ambiguous.filter {
-		val contextAfter = message.substring(it.index, minOf(message.length, it.index + 25)).lowercase()
+		val contextAfter =
+			message.substring(it.index, minOf(message.length, it.index + 25)).lowercase()
 		val contextBefore = message.substring(maxOf(0, it.index - 25), it.index).lowercase()
-		pNeg.any { neg -> contextAfter.contains(neg) } || eNeg.any { neg -> contextBefore.contains(neg) }
+		pNeg.any { neg -> contextAfter.contains(neg) } || eNeg.any { neg ->
+			contextBefore.contains(
+				neg
+			)
+		}
 	}
 }
 
 // Helper to find ambiguous keywords that are likely positive
-private fun findAmbiguousPositive(message: String, ambiguous: List<FoundItem>, pNeg: List<String>, eNeg: List<String>): List<FoundItem> {
+private fun findAmbiguousPositive(
+	message: String,
+	ambiguous: List<FoundItem>,
+	pNeg: List<String>,
+	eNeg: List<String>,
+): List<FoundItem> {
 	return ambiguous.filterNot {
-		val contextAfter = message.substring(it.index, minOf(message.length, it.index + 25)).lowercase()
+		val contextAfter =
+			message.substring(it.index, minOf(message.length, it.index + 25)).lowercase()
 		val contextBefore = message.substring(maxOf(0, it.index - 25), it.index).lowercase()
-		pNeg.any { neg -> contextAfter.contains(neg) } || eNeg.any { neg -> contextBefore.contains(neg) }
+		pNeg.any { neg -> contextAfter.contains(neg) } || eNeg.any { neg ->
+			contextBefore.contains(
+				neg
+			)
+		}
 	}
 }
 
 
 // --- Example Usage ---
 fun main() {
-    val messages = listOf(
-        // --- Standard OTPs (should be found) ---
-        "کد تایید شما: 123456",
-        "رمز یکبار مصرف شما 9876 می باشد.",
-        "Your access code is 778899",
-        "556677 کد ورود شما به اپلیکیشن است.",
-        "Your security code is 454545",
-        "کد شناسایی شما 887766 است",
-        "کد اعتبارسنجی: 112233",
-        "Your 2FA code is 998877",
+	val messages = listOf(
+		// --- Standard OTPs (should be found) ---
+		"کد تایید شما: 123456",
+		"رمز یکبار مصرف شما 9876 می باشد.",
+		"Your access code is 778899",
+		"556677 کد ورود شما به اپلیکیشن است.",
+		"Your security code is 454545",
+		"کد شناسایی شما 887766 است",
+		"کد اعتبارسنجی: 112233",
+		"Your 2FA code is 998877",
 
-        // --- Non-OTPs (should be ignored) ---
-        "کد سفارش شما : 231122 از خریدتان متشکریم.",
-        "کد پیگیری مرسوله: 565656",
-        "Your tracking code is T12345B.",
-        "کد پشتیبانی شما 102030 است.",
-        "شناسه رزرو شما 998877 است.",
-        "Your booking reference is 112233.",
-        "شماره قرارداد شما 456789 است.",
+		// --- Non-OTPs (should be ignored) ---
+		"کد سفارش شما : 231122 از خریدتان متشکریم.",
+		"کد پیگیری مرسوله: 565656",
+		"Your tracking code is T12345B.",
+		"کد پشتیبانی شما 102030 است.",
+		"شناسه رزرو شما 998877 است.",
+		"Your booking reference is 112233.",
+		"شماره قرارداد شما 456789 است.",
 
-        // --- The tricky composite message (should now work correctly) ---
-        "The order code: 12812211 the login code is : 818221",
+		// --- The tricky composite message (should now work correctly) ---
+		"The order code: 12812211 the login code is : 818221",
 
-        // --- Multiple کد words (should now work correctly) ---
-        "کد مرسوله: 123456 کد تخفیف: 789012",
-        "کد سفارش: 111111 کد پیگیری: 222222",
-        "کد تخفیف: 132811\nکد تأیید: 819911",
+		// --- Multiple کد words (should now work correctly) ---
+		"کد مرسوله: 123456 کد تخفیف: 789012",
+		"کد سفارش: 111111 کد پیگیری: 222222",
+		"کد تخفیف: 132811\nکد تأیید: 819911",
 
-        // --- New failing case (should now work correctly) ---
-        "محرمانه\nخرید\nنامبرلند\n1,930,000\nرمز34195\n1404/04/17-08:49:55"
-    )
+		// --- New failing case (should now work correctly) ---
+		"محرمانه\nخرید\nنامبرلند\n1,930,000\nرمز34195\n1404/04/17-08:49:55"
+	)
 
 	println("--- Running Rewritten Advanced Logic ---")
 	for (sms in messages) {
