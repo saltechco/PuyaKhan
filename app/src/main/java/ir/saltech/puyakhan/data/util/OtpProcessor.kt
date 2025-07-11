@@ -10,8 +10,9 @@ private data class ScoredCode(val code: String, val score: Int)
 private val persianPositive = listOf(
 	"رمز", "گذرواژه", "تأیید", "تایید", "فعال سازی", "فعالسازی", "ورود",
 	"موقت", "دسترسی", "احراز هویت", "یکبار مصرف", "یک بار مصرف", "شناسایی", "امنیتی",
-	"اعتبارسنجی", "احراز", "کلید", "کد فعال‌سازی", "رمز یک‌بار مصرف", "کد امنیتی"
+	"اعتبارسنجی", "اعتبار سنجی", "احراز", "کلید", "کد فعال‌سازی", "رمز یک‌بار مصرف", "کد امنیتی"
 )
+
 private val englishPositive = listOf(
 	"password", "otp", "verification", "passcode", "pin", "auth", "login",
 	"access", "token", "security code", "authentication", "one-time", "2fa",
@@ -19,13 +20,13 @@ private val englishPositive = listOf(
 	"2-factor", "multi-factor", "confirmation code"
 )
 
-private val persianNegative = listOf(
+val persianNegative = listOf(
 	"سفارش", "پیگیری", "مرسوله", "محصول", "کالا", "فاکتور", "شبا", "بارکد",
 	"تخفیف", "ملی", "اقتصادی", "پشتیبانی", "قرعه کشی", "شناسه", "پستی",
 	"مشتری", "پرواز", "رزرو", "بلیت", "صورتحساب", "اعتبار", "بسته", "حواله",
 	"بارنامه", "قرارداد", "رهگیری", "پرداخت", "شماره مشتری"
 )
-private val englishNegative = listOf(
+val englishNegative = listOf(
 	"order", "tracking", "promo", "discount", "invoice", "support", "raffle",
 	"ticket", "booking", "reference", "confirmation", "customer id", "flight", "shipment",
 	"bill", "package", "credit", "contract", "id", "receipt", "order number", "tracking number",
@@ -33,16 +34,87 @@ private val englishNegative = listOf(
 )
 
 /**
+ * Main data class to hold all extracted information from a financial SMS.
+ */
+data class TransactionInfo(
+	val bankName: String? = null,
+	val amount: String? = null,
+	val otp: String? = null
+)
+
+// --- Main public function to extract all transaction info ---
+
+/**
+ * Analyzes an SMS message to extract transaction details including OTP,
+ * bank name, and transaction amount.
+ *
+ * @param message The SMS content to parse.
+ * @return A [TransactionInfo] object containing the extracted data.
+ */
+fun extractTransactionInfo(message: String): TransactionInfo {
+	val otp = extractOtp(message)
+	val bankName = extractBankName(message)
+	val amount = extractAmount(message)
+
+	return TransactionInfo(bankName = bankName, amount = amount, otp = otp)
+}
+
+
+// --- Private helper functions for specific data extraction ---
+
+/**
+ * Extracts the transaction amount from the message.
+ * It primarily looks for numbers formatted with commas (e.g., 1,234,567),
+ * as this is a strong indicator of a monetary value, even without specific keywords.
+ * If not found, it falls back to looking for numbers after various amount-related keywords.
+ */
+private fun extractAmount(message: String): String? {
+	// Strategy 1: Find numbers formatted with commas. This is the most reliable signal.
+	val commaAmountPattern = Pattern.compile("\\b\\d{1,3}(?:,\\d{3})+\\b")
+	val commaAmountMatcher = commaAmountPattern.matcher(message)
+	if (commaAmountMatcher.find()) {
+		return commaAmountMatcher.group(0) // group(0) is the whole match
+	}
+
+	// Strategy 2 (Fallback): Find numbers after various amount-related keywords.
+	val keywords = listOf("مبلغ", "فی", "\\bprice\\b", "\\bamount\\b").joinToString("|")
+	val keywordAmountPattern = Pattern.compile("(?:$keywords)\\s*:?\\s*([\\d,]+)", Pattern.CASE_INSENSITIVE)
+	val keywordAmountMatcher = keywordAmountPattern.matcher(message)
+	if (keywordAmountMatcher.find()) {
+		return keywordAmountMatcher.group(1)
+	}
+
+	return null
+}
+
+/**
+ * Extracts the bank name from the message using a regex.
+ * Looks for the keyword "بانک" and captures the descriptive text following it.
+ */
+private fun extractBankName(message: String): String? {
+	// This regex finds "بانک" (optionally surrounded by '*') and captures the text after it on the same line.
+	val pattern = Pattern.compile("(?:\\*\\s*)?بانک\\s+([^*\\n\\r]+)")
+	val matcher = pattern.matcher(message)
+	return if (matcher.find()) {
+		// Reconstruct the full name for a clean output
+		"بانک " + matcher.group(1)?.trim()
+	} else {
+		null
+	}
+}
+
+
+/**
  * This function extracts a 4-to-8-digit OTP (One-Time Password) from a given message string.
- * It uses an advanced contextual analysis algorithm. Instead of a simple regex, it finds all
- * potential codes and all keywords, then intelligently associates each code with its nearest
- * keyword to determine its validity. This approach accurately handles complex messages
- * containing multiple different types of codes.
+ * It uses an advanced contextual analysis algorithm.
  *
  * @param message The SMS or message content to parse.
  * @return The extracted OTP as a String, or null if no valid OTP is found.
  */
 fun extractOtp(message: String): String? {
+	// --- Structured and Final Expanded Keyword Datasets for maximum accuracy ---
+
+	// 1. Find all potential numeric codes in the message.
 	val allNumericSequences = findItems(message, "(?<!\\d)(\\d{4,8})(?!\\d)")
 
 	// 2. Post-filter to remove numbers that are clearly part of a date or time.
@@ -50,21 +122,15 @@ fun extractOtp(message: String): String? {
 		val indexAfterCode = candidate.index + candidate.text.length
 		if (indexAfterCode < message.length) {
 			val charAfter = message[indexAfterCode]
-			// Filter out if followed by a date separator
 			if (charAfter == '/' || charAfter == '-') return@filterNot true
 		}
 		val indexBeforeCode = candidate.index - 1
 		if (indexBeforeCode >= 0) {
 			val charBefore = message[indexBeforeCode]
-			// Filter out if preceded by a date or time separator
 			if (charBefore == '/' || charBefore == '-' || charBefore == ':') return@filterNot true
 		}
 		false
 	}
-
-
-	// 1. Find all potential numeric codes in the message
-//	val codeCandidates = findItems(message)
 
 	if (codeCandidates.isEmpty()) {
 		return null
@@ -122,8 +188,7 @@ private fun findItems(message: String, regex: String): MutableList<FoundItem> {
 	return foundItems
 }
 
-// Helper function to find all occurrences of a list of keywords
-private fun findKeywords(message: String, keywords: List<String>): List<FoundItem> {
+private fun findKeywords(message: String, keywords: List<String>): MutableList<FoundItem> {
 	val found = mutableListOf<FoundItem>()
 	keywords.forEach { keyword ->
 		// Use regex for whole-word matching for English keywords
@@ -181,40 +246,79 @@ private fun findAmbiguousPositive(
 // --- Example Usage ---
 fun main() {
 	val messages = listOf(
-		// --- Standard OTPs (should be found) ---
+		"""
+        *بانک قرض الحسنه مهر ايران*
+        خريد
+        سازمان پژوهش و برنامه ریزی آموزشی
+        مبلغ 1,570,000 ريال
+        رمز 505679
+        زمان اعتبار رمز 20:12:16
+        """.trimIndent(),
+		"""
+        محرمانه
+        خرید
+        نامبرلند
+        1,930,000
+        رمز34785
+        1404/04/17-08:49:55
+        """.trimIndent(),
+		"کد تخفیف: 132811\nکد تأیید: 819911",
 		"کد تایید شما: 123456",
+
 		"رمز یکبار مصرف شما 9876 می باشد.",
+
 		"Your access code is 778899",
+
 		"556677 کد ورود شما به اپلیکیشن است.",
+
 		"Your security code is 454545",
+
 		"کد شناسایی شما 887766 است",
+
 		"کد اعتبارسنجی: 112233",
+
 		"Your 2FA code is 998877",
 
-		// --- Non-OTPs (should be ignored) ---
+
+
+// --- Non-OTPs (should be ignored) ---
+
 		"کد سفارش شما : 231122 از خریدتان متشکریم.",
+
 		"کد پیگیری مرسوله: 565656",
+
 		"Your tracking code is T12345B.",
+
 		"کد پشتیبانی شما 102030 است.",
+
 		"شناسه رزرو شما 998877 است.",
+
 		"Your booking reference is 112233.",
+
 		"شماره قرارداد شما 456789 است.",
 
-		// --- The tricky composite message (should now work correctly) ---
+
+
+// --- The tricky composite message (should now work correctly) ---
+
 		"The order code: 12812211 the login code is : 818221",
 
-		// --- Multiple کد words (should now work correctly) ---
-		"کد مرسوله: 123456 کد تخفیف: 789012",
-		"کد سفارش: 111111 کد پیگیری: 222222",
-		"کد تخفیف: 132811\nکد تأیید: 819911",
 
-		// --- New failing case (should now work correctly) ---
-		"محرمانه\nخرید\nنامبرلند\n1,930,000\nرمز34195\n1404/04/17-08:49:55"
+
+// --- Multiple کد words (should now work correctly) ---
+
+		"کد مرسوله: 123456 کد تخفیف: 789012",
+
+		"کد سفارش: 111111 کد پیگیری: 222222",
 	)
 
-	println("--- Running Rewritten Advanced Logic ---")
-	for (sms in messages) {
-		val otp = extractOtp(sms)
-		println("Message: \"$sms\" -> OTP: ${otp ?: "Not Found"}")
+	println("--- Running Full Transaction Parser ---")
+	messages.forEachIndexed { index, sms ->
+		val info = extractTransactionInfo(sms)
+		println("--- Message ${index + 1} ---")
+		println("Bank: ${info.bankName ?: "Not Found"}")
+		println("Amount: ${info.amount ?: "Not Found"}")
+		println("OTP: ${info.otp ?: "Not Found"}")
+		println("--------------------")
 	}
 }
