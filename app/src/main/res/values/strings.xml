@@ -29,16 +29,18 @@
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
     <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
     <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
-    <string name="disclaimer_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.</string>
+    <string name="disclaimer_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.\n* ضمناْ‌ این برنامه به صورت متن باز ارائه شده است.</string>
     <string name="memory_leaked_error">برخی از عملکرد های این برنامه برای دستگاه شما، متأسفانه هنوز بهینه نشده است!</string>
     <string name="unknown_bank">بانک ناشناخته</string>
     <string name="your_new_otp_code_is">رمز یکبارمصرف شما %s می باشد.</string>
     <string name="otp_code_from_bank">از %s</string>
+    <string name="otp_code_with_price">مبلغ %s</string>
+    <string name="otp_code_from_bank_with_price">از %s | مبلغ %s</string>
     <string name="otp_sms_notification_title">رمز یکبار مصرف جدید</string>
     <string name="otp_sms_notification_short_message">برای مشاهده رمز، این را به پایین بکشید.</string>
     <string name="copy_otp_code">کپی کردن</string>
     <string name="otp_sms_window_alert">در حال نمایش پنجره رمز یکبار مصرف</string>
-    <string name="disclaimer_dialog_title">سلب مسئولیت</string>
+    <string name="disclaimer_dialog_title">حریم شخصی</string>
     <string name="discalimer_accept">پذیرش و ادامه</string>
     <string name="app_permission_title">نیازمند مجوز دسترسی</string>
     <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.</string>
@@ -66,5 +68,6 @@
     <string name="settings_view_title">تنظیمات</string>
     <string name="otp_notify_method">اعلان</string>
     <string name="otp_copy_method">کپی</string>
+    <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
 
 </resources>

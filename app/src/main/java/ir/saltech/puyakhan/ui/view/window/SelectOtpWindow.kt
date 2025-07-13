@@ -29,7 +29,9 @@ import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
-import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
+import ir.saltech.puyakhan.data.util.OtpManager
+import ir.saltech.puyakhan.data.util.OtpManager.Companion.getCodeList
+import ir.saltech.puyakhan.data.util.OtpProcessor
 import kotlin.math.roundToInt
 
 private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
@@ -63,7 +65,8 @@ class SelectOtpWindow(private val context: Context) {
 		val otpCodesView = view.findViewById<RecyclerView>(R.id.otp_codes_view)
 		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
 		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
-		val otpCodes = OtpManager.getCodeList(context, appSettings)
+//		val otpCodes = OtpManager.getCodeList(context, appSettings)
+		val otpCodes = OtpProcessor.receivedOtpQueue
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
 			otpCodesView.visibility = View.GONE

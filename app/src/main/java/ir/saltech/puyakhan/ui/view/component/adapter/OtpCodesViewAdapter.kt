@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
 
 
 private const val INTERVAL = 1000L

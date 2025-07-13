@@ -334,7 +334,7 @@ internal fun printTime(t: Long): String {
 @Composable
 private fun OtpCardPreview() {
 	val context = LocalContext.current
-	val otpCode = OtpCode("4729912", "بانک صادرات ایران", 1697436005137)
+	val otpCode = OtpCode("4729912", "بانک صادرات ایران", "", 1697436005137)
 	val appSettings = App.getSettings(context)
 	PuyaKhanTheme {
 		OtpCodeCard(context, appSettings, otpCode) {}

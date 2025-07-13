@@ -2,36 +2,32 @@ package ir.saltech.puyakhan.ui.view.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import ir.saltech.puyakhan.data.model.App
-import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
-import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
 
 internal class BackgroundActivity : ComponentActivity() {
+	private var otp: String? = null
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContent {
-			DoCopyTask()
-			finishAffinity()
+		handleIntents()
+		doCopyTask()
+		finishAffinity()
+	}
+
+	private fun handleIntents() {
+		if (intent != null) {
+			val extras = intent.extras
+			if (extras != null) {
+				if (extras.containsKey(App.Key.CopyOtpCode)) {
+					otp = extras.getString(App.Key.CopyOtpCode, null)
+				}
+			}
 		}
 	}
-}
 
-@Composable
-private fun DoCopyTask() {
-	val context = LocalContext.current
-	val appSettings = App.getSettings(context)
-	val code = OtpManager.getCodeList(context, appSettings).first()
-	copySelectedCode(context, code)
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun BackgroundPreview() {
-	PuyaKhanTheme {
-		DoCopyTask()
+	private fun doCopyTask() {
+		if (otp != null) {
+			copySelectedCode(this, otp!!)
+		}
 	}
 }

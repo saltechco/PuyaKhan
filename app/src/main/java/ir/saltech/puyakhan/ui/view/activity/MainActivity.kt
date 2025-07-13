@@ -65,8 +65,8 @@ import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.MemorySafety
 import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
 import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
-import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.ui.view.component.manager.OtpManager.Companion.getCodeList
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.util.OtpManager.Companion.getCodeList
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import ir.saltech.puyakhan.ui.view.page.SettingsView
 import kotlin.system.exitProcess
@@ -348,6 +348,7 @@ private fun RefreshSmsList(
 	}
 }
 
+@Deprecated(message="")
 internal fun copySelectedCode(context: Context, code: OtpCode) {
 	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 	clipboardManager.setPrimaryClip(
@@ -358,6 +359,15 @@ internal fun copySelectedCode(context: Context, code: OtpCode) {
 	).show()
 }
 
+internal fun copySelectedCode(context: Context, code: String) {
+	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+	clipboardManager.setPrimaryClip(
+		ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, code))
+	)
+	Toast.makeText(
+		context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+	).show()
+}
 
 internal fun shareSelectedCode(context: Context, code: OtpCode) {
 	val shareIntent = Intent(Intent.ACTION_SEND)

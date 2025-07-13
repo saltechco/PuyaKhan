@@ -1,14 +1,15 @@
-package ir.saltech.puyakhan.ui.view.component.manager
+package ir.saltech.puyakhan.data.util
 
 import android.content.Context
+import android.provider.Telephony
 import androidx.core.text.isDigitsOnly
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.model.OtpSms
+import kotlin.text.iterator
 
-internal const val OTP_SMS_EXPIRATION_TIME = 120_000L
-internal const val CLIPBOARD_OTP_CODE = "otp_code"
 
+@Deprecated("We gonna use `OtpProcessor.kt` instead of this.")
 internal class OtpManager {
 
 	object Actions {
@@ -31,19 +32,19 @@ internal class OtpManager {
 						val splits = line.split(":")
 						otpTemp = splits[splits.size - 1].trim()
 						if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-							otpTemp, bankName, sms.date
+							otpTemp, bankName, null, sms.date
 						)
 					} else {
 						if (line.contains(" ")) {
 							val splits = line.split(" ")
 							otpTemp = splits[splits.size - 1].trim()
 							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-								otpTemp, bankName, sms.date
+								otpTemp, bankName, null, sms.date
 							)
 						} else {
 							otpTemp = line.trim()
 							if (otpTemp.length <= 10 && otpTemp.isDigitsOnly()) return OtpCode(
-								otpTemp, bankName, sms.date
+								otpTemp, bankName, null,sms.date
 							)
 						}
 					}
@@ -56,7 +57,7 @@ internal class OtpManager {
 			val otpSmsList = mutableListOf<OtpSms>()
 			val resolver = context.contentResolver
 			val cursor = resolver.query(
-				android.provider.Telephony.Sms.Inbox.CONTENT_URI,
+				Telephony.Sms.Inbox.CONTENT_URI,
 				arrayOf("body", "date"),
 				generateSelectionQuery(appSettings),
 				null,

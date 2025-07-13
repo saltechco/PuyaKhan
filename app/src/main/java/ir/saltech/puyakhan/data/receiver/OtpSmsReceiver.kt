@@ -21,40 +21,51 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpSms
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
-import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlin.random.Random
 
 
 private const val PDUS = "pdus"
 
-private const val s = "3gpp"
-
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
 	@SuppressLint("UnsafeProtectedBroadcastReceiver")
 	override fun onReceive(context: Context, intent: Intent) {
+		if (intent.extras == null) return
 		try {
 			appSettings = App.getSettings(context)
-			val (otp, bank) = OtpManager.getOtpFromSms(getNewOtpSms(intent.extras!!)!!) ?: return
-			if (otp.isNotEmpty() && (bank ?: return).isNotEmpty()) {
-				handleReceivedOtp(context, otp, bank)
+			val smsMessage = getNewOtpSms(intent.extras)
+//			val (otp, bank) = OtpManager.getOtpFromSms() ?: return
+			if (smsMessage != null) {
+				val otpCodeObj = OtpProcessor.extractOtpInfo(smsMessage.body.trim(), smsMessage.date, appSettings)
+				if (otpCodeObj != null) {
+					if (otpCodeObj.otp.isNotEmpty()) {
+						handleReceivedOtp(
+							context,
+							otpCodeObj.otp,
+							otpCodeObj.bank,
+							price = otpCodeObj.price
+						)
+					}
+				}
 			}
 		} catch (e: Exception) {
+			e.printStackTrace()
 			Log.e("SmsReceiver", "Exception smsReceiver: $e")
 		}
 	}
 
-	private fun handleReceivedOtp(context: Context, otp: String, bank: String) {
+	private fun handleReceivedOtp(context: Context, otp: String, bank: String?, price: String?) {
 		for (presentMethod in appSettings.presentMethods) {
 			when (presentMethod) {
 				App.PresentMethod.Otp.Copy -> copyOtpToClipboard(context, otp)
 
-				App.PresentMethod.Otp.Notify -> showOtpNotification(context, otp, bank)
+				App.PresentMethod.Otp.Notify -> showOtpNotification(context, otp, bank, price)
 
 				App.PresentMethod.Otp.Select -> SelectOtpWindow.show(context)
 
@@ -74,15 +85,35 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		).show()
 	}
 
-	private fun showOtpNotification(context: Context, otp: String, bank: String?) {
+	private fun showOtpNotification(context: Context, otp: String, bank: String?, price: String?) {
 		val expireTime = appSettings.expireTime
 		val bigTextStyle = NotificationCompat.BigTextStyle()
-		bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otp))
-		bigTextStyle.setBigContentTitle(
-			context.getString(
-				R.string.otp_code_from_bank, bank ?: context.getString(R.string.unknown_bank)
+		if (bank != null) {
+			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otp))
+			if (price != null) {
+				bigTextStyle.setBigContentTitle(
+					context.getString(
+						R.string.otp_code_from_bank_with_price, bank, price
+					)
+				)
+			} else {
+				bigTextStyle.setBigContentTitle(
+					context.getString(
+						R.string.otp_code_from_bank, bank
+					)
+				)
+			}
+		} else if (price != null) {
+			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otp))
+			bigTextStyle.setBigContentTitle(
+				context.getString(
+					R.string.otp_code_with_price, price
+				)
 			)
-		)
+		} else  {
+			bigTextStyle.bigText(context.getString(R.string.copy_otp_code_hint))
+			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otp))
+		}
 		val builder =
 			NotificationCompat.Builder(context, NOTIFY_OTP_CHANNEL_ID).setOnlyAlertOnce(true)
 				.setSmallIcon(R.drawable.one_time_password_icon)
@@ -94,8 +125,9 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						R.drawable.otp_action_copy,
 						context.getString(R.string.copy_otp_code),
 						PendingIntent.getActivity(
-							context, 6749, Intent(OtpManager.Actions.COPY_OTP_ACTION).apply {
+							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
+								putExtra(App.Key.CopyOtpCode, otp)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()

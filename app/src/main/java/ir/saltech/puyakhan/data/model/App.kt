@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import ir.saltech.puyakhan.data.util.dataStore
 import ir.saltech.puyakhan.data.util.get
 import ir.saltech.puyakhan.data.util.set
-import ir.saltech.puyakhan.ui.view.component.manager.OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.data.util.OTP_SMS_EXPIRATION_TIME
 
 object App {
 	enum class Page {
@@ -22,6 +22,7 @@ object App {
 	)
 
 	object Key {
+		val CopyOtpCode = "otp_code_copy_key"
 		val PresentMethod = stringSetPreferencesKey("present_method")
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")
