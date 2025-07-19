@@ -2,6 +2,7 @@ plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
 	alias(libs.plugins.kotlinCompose)
+	id("com.google.protobuf") version "0.9.4"
 }
 
 android {
@@ -77,6 +78,9 @@ dependencies {
 	implementation(libs.datastore.preferences)
 	implementation(libs.google.gson)
 	implementation(platform(libs.compose.bom))
+	implementation("androidx.datastore:datastore:1.1.1")
+	implementation("com.google.protobuf:protobuf-javalite:3.25.3")
+	implementation("androidx.security:security-crypto:1.1.0-alpha06")
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(platform(libs.compose.bom))
@@ -84,4 +88,19 @@ dependencies {
 	androidTestImplementation(platform(libs.compose.bom))
 	debugImplementation(libs.ui.tooling)
 	debugImplementation(libs.ui.test.manifest)
+}
+
+protobuf {
+	protoc {
+		artifact = "com.google.protobuf:protoc:3.25.3"
+	}
+	generateProtoTasks {
+		all().forEach { task ->
+			task.builtins {
+				create("java") {
+					option("lite")
+				}
+			}
+		}
+	}
 }

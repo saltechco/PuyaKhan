@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "ir.saltech.puyakhan.data.datastore";
+option java_multiple_files = true;
+
+message OtpCode {
+  string otp = 1;
+  string bank = 2;
+  string price = 3;
+  int64 sent_time = 4;
+  int64 expiration_time = 5;
+  int64 elapsed_time = 6;
+}
+
+message OtpCodes {
+  repeated OtpCode codes = 1;
+}

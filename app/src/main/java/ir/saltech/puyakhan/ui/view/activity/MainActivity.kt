@@ -299,12 +299,7 @@ private fun PuyaKhanContent(
 	val codeList by otpCodesVM.otpCodes.collectAsState()
 	val codesLazyListState = rememberLazyListState()
 
-	MemorySafety {
-		LaunchedEffect(true) {
-			otpCodesVM.loadPreviousOtpCodes()
-			otpCodesVM.setOtpListener()
-		}
-	}
+	MemorySafety { }
 	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
 		Column(
 			modifier = Modifier

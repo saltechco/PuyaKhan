@@ -1,8 +1,11 @@
 package ir.saltech.puyakhan.data.util
 
+import android.content.Context
 import android.util.Log
+import ir.saltech.puyakhan.data.datastore.OtpDataStore
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
+import kotlinx.coroutines.flow.Flow
 import java.util.regex.Pattern
 import kotlin.math.abs
 
@@ -90,8 +93,6 @@ object OtpProcessor {
 		"reference number"
 	)
 
-	val otpCodesList = mutableListOf<OtpCode>()
-
 	/**
 	 * Analyzes an SMS message to extract transaction details including OTP,
 	 * bank name, and transaction amount.
@@ -99,7 +100,8 @@ object OtpProcessor {
 	 * @param message The SMS content to parse.
 	 * @return A [OtpCode] object containing the extracted data.
 	 */
-	fun extractOtpInfo(
+	suspend fun extractOtpInfo(
+		context: Context,
 		message: String,
 		sendTime: Long = 0L,
 		settings: App.Settings? = null,
@@ -112,18 +114,16 @@ object OtpProcessor {
 			OtpCode(bank = bankName, price = amount, otp = otp, sentTime = sendTime, expirationTime = settings?.expireTime ?: 0L)
 
 		Log.i("TAG", "Currently OTP Code : $receivedOtp")
-		removeExpiredOtpCodes()
-		otpCodesList.add(receivedOtp)
+		val dataStore = OtpDataStore(context)
+		dataStore.addOtpCode(receivedOtp)
 		orListener?.onReceived(receivedOtp)
 
 		return receivedOtp
 	}
 
-	private fun removeExpiredOtpCodes() {
-		val backedUpList =
-			otpCodesList.filter { otp -> otp.sentTime + otp.expirationTime < System.currentTimeMillis() }
-		otpCodesList.clear()
-		otpCodesList.addAll(backedUpList)
+	fun getOtpCodes(context: Context): Flow<List<OtpCode>> {
+		val dataStore = OtpDataStore(context)
+		return dataStore.getOtpCodes()
 	}
 
 	/**

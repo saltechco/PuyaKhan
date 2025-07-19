@@ -26,6 +26,9 @@ import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 
@@ -37,26 +40,31 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	@SuppressLint("UnsafeProtectedBroadcastReceiver")
 	override fun onReceive(context: Context, intent: Intent) {
 		if (intent.extras == null) return
-		try {
-			appSettings = App.getSettings(context)
-			val smsMessage = getNewOtpSms(intent.extras)
+		val pendingResult = goAsync()
+		CoroutineScope(Dispatchers.IO).launch {
+			try {
+				appSettings = App.getSettings(context)
+				val smsMessage = getNewOtpSms(intent.extras)
 //			val (otp, bank) = OtpManager.getOtpFromSms() ?: return
-			if (smsMessage != null) {
-				val otpCodeObj = OtpProcessor.extractOtpInfo(smsMessage.body.trim(), smsMessage.date, appSettings)
-				if (otpCodeObj != null) {
-					if (otpCodeObj.otp.isNotEmpty()) {
-						handleReceivedOtp(
-							context,
-							otpCodeObj.otp,
-							otpCodeObj.bank,
-							price = otpCodeObj.price
-						)
+				if (smsMessage != null) {
+					val otpCodeObj = OtpProcessor.extractOtpInfo(context, smsMessage.body.trim(), smsMessage.date, appSettings)
+					if (otpCodeObj != null) {
+						if (otpCodeObj.otp.isNotEmpty()) {
+							handleReceivedOtp(
+								context,
+								otpCodeObj.otp,
+								otpCodeObj.bank,
+								price = otpCodeObj.price
+							)
+						}
 					}
 				}
+			} catch (e: Exception) {
+				e.printStackTrace()
+				Log.e("SmsReceiver", "Exception smsReceiver: $e")
+			} finally {
+				pendingResult.finish()
 			}
-		} catch (e: Exception) {
-			e.printStackTrace()
-			Log.e("SmsReceiver", "Exception smsReceiver: $e")
 		}
 	}
 
