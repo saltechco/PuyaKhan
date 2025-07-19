@@ -70,7 +70,7 @@ import androidx.core.net.toUri
 
 @Composable
 internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
-	BackHandler {
+	BackHandler() {
 		onPageChanged(App.Page.Main)
 	}
 	Scaffold(topBar = { SettingsTopBar { onPageChanged(it) } }) {

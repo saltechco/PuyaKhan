@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import ir.saltech.puyakhan.data.util.dataStore
 import ir.saltech.puyakhan.data.util.get
 import ir.saltech.puyakhan.data.util.set
-import ir.saltech.puyakhan.data.util.OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 
 object App {
 	enum class Page {
@@ -16,13 +16,13 @@ object App {
 
 	data class Settings(
 		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.Notify),
-		var expireTime: Long = OTP_SMS_EXPIRATION_TIME,
+		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 		var otpWindowPos: WindowPosition? = null,
 		var disclaimerAccepted: Boolean = false
 	)
 
 	object Key {
-		val CopyOtpCode = "otp_code_copy_key"
+		const val CopyOtpCode = "otp_code_copy_key"
 		val PresentMethod = stringSetPreferencesKey("present_method")
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")
@@ -54,7 +54,7 @@ object App {
 	fun getSettings(context: Context): Settings {
 		return Settings(
 			context.dataStore[Key.PresentMethod] ?: mutableSetOf(PresentMethod.Otp.Notify),
-			context.dataStore[Key.ExpireTime] ?: OTP_SMS_EXPIRATION_TIME,
+			context.dataStore[Key.ExpireTime] ?: MAX_OTP_SMS_EXPIRATION_TIME,
 			context.dataStore[Key.WindowPosition]?.let { WindowPosition.fromStringSet(it) },
 			context.dataStore[Key.DisclaimerAccepted] ?: false
 		)

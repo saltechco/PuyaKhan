@@ -17,6 +17,7 @@ import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.core.content.ContextCompat
@@ -29,8 +30,6 @@ import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
-import ir.saltech.puyakhan.data.util.OtpManager
-import ir.saltech.puyakhan.data.util.OtpManager.Companion.getCodeList
 import ir.saltech.puyakhan.data.util.OtpProcessor
 import kotlin.math.roundToInt
 
@@ -66,7 +65,9 @@ class SelectOtpWindow(private val context: Context) {
 		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
 		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
 //		val otpCodes = OtpManager.getCodeList(context, appSettings)
-		val otpCodes = OtpProcessor.receivedOtpQueue
+//		val otpCodes = OtpProcessor.receivedOtpQueue
+		val otpCodes = mutableStateListOf<OtpCode>()
+			// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
 			otpCodesView.visibility = View.GONE
@@ -177,16 +178,18 @@ class SelectOtpWindow(private val context: Context) {
 				if (Settings.canDrawOverlays(context)) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 						ContextCompat.startForegroundService(
-							context, Intent(context, SelectOtpService::class.java)
+							context, prepareIntentService(context)
 						)
 					} else {
-						context.startService(Intent(context, SelectOtpService::class.java))
+						context.startService(prepareIntentService(context))
 					}
 				}
 			} else {
-				context.startService(Intent(context, SelectOtpService::class.java))
+				context.startService(prepareIntentService(context))
 			}
 		}
+
+		private fun prepareIntentService(context: Context): Intent = Intent(context, SelectOtpService::class.java)
 	}
 }
 

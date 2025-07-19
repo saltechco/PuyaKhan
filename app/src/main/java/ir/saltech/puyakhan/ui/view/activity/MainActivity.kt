@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -18,18 +17,24 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,16 +45,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,14 +66,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
+import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
 import ir.saltech.puyakhan.ui.view.component.compose.MemorySafety
 import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
 import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
-import ir.saltech.puyakhan.data.util.OtpManager.Companion.getCodeList
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import ir.saltech.puyakhan.ui.view.page.SettingsView
 import kotlin.system.exitProcess
@@ -81,12 +87,10 @@ internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
 internal class MainActivity : ComponentActivity() {
 	private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(
-		android.Manifest.permission.READ_SMS,
-		android.Manifest.permission.RECEIVE_SMS,
-		android.Manifest.permission.POST_NOTIFICATIONS
+		android.Manifest.permission.RECEIVE_SMS, android.Manifest.permission.POST_NOTIFICATIONS
 	)
 	else arrayOf(
-		android.Manifest.permission.READ_SMS, android.Manifest.permission.RECEIVE_SMS
+		android.Manifest.permission.RECEIVE_SMS
 	)
 
 	init {
@@ -112,6 +116,7 @@ internal class MainActivity : ComponentActivity() {
 
 	@SuppressLint("NewApi")
 	private fun startProgram() {
+		val appSettings = App.getSettings(this)
 		setContent {
 			PuyaKhanTheme {
 				// A surface container using the 'background' color from the theme
@@ -120,7 +125,6 @@ internal class MainActivity : ComponentActivity() {
 						modifier = Modifier.fillMaxSize(),
 						color = MaterialTheme.colorScheme.background
 					) {
-						val appSettings = App.getSettings(this)
 						if (checkAppPermissions()) {
 							if (appSettings.disclaimerAccepted) {
 								PuyaKhanApp()
@@ -142,7 +146,7 @@ internal class MainActivity : ComponentActivity() {
 
 	@Composable
 	private fun DisclaimerAcceptation(
-		dismissible: Boolean = false, onConfirm: () -> Unit
+		dismissible: Boolean = false, onConfirm: () -> Unit,
 	) {
 		var dismiss by remember { mutableStateOf(false) }
 		if (!dismiss) {
@@ -197,7 +201,7 @@ internal class MainActivity : ComponentActivity() {
 			description = descriptionText
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
-		(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
+		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
 			channel
 		)
 	}
@@ -205,15 +209,15 @@ internal class MainActivity : ComponentActivity() {
 	@RequiresApi(Build.VERSION_CODES.O)
 	private fun createServicesNotifyChannel() {
 		val name = getString(R.string.overlay_window_alert_title)
-		val descriptionText =
-			getString(R.string.overlay_window_alert_subtitle)
+		val descriptionText = getString(R.string.overlay_window_alert_subtitle)
 		val importance = NotificationManager.IMPORTANCE_LOW
 		val channel = NotificationChannel(NOTIFY_SERVICE_CHANNEL_ID, name, importance).apply {
 			description = descriptionText
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
-		(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-			.createNotificationChannel(channel)
+		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
+				channel
+			)
 	}
 
 	private fun checkAppPermissions(): Boolean {
@@ -228,7 +232,7 @@ internal class MainActivity : ComponentActivity() {
 	private fun needsAppPermissionsRational(): Boolean {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			for (permission in permissions) {
-				if (shouldShowRequestPermissionRationale(android.Manifest.permission.READ_SMS)) return true
+				if (shouldShowRequestPermissionRationale(permission)) return true
 			}
 		}
 		return false
@@ -266,7 +270,7 @@ private fun PuyaKhanView(onPageChanged: (App.Page) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PuyaKhanTopBar(
-	onPageChanged: (App.Page) -> Unit
+	onPageChanged: (App.Page) -> Unit,
 ) {
 	CenterAlignedTopAppBar(title = {
 		Text(
@@ -288,75 +292,65 @@ private fun PuyaKhanTopBar(
 
 @Composable
 private fun PuyaKhanContent(
-	contentPadding: PaddingValues = PaddingValues(0.dp), otpCodesVM: OtpCodesVM = viewModel()
+	contentPadding: PaddingValues = PaddingValues(0.dp),
+	otpCodesVM: OtpCodesVM = viewModel(),
 ) {
 	val context = LocalContext.current
-	val appSettings = App.getSettings(context)
-	val codeList by otpCodesVM.otpCodes.observeAsState(getCodeList(context, appSettings))
+	val codeList by otpCodesVM.otpCodes.collectAsState()
+	val codesLazyListState = rememberLazyListState()
+
 	MemorySafety {
-		RefreshSmsList(otpCodesVM, context, appSettings)
+		LaunchedEffect(true) {
+			otpCodesVM.loadPreviousOtpCodes()
+			otpCodesVM.setOtpListener()
+		}
 	}
-	AnimatedVisibility(visible = codeList.isEmpty()) {
+	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(contentPadding)
+				.padding(contentPadding),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			Spacer(modifier = Modifier.fillMaxHeight(0.5f))
 			Text(
 				stringResource(R.string.empty_code_list),
 				style = MaterialTheme.typography.labelLarge.copy(
 					color = MaterialTheme.colorScheme.outline,
 					textDirection = TextDirection.ContentOrRtl
 				),
-				modifier = Modifier
-					.fillMaxHeight(0.5f)
-					.align(Alignment.CenterHorizontally)
+				textAlign = TextAlign.Center
 			)
 		}
 	}
-	AnimatedVisibility(visible = codeList.isNotEmpty()) {
-		Column {
-			Text(text = "Showing ${codeList.size} sms")
-			LazyColumn(modifier = Modifier.weight(1f), contentPadding = contentPadding) {
-				items(codeList) { code ->
-					OtpCodeCard(context, appSettings, code) {
-						otpCodesVM.onOtpCodesChanged(codeList.minus(code))
+	AnimatedVisibility(visible = codeList.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(contentPadding),
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.Top
+		) {
+			Text(
+				modifier = Modifier
+					.padding(top = 24.dp)
+					.scale(0.95f),
+				text = stringResource(R.string.list_otp_codes_title),
+				style = MaterialTheme.typography.bodyMedium.copy(
+					color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold
+				),
+				textAlign = TextAlign.Center,
+				maxLines = 1
+			)
+			AnimatedContent(codesLazyListState, ) { state ->
+				LazyColumn(modifier = Modifier.padding(top = 5.dp, bottom = 8.dp), state = state, reverseLayout = true) {
+					itemsIndexed(codeList) { index, code ->
+						OtpCodeCard(context, codeList, index)
 					}
 				}
 			}
 		}
 	}
-}
-
-@Composable
-private fun RefreshSmsList(
-	otpCodesVM: OtpCodesVM, context: Context, appSettings: App.Settings
-) {
-	SideEffect {
-		object : CountDownTimer(10000000000, 3000) {
-
-			override fun onTick(millisUntilFinished: Long) {
-				otpCodesVM.onOtpCodesChanged(getCodeList(context, appSettings))
-			}
-
-			override fun onFinish() {
-				Log.i("OTP_SMS_CHECK", "Sms Code Live Checker has been ended! Restarting it…")
-				this.start()
-			}
-		}.start()
-	}
-}
-
-@Deprecated(message="")
-internal fun copySelectedCode(context: Context, code: OtpCode) {
-	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-	clipboardManager.setPrimaryClip(
-		ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, code.otp))
-	)
-	Toast.makeText(
-		context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
-	).show()
 }
 
 internal fun copySelectedCode(context: Context, code: String) {
@@ -374,8 +368,9 @@ internal fun shareSelectedCode(context: Context, code: OtpCode) {
 	shareIntent.type = "text/plain"
 	shareIntent.putExtra(
 		Intent.EXTRA_TEXT,
-		context.getString(R.string.share_otp_code_text, code.bank ?: "نامشخص", code.otp)
+		context.getString(R.string.share_otp_code_text, code.bank ?: context.getString(R.string.unknown_bank), code.otp)
 	)
+	// Todo: add price, bank detection to share otp code; this must be flexible.
 	context.startActivity(
 		Intent.createChooser(
 			shareIntent, context.getString(R.string.send_otp_to)

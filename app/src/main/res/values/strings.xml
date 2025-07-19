@@ -33,9 +33,9 @@
     <string name="memory_leaked_error">برخی از عملکرد های این برنامه برای دستگاه شما، متأسفانه هنوز بهینه نشده است!</string>
     <string name="unknown_bank">بانک ناشناخته</string>
     <string name="your_new_otp_code_is">رمز یکبارمصرف شما %s می باشد.</string>
-    <string name="otp_code_from_bank">از %s</string>
+    <string name="otp_code_from_bank">بانک %s</string>
     <string name="otp_code_with_price">مبلغ %s</string>
-    <string name="otp_code_from_bank_with_price">از %s | مبلغ %s</string>
+    <string name="otp_code_from_bank_with_price">بانک %s | مبلغ %s</string>
     <string name="otp_sms_notification_title">رمز یکبار مصرف جدید</string>
     <string name="otp_sms_notification_short_message">برای مشاهده رمز، این را به پایین بکشید.</string>
     <string name="copy_otp_code">کپی کردن</string>
@@ -69,5 +69,7 @@
     <string name="otp_notify_method">اعلان</string>
     <string name="otp_copy_method">کپی</string>
     <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
+    <string name="list_otp_codes_title">کدهای یکبارمصرف (رمزهای پویا) دریافت شده</string>
+    <string name="otp_code_expired_2">منقضی شده</string>
 
 </resources>
