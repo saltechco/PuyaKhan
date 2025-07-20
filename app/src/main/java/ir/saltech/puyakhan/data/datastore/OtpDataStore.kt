@@ -25,10 +25,11 @@ class OtpDataStore(context: Context) {
 	}
 
 	suspend fun addOtpCode(otpCode: OtpCode) {
+suspend fun addOtpCode(otpCode: OtpCode) {
 		dataStore.updateData { currentCodes ->
-			currentCodes.apply {
-				add(otpCode)
-			}.toMutableStateList()
+			(currentCodes + otpCode).toMutableStateList()
+		}
+	}
 		}
 	}
 
