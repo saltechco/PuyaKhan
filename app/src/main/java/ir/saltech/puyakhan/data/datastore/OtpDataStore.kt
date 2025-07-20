@@ -34,10 +34,11 @@ suspend fun addOtpCode(otpCode: OtpCode) {
 	}
 
 	suspend fun removeOtpCode(otpCode: OtpCode) {
+suspend fun removeOtpCode(otpCode: OtpCode) {
 		dataStore.updateData { currentCodes ->
-			currentCodes.apply {
-				remove(otpCode)
-			}.toMutableStateList()
+			currentCodes.filterNot { it.id == otpCode.id }.toMutableStateList()
+		}
+	}
 		}
 	}
 
