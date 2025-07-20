@@ -108,7 +108,7 @@ object OtpProcessor {
 
 		val receivedOtp =
 			OtpCode(
-				id = System.currentTimeMillis().toInt(),
+				id = kotlin.random.Random.nextInt(),
 				bank = bankName,
 				price = amount,
 				otp = otp,
