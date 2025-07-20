@@ -108,7 +108,7 @@ object OtpProcessor {
 
 		val receivedOtp =
 			OtpCode(
-				id = settings?.savedOtpCodesCount ?: ERROR_OTPCODE_ID,
+				id = System.currentTimeMillis().toInt(),
 				bank = bankName,
 				price = amount,
 				otp = otp,
