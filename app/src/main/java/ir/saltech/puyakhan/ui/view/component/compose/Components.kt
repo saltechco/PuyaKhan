@@ -237,10 +237,6 @@ internal fun OtpCodeCard(
 					enter = fadeIn(),
 					exit = fadeOut()
 				) {
-					Log.i(
-						"TAG",
-						"for position: $position , remining time is : ${code.expirationTime past code.elapsedTime} + origin time is : ${code.expirationTime}"
-					)
 					RemainingTime(code.expirationTime past code.elapsedTime, code.expirationTime)
 				}
 				Column(

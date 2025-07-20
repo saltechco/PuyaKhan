@@ -29,16 +29,21 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 	private fun loadOtpCodes() {
 		viewModelScope.launch {
 			OtpProcessor.getOtpCodes(getApplication()).map { codes ->
-					codes.filter {
-						System.currentTimeMillis() - it.sentTime < it.expirationTime
-					}
-				}.collect { newCodes ->
-					_otpCodes.update {
-						_otpCodes.value.apply {
-							addAll(newCodes)
-						}.distinctBy { it.id }.toMutableStateList()
+				codes.filter {
+					System.currentTimeMillis() - it.sentTime < it.expirationTime
+				}
+			}.collect { newCodes ->
+				_otpCodes.update { currentCodes ->
+					val currentIds = currentCodes.map { code -> code.id }.toSet()
+					val codesToAdd = newCodes.filter { newCode -> newCode.id !in currentIds }
+
+					if (codesToAdd.isNotEmpty()) {
+						(currentCodes + codesToAdd).toMutableStateList()
+					} else {
+						currentCodes
 					}
 				}
+			}
 		}
 	}
 

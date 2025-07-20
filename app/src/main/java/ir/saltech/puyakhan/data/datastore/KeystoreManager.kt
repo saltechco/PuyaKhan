@@ -9,6 +9,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 private const val KEYSTORE_ALIAS = "otp_key"
+private const val GCM_IV_LENGTH = 12 // GCM recommended IV size
+private const val GCM_TAG_LENGTH = 128
 
 class KeystoreManager {
 	private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
@@ -42,11 +44,10 @@ class KeystoreManager {
 	}
 
 	fun decrypt(encryptedData: ByteArray): ByteArray {
-		val ivSize = 12 // GCM recommended IV size
-		val iv = encryptedData.copyOfRange(0, ivSize)
-		val data = encryptedData.copyOfRange(ivSize, encryptedData.size)
+		val iv = encryptedData.copyOfRange(0, GCM_IV_LENGTH)
+		val data = encryptedData.copyOfRange(GCM_IV_LENGTH, encryptedData.size)
 		val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-		val spec = GCMParameterSpec(128, iv)
+		val spec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
 		cipher.init(Cipher.DECRYPT_MODE, getKey(), spec)
 		return cipher.doFinal(data)
 	}
