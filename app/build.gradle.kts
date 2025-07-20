@@ -2,7 +2,7 @@ plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
 	alias(libs.plugins.kotlinCompose)
-	id("com.google.protobuf") version "0.9.4"
+	alias(libs.plugins.googleProtobuf)
 }
 
 android {
@@ -26,9 +26,9 @@ android {
 	defaultConfig {
 		applicationId = "ir.saltech.puyakhan"
 		minSdk = 21
-		targetSdk = 34
-		versionCode = 100145
-		versionName = "1.5.10.129"
+		targetSdk = 36
+		versionCode = 100454
+		versionName = "1.6.25"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -75,13 +75,14 @@ dependencies {
 	implementation(libs.material3)
 	implementation(libs.androidx.cardview)
 	implementation(libs.androidx.recyclerview)
+	implementation(libs.androidx.security.crypto)
+	implementation(libs.datastore)
 	implementation(libs.datastore.preferences)
 	implementation(libs.google.gson)
+	implementation(libs.google.protobuf)
 	implementation(platform(libs.compose.bom))
-	implementation("androidx.datastore:datastore:1.1.1")
-	implementation("com.google.protobuf:protobuf-javalite:3.25.3")
-	implementation("androidx.security:security-crypto:1.1.0-alpha06")
 	testImplementation(libs.junit)
+	androidTestImplementation(libs.espresso.core)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(platform(libs.compose.bom))
 	androidTestImplementation(libs.ui.test.junit4)
