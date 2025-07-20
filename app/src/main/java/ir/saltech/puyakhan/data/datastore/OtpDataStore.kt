@@ -1,39 +1,48 @@
 package ir.saltech.puyakhan.data.datastore
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import ir.saltech.puyakhan.data.model.OtpCode
 
-private val Context.otpDataStore: DataStore<List<OtpCode>> by dataStore(
-    fileName = "otp_codes.pb",
-    serializer = OtpCodeSerializer(KeystoreManager())
+private const val OTP_STORAGE_PB_FILENAME = "otp_storage.pb"
+
+private val Context.otpDataStore: DataStore<MutableList<OtpCode>> by dataStore(
+	fileName = OTP_STORAGE_PB_FILENAME, serializer = OtpCodeSerializer(KeystoreManager())
 )
 
 class OtpDataStore(context: Context) {
-    private val dataStore = context.otpDataStore
+	private val dataStore = context.otpDataStore
 
-    fun getOtpCodes() = dataStore.data
+	fun getOtpCodes() = dataStore.data
 
-    suspend fun addOtpCode(otpCode: OtpCode) {
-        dataStore.updateData { currentCodes ->
-            currentCodes.toMutableList().apply {
-                add(otpCode)
-            }
-        }
-    }
+	suspend fun setOtpCodes(otpCodes: MutableList<OtpCode>) {
+		dataStore.updateData {
+			otpCodes.toMutableStateList()
+		}
+	}
 
-    suspend fun removeOtpCode(otpCode: OtpCode) {
-        dataStore.updateData { currentCodes ->
-            currentCodes.toMutableList().apply {
-                remove(otpCode)
-            }
-        }
-    }
+	suspend fun addOtpCode(otpCode: OtpCode) {
+		dataStore.updateData { currentCodes ->
+			currentCodes.apply {
+				add(otpCode)
+			}.toMutableStateList()
+		}
+	}
 
-    suspend fun clearAll() {
-        dataStore.updateData {
-            emptyList()
-        }
-    }
+	suspend fun removeOtpCode(otpCode: OtpCode) {
+		dataStore.updateData { currentCodes ->
+			currentCodes.apply {
+				remove(otpCode)
+			}.toMutableStateList()
+		}
+	}
+
+	suspend fun clearAll() {
+		dataStore.updateData {
+			mutableStateListOf()
+		}
+	}
 }

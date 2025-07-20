@@ -71,5 +71,6 @@
     <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
     <string name="list_otp_codes_title">کدهای یکبارمصرف (رمزهای پویا) دریافت شده</string>
     <string name="otp_code_expired_2">منقضی شده</string>
+	<string name="permission_accept_button">باشه؛ مشکلی نیست</string>
 
 </resources>

@@ -12,6 +12,8 @@ import kotlin.math.abs
 internal const val MAX_OTP_SMS_EXPIRATION_TIME = 120_000L
 internal const val CLIPBOARD_OTP_CODE = "otp_code"
 
+private const val ERROR_OTPCODE_ID = -1
+
 object OtpProcessor {
 	private data class FoundItem(val text: String, val index: Int)
 	private data class ScoredCode(val code: String, val score: Int)
@@ -19,12 +21,6 @@ object OtpProcessor {
 	object Actions {
 		const val COPY_OTP_ACTION = "ir.saltech.puyakhan.COPY_OTP_ACTION"
 	}
-
-	interface OtpReceivedListener {
-		fun onReceived(otp: OtpCode)
-	}
-
-	private var orListener: OtpReceivedListener? = null
 
 	private val ambiguousKeywords = listOf("کد", "code")
 
@@ -111,17 +107,25 @@ object OtpProcessor {
 		val amount = extractAmount(message)?.trim()
 
 		val receivedOtp =
-			OtpCode(bank = bankName, price = amount, otp = otp, sentTime = sendTime, expirationTime = settings?.expireTime ?: 0L)
+			OtpCode(
+				id = settings?.savedOtpCodesCount ?: ERROR_OTPCODE_ID,
+				bank = bankName,
+				price = amount,
+				otp = otp,
+				sentTime = sendTime,
+				expirationTime = settings?.expireTime ?: 0L
+			)
 
 		Log.i("TAG", "Currently OTP Code : $receivedOtp")
-		val dataStore = OtpDataStore(context)
-		dataStore.addOtpCode(receivedOtp)
-		orListener?.onReceived(receivedOtp)
+		OtpDataStore(context).addOtpCode(receivedOtp)
+
+		if (settings != null)
+			App.setSettings(context, settings.apply { savedOtpCodesCount++ })
 
 		return receivedOtp
 	}
 
-	fun getOtpCodes(context: Context): Flow<List<OtpCode>> {
+	fun getOtpCodes(context: Context): Flow<MutableList<OtpCode>> {
 		val dataStore = OtpDataStore(context)
 		return dataStore.getOtpCodes()
 	}
@@ -305,9 +309,5 @@ object OtpProcessor {
 				)
 			}
 		}
-	}
-
-	fun setListener(listener: OtpReceivedListener) {
-		this.orListener = listener
 	}
 }

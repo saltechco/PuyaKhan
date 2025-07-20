@@ -2,20 +2,17 @@ package ir.saltech.puyakhan.data.util
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 private const val APPLICATION_DATASTORE = "app_data"
 
@@ -61,4 +58,13 @@ internal infix fun Long.past(much: Long): Long {
 
 internal infix operator fun Long.div(l: Long): Float {
 	return (this.toDouble() / l.toDouble()).toFloat()
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun repeatForever(action: () -> Unit) {
+	contract { callsInPlace(action) }
+
+	while (true) {
+		action()
+	}
 }

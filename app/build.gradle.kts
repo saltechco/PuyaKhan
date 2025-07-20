@@ -25,7 +25,7 @@ android {
 
 	defaultConfig {
 		applicationId = "ir.saltech.puyakhan"
-		minSdk = 21
+		minSdk = 23
 		targetSdk = 36
 		versionCode = 100454
 		versionName = "1.6.25"

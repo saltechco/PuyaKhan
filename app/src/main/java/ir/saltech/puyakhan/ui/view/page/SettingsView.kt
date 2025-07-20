@@ -55,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.checkSelfPermission
 import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.net.toUri
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.App.PresentMethod
@@ -66,7 +67,6 @@ import ir.saltech.puyakhan.ui.view.activity.permissionLauncher
 import ir.saltech.puyakhan.ui.view.component.compose.MinimalHelpText
 import ir.saltech.puyakhan.ui.view.component.compose.OpenReferenceButton
 import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
-import androidx.core.net.toUri
 
 @Composable
 internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
@@ -205,7 +205,8 @@ private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 				.padding(16.dp)
 				.fillMaxWidth()
 		) {
-			OutlinedTextField(value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
+			OutlinedTextField(
+				value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
 				onValueChange = { time ->
 					if (time.isEmpty()) {
 						expireTime = 0
@@ -270,11 +271,11 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 			Spacer(modifier = Modifier.height(16.dp))
 			MultiChoiceSegmentedButtonRow(modifier = Modifier.align(Alignment.CenterHorizontally)) {
 				SegmentedButton(
-					checked = preferredMethod.contains(PresentMethod.Otp.Copy),
+					checked = preferredMethod.contains(PresentMethod.Otp.COPY),
 					onCheckedChange = {
 						preferredMethod =
-							if (it) preferredMethod.plus(PresentMethod.Otp.Copy) else preferredMethod.minus(
-								PresentMethod.Otp.Copy
+							if (it) preferredMethod.plus(PresentMethod.Otp.COPY) else preferredMethod.minus(
+								PresentMethod.Otp.COPY
 							)
 						updatePreferredMethods(appSettings, preferredMethod, context)
 					},
@@ -287,11 +288,11 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 					enabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (checkSelfPermission(
 						context, android.Manifest.permission.POST_NOTIFICATIONS
 					) == PackageManager.PERMISSION_GRANTED) else true,
-					checked = preferredMethod.contains(PresentMethod.Otp.Notify),
+					checked = preferredMethod.contains(PresentMethod.Otp.NOTIFY),
 					onCheckedChange = {
 						preferredMethod =
-							if (it) preferredMethod.plus(PresentMethod.Otp.Notify) else preferredMethod.minus(
-								PresentMethod.Otp.Notify
+							if (it) preferredMethod.plus(PresentMethod.Otp.NOTIFY) else preferredMethod.minus(
+								PresentMethod.Otp.NOTIFY
 							)
 						updatePreferredMethods(appSettings, preferredMethod, context)
 					},
@@ -302,11 +303,11 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 					SegmentedButton(
 						enabled = Settings.canDrawOverlays(context),
-						checked = preferredMethod.contains(PresentMethod.Otp.Select),
+						checked = preferredMethod.contains(PresentMethod.Otp.SELECT),
 						onCheckedChange = {
 							preferredMethod =
-								if (it) preferredMethod.plus(PresentMethod.Otp.Select) else preferredMethod.minus(
-									PresentMethod.Otp.Select
+								if (it) preferredMethod.plus(PresentMethod.Otp.SELECT) else preferredMethod.minus(
+									PresentMethod.Otp.SELECT
 								)
 							updatePreferredMethods(appSettings, preferredMethod, context)
 						},

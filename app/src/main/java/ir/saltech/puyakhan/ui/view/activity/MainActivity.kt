@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,8 +20,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,7 +42,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -177,7 +173,6 @@ internal class MainActivity : ComponentActivity() {
 		}
 	}
 
-	@RequiresApi(Build.VERSION_CODES.M)
 	@Composable
 	private fun RequestPermission() {
 		when {
@@ -216,24 +211,20 @@ internal class MainActivity : ComponentActivity() {
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
 		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-				channel
-			)
+			channel
+		)
 	}
 
 	private fun checkAppPermissions(): Boolean {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			for (permission in permissions) {
-				if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) return false
-			}
+		for (permission in permissions) {
+			if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) return false
 		}
 		return true
 	}
 
 	private fun needsAppPermissionsRational(): Boolean {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			for (permission in permissions) {
-				if (shouldShowRequestPermissionRationale(permission)) return true
-			}
+		for (permission in permissions) {
+			if (shouldShowRequestPermissionRationale(permission)) return true
 		}
 		return false
 	}
@@ -337,9 +328,13 @@ private fun PuyaKhanContent(
 				textAlign = TextAlign.Center,
 				maxLines = 1
 			)
-			AnimatedContent(codesLazyListState, ) { state ->
-				LazyColumn(modifier = Modifier.padding(top = 5.dp, bottom = 8.dp), state = state, reverseLayout = true) {
-					itemsIndexed(codeList) { index, code ->
+			AnimatedContent(codesLazyListState) { state ->
+				LazyColumn(
+					modifier = Modifier.padding(top = 5.dp, bottom = 8.dp),
+					state = state,
+					reverseLayout = true
+				) {
+					itemsIndexed(codeList) { index, _ ->
 						OtpCodeCard(context, codeList, index)
 					}
 				}
@@ -362,8 +357,11 @@ internal fun shareSelectedCode(context: Context, code: OtpCode) {
 	val shareIntent = Intent(Intent.ACTION_SEND)
 	shareIntent.type = "text/plain"
 	shareIntent.putExtra(
-		Intent.EXTRA_TEXT,
-		context.getString(R.string.share_otp_code_text, code.bank ?: context.getString(R.string.unknown_bank), code.otp)
+		Intent.EXTRA_TEXT, context.getString(
+			R.string.share_otp_code_text,
+			code.bank ?: context.getString(R.string.unknown_bank),
+			code.otp
+		)
 	)
 	// Todo: add price, bank detection to share otp code; this must be flexible.
 	context.startActivity(

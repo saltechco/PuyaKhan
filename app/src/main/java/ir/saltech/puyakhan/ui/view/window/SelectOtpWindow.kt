@@ -30,7 +30,6 @@ import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
-import ir.saltech.puyakhan.data.util.OtpProcessor
 import kotlin.math.roundToInt
 
 private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
@@ -67,7 +66,7 @@ class SelectOtpWindow(private val context: Context) {
 //		val otpCodes = OtpManager.getCodeList(context, appSettings)
 //		val otpCodes = OtpProcessor.receivedOtpQueue
 		val otpCodes = mutableStateListOf<OtpCode>()
-			// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
+		// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
 			otpCodesView.visibility = View.GONE
@@ -189,7 +188,8 @@ class SelectOtpWindow(private val context: Context) {
 			}
 		}
 
-		private fun prepareIntentService(context: Context): Intent = Intent(context, SelectOtpService::class.java)
+		private fun prepareIntentService(context: Context): Intent =
+			Intent(context, SelectOtpService::class.java)
 	}
 }
 

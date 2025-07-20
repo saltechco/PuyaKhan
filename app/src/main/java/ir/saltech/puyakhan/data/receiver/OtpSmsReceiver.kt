@@ -1,7 +1,6 @@
 package ir.saltech.puyakhan.data.receiver
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.ClipData
@@ -24,6 +23,7 @@ import ir.saltech.puyakhan.data.model.OtpSms
 import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
 import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
+import ir.saltech.puyakhan.ui.view.activity.MainActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlinx.coroutines.CoroutineScope
@@ -31,23 +31,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-
-private const val PDUS = "pdus"
+private const val SMS_PDUS_KEY = "pdus"
+private const val SMS_FORMAT = "3gpp"
 
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
-	@SuppressLint("UnsafeProtectedBroadcastReceiver")
 	override fun onReceive(context: Context, intent: Intent) {
+		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) return
 		if (intent.extras == null) return
 		val pendingResult = goAsync()
 		CoroutineScope(Dispatchers.IO).launch {
 			try {
 				appSettings = App.getSettings(context)
 				val smsMessage = getNewOtpSms(intent.extras)
-//			val (otp, bank) = OtpManager.getOtpFromSms() ?: return
 				if (smsMessage != null) {
-					val otpCodeObj = OtpProcessor.extractOtpInfo(context, smsMessage.body.trim(), smsMessage.date, appSettings)
+					val otpCodeObj = OtpProcessor.extractOtpInfo(
+						context,
+						smsMessage.body.trim(),
+						smsMessage.date,
+						appSettings
+					)
 					if (otpCodeObj != null) {
 						if (otpCodeObj.otp.isNotEmpty()) {
 							handleReceivedOtp(
@@ -71,11 +75,11 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	private fun handleReceivedOtp(context: Context, otp: String, bank: String?, price: String?) {
 		for (presentMethod in appSettings.presentMethods) {
 			when (presentMethod) {
-				App.PresentMethod.Otp.Copy -> copyOtpToClipboard(context, otp)
+				App.PresentMethod.Otp.COPY -> copyOtpToClipboard(context, otp)
 
-				App.PresentMethod.Otp.Notify -> showOtpNotification(context, otp, bank, price)
+				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, otp, bank, price)
 
-				App.PresentMethod.Otp.Select -> SelectOtpWindow.show(context)
+				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context)
 
 				else -> throw UnknownPresentMethodException("The Present method must be either of Copy, Notify or Select")
 			}
@@ -118,7 +122,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					R.string.otp_code_with_price, price
 				)
 			)
-		} else  {
+		} else {
 			bigTextStyle.bigText(context.getString(R.string.copy_otp_code_hint))
 			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otp))
 		}
@@ -128,6 +132,8 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				.setContentTitle(context.getString(R.string.otp_sms_notification_title))
 				.setWhen(System.currentTimeMillis() + expireTime).setShowWhen(true)
 				.setContentText(context.getString(R.string.otp_sms_notification_short_message))
+				.setContentIntent(PendingIntent.getActivity(context, 2312, Intent(context,
+					MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
 				.setStyle(bigTextStyle).addAction(
 					NotificationCompat.Action.Builder(
 						R.drawable.otp_action_copy,
@@ -135,7 +141,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						PendingIntent.getActivity(
 							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.CopyOtpCode, otp)
+								putExtra(App.Key.OTP_CODE_COPY_KEY, otp)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()
@@ -157,21 +163,18 @@ class OtpSmsReceiver : BroadcastReceiver() {
 
 	private fun getNewOtpSms(bundle: Bundle?): OtpSms? {
 		if (bundle != null) {
-			if (bundle.containsKey(PDUS)) {
-				val pdus = bundle.get(PDUS)
+			if (bundle.containsKey(SMS_PDUS_KEY)) {
+				val pdus = bundle[SMS_PDUS_KEY]
 				if (pdus != null) {
 					val pdusObj = pdus as Array<*>
 					var message = ""
 					var date = 0L
 					for (i in pdusObj.indices) {
-						val currentMessage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?, "3gpp")
-						} else {
-							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?)
-						}
+						val currentMessage =
+							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?, SMS_FORMAT)
 						message += currentMessage.displayMessageBody
 						date = currentMessage.timestampMillis
-					} // end for loop
+					}
 					return OtpSms(message, date)
 				} else {
 					return null
