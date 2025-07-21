@@ -9,7 +9,7 @@
     <string name="close_select_otp_code_cd" translatable="false">Close select OTP code</string>
     <string name="select_otp_code_icon_cd" translatable="false">SelectOTP Code Icon</string>
     <string name="back_to_the_main_page_cd" translatable="false">Back to the main page</string>
-    <string name="disclaimer_dialog_cd" translatable="false">Disclaimer Dialog</string>
+    <string name="privacy_dialog_cd" translatable="false">Privacy Dialog</string>
     <string name="code_expiration_time_cd" translatable="false">Code Expiration Time</string>
     <string name="disable_battery_limitations_cd" translatable="false">Disable Battery Limitations</string>
     <string name="notification_permission_request_cd" translatable="false">Grant Post notification permission</string>
@@ -29,7 +29,7 @@
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
     <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
     <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
-    <string name="disclaimer_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.\n* ضمناْ‌ این برنامه به صورت متن باز ارائه شده است.</string>
+    <string name="privacy_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.\nهمچنین پویاخوان به صورت متن باز ارائه شده است.</string>
     <string name="memory_leaked_error">برخی از عملکرد های این برنامه برای دستگاه شما، متأسفانه هنوز بهینه نشده است!</string>
     <string name="unknown_bank">بانک ناشناخته</string>
     <string name="your_new_otp_code_is">رمز یکبارمصرف شما %s می باشد.</string>
@@ -40,8 +40,8 @@
     <string name="otp_sms_notification_short_message">برای مشاهده رمز، این را به پایین بکشید.</string>
     <string name="copy_otp_code">کپی کردن</string>
     <string name="otp_sms_window_alert">در حال نمایش پنجره رمز یکبار مصرف</string>
-    <string name="disclaimer_dialog_title">حریم شخصی</string>
-    <string name="discalimer_accept">پذیرش و ادامه</string>
+    <string name="privacy_dialog_title">حریم شخصی</string>
+    <string name="privacy_accept">می پذیرم</string>
     <string name="app_permission_title">نیازمند مجوز دسترسی</string>
     <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.</string>
     <string name="otp_notify_channel_title">اعلان رمز یکبار مصرف</string>
@@ -71,6 +71,7 @@
     <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
     <string name="list_otp_codes_title">کدهای یکبارمصرف (رمزهای پویا) دریافت شده</string>
     <string name="otp_code_expired_2">منقضی شده</string>
-	<string name="permission_accept_button">باشه؛ مشکلی نیست</string>
+	  <string name="permission_accept_button">باشه؛ مشکلی نیست</string>
+    <string name="terms">قوانین و مقررات</string>
 
 </resources>

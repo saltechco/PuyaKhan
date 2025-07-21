@@ -1,6 +1,5 @@
 package ir.saltech.puyakhan.ui.view.activity
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
@@ -20,7 +19,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,15 +30,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -110,27 +107,16 @@ internal class MainActivity : ComponentActivity() {
 		startProgram()
 	}
 
-	@SuppressLint("NewApi")
 	private fun startProgram() {
-		val appSettings = App.getSettings(this)
 		setContent {
 			PuyaKhanTheme {
-				// A surface container using the 'background' color from the theme
 				LockedDirection {
 					Surface(
 						modifier = Modifier.fillMaxSize(),
 						color = MaterialTheme.colorScheme.background
 					) {
 						if (checkAppPermissions()) {
-							if (appSettings.disclaimerAccepted) {
-								PuyaKhanApp()
-							} else {
-								DisclaimerAcceptation {
-									appSettings.disclaimerAccepted = true
-									App.setSettings(this, appSettings)
-									startProgram()
-								}
-							}
+							PuyaKhanApp()
 						} else {
 							RequestPermission()
 						}
@@ -139,41 +125,7 @@ internal class MainActivity : ComponentActivity() {
 			}
 		}
 	}
-
-	@Composable
-	private fun DisclaimerAcceptation(
-		dismissible: Boolean = false, onConfirm: () -> Unit,
-	) {
-		var dismiss by remember { mutableStateOf(false) }
-		if (!dismiss) {
-			AlertDialog(icon = {
-				Icon(
-					imageVector = Symbols.Default.Disclaimer,
-					contentDescription = stringResource(R.string.disclaimer_dialog_cd)
-				)
-			}, onDismissRequest = {
-				dismiss = dismissible
-			}, title = {
-				Text(
-					text = stringResource(R.string.disclaimer_dialog_title),
-					style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)
-				)
-			}, text = {
-				Text(
-					text = stringResource(R.string.disclaimer_text),
-					style = MaterialTheme.typography.bodyLarge.copy(
-						textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify
-					)
-				)
-			}, confirmButton = {
-				TextButton(onClick = onConfirm) {
-					Text(text = stringResource(R.string.discalimer_accept))
-				}
-			})
-		}
-	}
-
-	@Composable
+  
 	private fun RequestPermission() {
 		when {
 			needsAppPermissionsRational() -> PermissionAlert(
@@ -269,14 +221,15 @@ private fun PuyaKhanTopBar(
 		)
 	}, actions = {
 		Spacer(modifier = Modifier.width(16.dp))
-		Icon(
-			modifier = Modifier
-				.size(26.dp)
-				.align(Alignment.Bottom)
-				.clickable { onPageChanged(App.Page.Settings) },
-			imageVector = Symbols.Default.Settings,
-			contentDescription = stringResource(R.string.app_settings_cd)
-		)
+		IconButton(onClick = {
+			onPageChanged(App.Page.Settings)
+		}) {
+			Icon(
+				modifier = Modifier.size(26.dp),
+				imageVector = Symbols.Default.Settings,
+				contentDescription = stringResource(R.string.app_settings_cd)
+			)
+		}
 		Spacer(modifier = Modifier.width(16.dp))
 	})
 }

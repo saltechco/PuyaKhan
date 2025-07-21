@@ -47,7 +47,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				val smsMessage = getNewOtpSms(intent.extras)
 				if (smsMessage != null) {
 					val otpCodeObj = OtpProcessor.extractOtpInfo(
-						context,
+            context,
 						smsMessage.body.trim(),
 						smsMessage.date,
 						appSettings

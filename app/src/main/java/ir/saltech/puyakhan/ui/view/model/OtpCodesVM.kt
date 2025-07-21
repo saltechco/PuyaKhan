@@ -20,6 +20,11 @@ import kotlinx.coroutines.launch
 internal class OtpCodesVM(application: Application) : AndroidViewModel(application) {
 	private val _otpCodes = MutableStateFlow(mutableStateListOf<OtpCode>())
 	val otpCodes: StateFlow<MutableList<OtpCode>> = _otpCodes.asStateFlow()
+	var appSettings: App.Settings? = null
+
+	init {
+		loadAppSettings()
+	}
 
 	init {
 		loadOtpCodes()
@@ -28,7 +33,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 
 	private fun loadOtpCodes() {
 		viewModelScope.launch {
-			OtpProcessor.getOtpCodes(getApplication()).map { codes ->
+      OtpProcessor.getOtpCodes(getApplication()).map { codes ->
 				codes.filter {
 					System.currentTimeMillis() - it.sentTime < it.expirationTime
 				}
@@ -42,7 +47,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 					} else {
 						currentCodes
 					}
-				}
+        }
 			}
 		}
 	}
@@ -61,6 +66,18 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 				}
 				delay(1000)
 			}
+		}
+	}
+
+	fun loadAppSettings() {
+		viewModelScope.launch {
+			appSettings = App.getSettings(getApplication())
+		}
+	}
+
+	fun saveAppSettings() {
+		viewModelScope.launch {
+			App.setSettings(getApplication(), appSettings ?: return@launch)
 		}
 	}
 }

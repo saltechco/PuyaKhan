@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 internal object Symbols {
 	object Default {
-		val Disclaimer: ImageVector
+		val Privacy: ImageVector
 			@Composable get() = rememberBalance()
 		val NewTab: ImageVector
 			@Composable get() = rememberOpenInNew()
