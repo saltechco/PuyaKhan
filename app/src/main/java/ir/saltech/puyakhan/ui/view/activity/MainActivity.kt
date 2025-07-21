@@ -1,5 +1,6 @@
 package ir.saltech.puyakhan.ui.view.activity
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
@@ -80,10 +81,10 @@ internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
 internal class MainActivity : ComponentActivity() {
 	private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(
-		android.Manifest.permission.RECEIVE_SMS, android.Manifest.permission.POST_NOTIFICATIONS
+		Manifest.permission.RECEIVE_SMS, Manifest.permission.POST_NOTIFICATIONS
 	)
 	else arrayOf(
-		android.Manifest.permission.RECEIVE_SMS
+		Manifest.permission.RECEIVE_SMS
 	)
 
 	init {
@@ -126,6 +127,7 @@ internal class MainActivity : ComponentActivity() {
 		}
 	}
   
+	@Composable
 	private fun RequestPermission() {
 		when {
 			needsAppPermissionsRational() -> PermissionAlert(

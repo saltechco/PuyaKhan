@@ -70,7 +70,7 @@ object App {
 		context.dataStore[Key.ExpireTime] = settings.expireTime
 		if (settings.otpWindowPos != null) context.dataStore[Key.WindowPosition] =
 			settings.otpWindowPos!!.toStringSet()
-    context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
+        context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}
 }

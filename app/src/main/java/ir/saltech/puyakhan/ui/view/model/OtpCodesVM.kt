@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.OtpProcessor
@@ -33,7 +34,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 
 	private fun loadOtpCodes() {
 		viewModelScope.launch {
-      OtpProcessor.getOtpCodes(getApplication()).map { codes ->
+			OtpProcessor.getOtpCodes(getApplication()).map { codes ->
 				codes.filter {
 					System.currentTimeMillis() - it.sentTime < it.expirationTime
 				}
@@ -47,7 +48,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 					} else {
 						currentCodes
 					}
-        }
+				}
 			}
 		}
 	}
