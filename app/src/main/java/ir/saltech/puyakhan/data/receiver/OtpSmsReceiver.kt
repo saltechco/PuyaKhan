@@ -64,7 +64,6 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					}
 				}
 			} catch (e: Exception) {
-				e.printStackTrace()
 				Log.e("SmsReceiver", "Exception smsReceiver: $e")
 			} finally {
 				pendingResult.finish()

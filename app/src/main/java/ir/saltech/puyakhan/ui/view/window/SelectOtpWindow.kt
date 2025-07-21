@@ -50,6 +50,11 @@ class SelectOtpWindow(private val context: Context) {
 		WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
 		PixelFormat.TRANSLUCENT
 	)
+	private val otpCodes: MutableList<OtpCode>
+		get() {
+			val otpCodes = mutableStateListOf<OtpCode>()
+			return otpCodes
+		}
 
 	init {
 		setWindowParam()
@@ -63,9 +68,6 @@ class SelectOtpWindow(private val context: Context) {
 		val otpCodesView = view.findViewById<RecyclerView>(R.id.otp_codes_view)
 		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
 		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
-//		val otpCodes = OtpManager.getCodeList(context, appSettings)
-//		val otpCodes = OtpProcessor.receivedOtpQueue
-		val otpCodes = mutableStateListOf<OtpCode>()
 		// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
@@ -173,18 +175,14 @@ class SelectOtpWindow(private val context: Context) {
 
 	companion object {
 		fun show(context: Context) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-				if (Settings.canDrawOverlays(context)) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-						ContextCompat.startForegroundService(
-							context, prepareIntentService(context)
-						)
-					} else {
-						context.startService(prepareIntentService(context))
-					}
+			if (Settings.canDrawOverlays(context)) {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					ContextCompat.startForegroundService(
+						context, prepareIntentService(context)
+					)
+				} else {
+					context.startService(prepareIntentService(context))
 				}
-			} else {
-				context.startService(prepareIntentService(context))
 			}
 		}
 
