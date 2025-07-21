@@ -39,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -126,8 +125,7 @@ internal class MainActivity : ComponentActivity() {
 			}
 		}
 	}
-
-	@Composable
+  
 	private fun RequestPermission() {
 		when {
 			needsAppPermissionsRational() -> PermissionAlert(
@@ -170,19 +168,15 @@ internal class MainActivity : ComponentActivity() {
 	}
 
 	private fun checkAppPermissions(): Boolean {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			for (permission in permissions) {
-				if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) return false
-			}
+		for (permission in permissions) {
+			if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) return false
 		}
 		return true
 	}
 
 	private fun needsAppPermissionsRational(): Boolean {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			for (permission in permissions) {
-				if (shouldShowRequestPermissionRationale(permission)) return true
-			}
+		for (permission in permissions) {
+			if (shouldShowRequestPermissionRationale(permission)) return true
 		}
 		return false
 	}
@@ -249,12 +243,7 @@ private fun PuyaKhanContent(
 	val codeList by otpCodesVM.otpCodes.collectAsState()
 	val codesLazyListState = rememberLazyListState()
 
-	MemorySafety {
-		LaunchedEffect(true) {
-			otpCodesVM.loadPreviousOtpCodes()
-			otpCodesVM.setOtpListener()
-		}
-	}
+	MemorySafety { }
 	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
 		Column(
 			modifier = Modifier

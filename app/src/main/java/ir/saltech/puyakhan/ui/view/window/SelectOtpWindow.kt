@@ -201,6 +201,7 @@ class SelectOtpWindow(private val context: Context) {
 			}
 		}
 
-		private fun prepareIntentService(context: Context): Intent = Intent(context, SelectOtpService::class.java)
+		private fun prepareIntentService(context: Context): Intent =
+			Intent(context, SelectOtpService::class.java)
 	}
 }

@@ -326,7 +326,7 @@ private fun MethodSelection(
 			Spacer(modifier = Modifier.height(16.dp))
 			MultiChoiceSegmentedButtonRow(modifier = Modifier.align(Alignment.CenterHorizontally)) {
 				SegmentedButton(
-					checked = preferredMethods.contains(PresentMethod.Otp.COPY),
+          checked = preferredMethods.contains(PresentMethod.Otp.COPY),
 					onCheckedChange = {
 						preferredMethods =
 							if (it) preferredMethods.plus(PresentMethod.Otp.COPY) else preferredMethods.minus(
@@ -343,7 +343,7 @@ private fun MethodSelection(
 					enabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (checkSelfPermission(
 						context, android.Manifest.permission.POST_NOTIFICATIONS
 					) == PackageManager.PERMISSION_GRANTED) else true,
-					checked = preferredMethods.contains(PresentMethod.Otp.NOTIFY),
+          checked = preferredMethods.contains(PresentMethod.Otp.NOTIFY),
 					onCheckedChange = {
 						preferredMethods =
 							if (it) preferredMethods.plus(PresentMethod.Otp.NOTIFY) else preferredMethods.minus(

@@ -3,17 +3,12 @@ package ir.saltech.puyakhan.ui.view.component.compose
 import android.app.ActivityManager
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,7 +52,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -72,7 +65,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.div
@@ -88,7 +80,6 @@ internal object SegmentedButtonOrder {
 	val Last = RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp)
 }
 
-@RequiresApi(Build.VERSION_CODES.M)
 @Composable
 internal fun PermissionAlert(
 	title: String, text: String, onConfirm: () -> Unit, dismissible: Boolean = false,
@@ -115,7 +106,7 @@ internal fun PermissionAlert(
 			)
 		}, confirmButton = {
 			TextButton(onClick = onConfirm) {
-				Text(text = "باشه؛ مشکلی نیست")
+				Text(text = stringResource(R.string.permission_accept_button))
 			}
 		})
 	}
@@ -256,7 +247,12 @@ internal fun OtpCodeCard(
 					Text(
 						code.otp,
 						style = MaterialTheme.typography.headlineMedium,
-						modifier = Modifier.clickable(code.expirationTime past code.elapsedTime > 0) { copySelectedCode(context, code.otp) })
+						modifier = Modifier.clickable(code.expirationTime past code.elapsedTime > 0) {
+							copySelectedCode(
+								context,
+								code.otp
+							)
+						})
 					Spacer(modifier = Modifier.height(6.dp))
 					AnimatedVisibility(code.price != null) {
 						Text(
@@ -300,9 +296,30 @@ internal fun OtpCodeCard(
 					}
 				}
 			}
-			Column(modifier = Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-				AnimatedVisibility (code.expirationTime past code.elapsedTime <= 0, enter = fadeIn() + scaleIn(initialScale = 1.1f), exit = fadeOut()) {
-					OutlinedCard (modifier = Modifier.rotate(-16f).scale(1.6f).alpha(0.6f), shape = RoundedCornerShape(8.dp), border = BorderStroke(2.dp, MaterialTheme.colorScheme.error), colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)) {
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.align(Alignment.Center),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.Center
+			) {
+				AnimatedVisibility(
+					code.expirationTime past code.elapsedTime <= 0,
+					enter = fadeIn() + scaleIn(initialScale = 1.1f),
+					exit = fadeOut()
+				) {
+					LaunchedEffect(showActions) {
+						showActions = false
+					}
+					OutlinedCard(
+						modifier = Modifier
+							.rotate(-14f)
+							.scale(1.4f)
+							.alpha(0.6f),
+						shape = RoundedCornerShape(8.dp),
+						border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
+						colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
+					) {
 						Text(
 							modifier = Modifier.padding(8.dp),
 							text = context.getString(R.string.otp_code_expired_2),
@@ -317,7 +334,7 @@ internal fun OtpCodeCard(
 
 @Composable
 private fun RemainingTime(
-	remainingTime: Long, originTime: Long
+	remainingTime: Long, originTime: Long,
 ) {
 	Row {
 		Spacer(modifier = Modifier.width(13.dp))
@@ -357,9 +374,16 @@ internal fun printTime(t: Long): String {
 @Composable
 private fun OtpCardPreview() {
 	val context = LocalContext.current
-	val otpCode = OtpCode("4729912", "صادرات ایران", "1,222,222", 1697436005137, expirationTime = MAX_OTP_SMS_EXPIRATION_TIME, elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME)
+	val otpCode = OtpCode(
+		id = 0,
+		"4729912",
+		"صادرات ایران",
+		"1,222,222",
+		1697436005137,
+		expirationTime = MAX_OTP_SMS_EXPIRATION_TIME,
+		elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME
+	)
 	PuyaKhanTheme {
 		OtpCodeCard(context, mutableListOf(otpCode), 0)
 	}
 }
-

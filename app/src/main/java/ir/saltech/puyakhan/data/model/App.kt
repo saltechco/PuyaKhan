@@ -19,7 +19,7 @@ object App {
 		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.NOTIFY),
 		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 		var otpWindowPos: WindowPosition? = null,
-		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
+    @Deprecated("Privacy now added into SettingsView, so ignoring it.")
 		var privacyAccepted: Boolean = false,
 		var savedOtpCodesCount: Int = 0,
 	)
@@ -34,7 +34,7 @@ object App {
 	}
 
 	data class WindowPosition(
-		var x: Int, var y: Int
+		var x: Int, var y: Int,
 	) {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
@@ -70,7 +70,7 @@ object App {
 		context.dataStore[Key.ExpireTime] = settings.expireTime
 		if (settings.otpWindowPos != null) context.dataStore[Key.WindowPosition] =
 			settings.otpWindowPos!!.toStringSet()
-		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
+    context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}
 }
