@@ -39,5 +39,3 @@ google-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gs
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-googleProtobuf = { id = "com.google.protobuf", version = "0.9.3" }
-

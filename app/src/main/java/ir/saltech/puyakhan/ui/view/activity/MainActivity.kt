@@ -1,6 +1,5 @@
 package ir.saltech.puyakhan.ui.view.activity
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
@@ -10,7 +9,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,9 +19,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,15 +30,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -114,27 +108,16 @@ internal class MainActivity : ComponentActivity() {
 		startProgram()
 	}
 
-	@SuppressLint("NewApi")
 	private fun startProgram() {
-		val appSettings = App.getSettings(this)
 		setContent {
 			PuyaKhanTheme {
-				// A surface container using the 'background' color from the theme
 				LockedDirection {
 					Surface(
 						modifier = Modifier.fillMaxSize(),
 						color = MaterialTheme.colorScheme.background
 					) {
 						if (checkAppPermissions()) {
-							if (appSettings.disclaimerAccepted) {
-								PuyaKhanApp()
-							} else {
-								DisclaimerAcceptation {
-									appSettings.disclaimerAccepted = true
-									App.setSettings(this, appSettings)
-									startProgram()
-								}
-							}
+							PuyaKhanApp()
 						} else {
 							RequestPermission()
 						}
@@ -144,40 +127,6 @@ internal class MainActivity : ComponentActivity() {
 		}
 	}
 
-	@Composable
-	private fun DisclaimerAcceptation(
-		dismissible: Boolean = false, onConfirm: () -> Unit,
-	) {
-		var dismiss by remember { mutableStateOf(false) }
-		if (!dismiss) {
-			AlertDialog(icon = {
-				Icon(
-					imageVector = Symbols.Default.Disclaimer,
-					contentDescription = stringResource(R.string.disclaimer_dialog_cd)
-				)
-			}, onDismissRequest = {
-				dismiss = dismissible
-			}, title = {
-				Text(
-					text = stringResource(R.string.disclaimer_dialog_title),
-					style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)
-				)
-			}, text = {
-				Text(
-					text = stringResource(R.string.disclaimer_text),
-					style = MaterialTheme.typography.bodyLarge.copy(
-						textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify
-					)
-				)
-			}, confirmButton = {
-				TextButton(onClick = onConfirm) {
-					Text(text = stringResource(R.string.discalimer_accept))
-				}
-			})
-		}
-	}
-
-	@RequiresApi(Build.VERSION_CODES.M)
 	@Composable
 	private fun RequestPermission() {
 		when {
@@ -216,8 +165,8 @@ internal class MainActivity : ComponentActivity() {
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
 		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-				channel
-			)
+			channel
+		)
 	}
 
 	private fun checkAppPermissions(): Boolean {
@@ -278,14 +227,15 @@ private fun PuyaKhanTopBar(
 		)
 	}, actions = {
 		Spacer(modifier = Modifier.width(16.dp))
-		Icon(
-			modifier = Modifier
-				.size(26.dp)
-				.align(Alignment.Bottom)
-				.clickable { onPageChanged(App.Page.Settings) },
-			imageVector = Symbols.Default.Settings,
-			contentDescription = stringResource(R.string.app_settings_cd)
-		)
+		IconButton(onClick = {
+			onPageChanged(App.Page.Settings)
+		}) {
+			Icon(
+				modifier = Modifier.size(26.dp),
+				imageVector = Symbols.Default.Settings,
+				contentDescription = stringResource(R.string.app_settings_cd)
+			)
+		}
 		Spacer(modifier = Modifier.width(16.dp))
 	})
 }
@@ -342,9 +292,13 @@ private fun PuyaKhanContent(
 				textAlign = TextAlign.Center,
 				maxLines = 1
 			)
-			AnimatedContent(codesLazyListState, ) { state ->
-				LazyColumn(modifier = Modifier.padding(top = 5.dp, bottom = 8.dp), state = state, reverseLayout = true) {
-					itemsIndexed(codeList) { index, code ->
+			AnimatedContent(codesLazyListState) { state ->
+				LazyColumn(
+					modifier = Modifier.padding(top = 5.dp, bottom = 8.dp),
+					state = state,
+					reverseLayout = true
+				) {
+					itemsIndexed(codeList) { index, _ ->
 						OtpCodeCard(context, codeList, index)
 					}
 				}
@@ -367,8 +321,11 @@ internal fun shareSelectedCode(context: Context, code: OtpCode) {
 	val shareIntent = Intent(Intent.ACTION_SEND)
 	shareIntent.type = "text/plain"
 	shareIntent.putExtra(
-		Intent.EXTRA_TEXT,
-		context.getString(R.string.share_otp_code_text, code.bank ?: context.getString(R.string.unknown_bank), code.otp)
+		Intent.EXTRA_TEXT, context.getString(
+			R.string.share_otp_code_text,
+			code.bank ?: context.getString(R.string.unknown_bank),
+			code.otp
+		)
 	)
 	// Todo: add price, bank detection to share otp code; this must be flexible.
 	context.startActivity(

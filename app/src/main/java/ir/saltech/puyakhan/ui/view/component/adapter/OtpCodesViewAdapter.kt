@@ -21,6 +21,9 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 private const val INTERVAL = 1000L
@@ -40,7 +43,9 @@ internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 
 	override fun onCreateViewHolder(p0: ViewGroup, p1: Int): OtpCodesViewHolder {
 		context = p0.context
-		appSettings = App.getSettings(context)
+		CoroutineScope(Dispatchers.IO).launch {
+			appSettings = App.getSettings(context)
+		}
 		return OtpCodesViewHolder(
 			LayoutInflater.from(p0.context).inflate(R.layout.layout_template_otp, p0, false)
 		)

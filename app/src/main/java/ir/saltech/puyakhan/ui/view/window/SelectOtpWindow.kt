@@ -30,12 +30,13 @@ import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
-import ir.saltech.puyakhan.data.util.OtpProcessor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
 
-@SuppressLint("InflateParams")
 class SelectOtpWindow(private val context: Context) {
 	private var wait: Int = 0
 	private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -43,7 +44,7 @@ class SelectOtpWindow(private val context: Context) {
 	private val layoutInflater =
 		context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 	private val view = layoutInflater.inflate(R.layout.layout_window_select_otp, null)
-	private val appSettings = App.getSettings(context)
+	private lateinit var appSettings: App.Settings
 	private var windowParams = WindowManager.LayoutParams(
 		WindowManager.LayoutParams.WRAP_CONTENT,
 		WindowManager.LayoutParams.WRAP_CONTENT,
@@ -51,23 +52,31 @@ class SelectOtpWindow(private val context: Context) {
 		WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
 		PixelFormat.TRANSLUCENT
 	)
+	private val otpCodes: MutableList<OtpCode>
+		get() {
+			val otpCodes = mutableStateListOf<OtpCode>()
+			return otpCodes
+		}
 
 	init {
 		setWindowParam()
-		init()
+		initValues()
+		initViews()
 		show()
 	}
 
-	private fun init() {
+	private fun initValues() {
+		loadAppSettings()
+		// todo: then load new otp codes from OtpProcessor here.
+	}
+
+	private fun initViews() {
 		view.findViewById<ImageButton>(R.id.close_otp_window).setOnClickListener { hide() }
 		val otpCodesEmpty = view.findViewById<TextView>(R.id.otp_codes_empty)
 		val otpCodesView = view.findViewById<RecyclerView>(R.id.otp_codes_view)
 		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
 		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
-//		val otpCodes = OtpManager.getCodeList(context, appSettings)
-//		val otpCodes = OtpProcessor.receivedOtpQueue
-		val otpCodes = mutableStateListOf<OtpCode>()
-			// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
+		// todo: یه تابع hide بنویس برای حذف این پنجره و کد ها رو از خود کلاس بخون.
 		if (otpCodes.isEmpty()) {
 			otpCodesEmpty.visibility = View.VISIBLE
 			otpCodesView.visibility = View.GONE
@@ -90,42 +99,37 @@ class SelectOtpWindow(private val context: Context) {
 
 	@SuppressLint("ClickableViewAccessibility")
 	private fun setupWindowDrag(handle: View, parent: View) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-			handle.setOnTouchListener { _, e ->
-				when (e.action) {
-					MotionEvent.ACTION_MOVE -> {
-						if (wait >= 1000) {
-							if (wait == 1000) {
-								vibrator.vibrate(50)
-								handle.backgroundTintList = ContextCompat.getColorStateList(
-									context, R.color.colorAccent
-								)
-								wait++
-							}
-							windowParams.x =
-								(e.rawX - (parent.measuredWidth / 1.25.dp)).roundToInt()
-							windowParams.y =
-								(e.rawY - (parent.measuredHeight * 2.25.dp)).roundToInt()
-							windowManager.updateViewLayout(parent, windowParams)
-							appSettings.otpWindowPos =
-								App.WindowPosition(windowParams.x, windowParams.y)
-							App.setSettings(context, appSettings)
-						} else {
-							wait += 100
-							Log.e("TAG", "Waiting for ... $wait")
+		handle.setOnTouchListener { _, e ->
+			when (e.action) {
+				MotionEvent.ACTION_MOVE -> {
+					if (wait >= 1000) {
+						if (wait == 1000) {
+							vibrator.vibrate(50)
+							handle.backgroundTintList = ContextCompat.getColorStateList(
+								context, R.color.colorAccent
+							)
+							wait++
 						}
-
-					}
-
-					MotionEvent.ACTION_UP -> {
-						handle.backgroundTintList = ContextCompat.getColorStateList(
-							context, R.color.otpExpiredCardBackground
-						)
-						wait = 0
+						windowParams.x = (e.rawX - (parent.measuredWidth / 1.25.dp)).roundToInt()
+						windowParams.y = (e.rawY - (parent.measuredHeight * 2.25.dp)).roundToInt()
+						windowManager.updateViewLayout(parent, windowParams)
+						appSettings.otpWindowPos =
+							App.WindowPosition(windowParams.x, windowParams.y)
+						saveAppSettings()
+					} else {
+						wait += 100
+						Log.e("TAG", "Waiting for ... $wait")
 					}
 				}
-				true
+
+				MotionEvent.ACTION_UP -> {
+					handle.backgroundTintList = ContextCompat.getColorStateList(
+						context, R.color.otpExpiredCardBackground
+					)
+					wait = 0
+				}
 			}
+			true
 		}
 	}
 
@@ -172,25 +176,31 @@ class SelectOtpWindow(private val context: Context) {
 		}
 	}
 
+	private fun loadAppSettings() {
+		CoroutineScope(Dispatchers.IO).launch {
+			appSettings = App.getSettings(context)
+		}
+	}
+
+	private fun saveAppSettings() {
+		CoroutineScope(Dispatchers.IO).launch {
+			App.setSettings(context, appSettings)
+		}
+	}
+
 	companion object {
 		fun show(context: Context) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-				if (Settings.canDrawOverlays(context)) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-						ContextCompat.startForegroundService(
-							context, prepareIntentService(context)
-						)
-					} else {
-						context.startService(prepareIntentService(context))
-					}
+			if (Settings.canDrawOverlays(context)) {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					ContextCompat.startForegroundService(
+						context, prepareIntentService(context)
+					)
+				} else {
+					context.startService(prepareIntentService(context))
 				}
-			} else {
-				context.startService(prepareIntentService(context))
 			}
 		}
 
 		private fun prepareIntentService(context: Context): Intent = Intent(context, SelectOtpService::class.java)
 	}
 }
-
-
