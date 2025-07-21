@@ -18,8 +18,8 @@ internal class BackgroundActivity : ComponentActivity() {
 		if (intent != null) {
 			val extras = intent.extras
 			if (extras != null) {
-				if (extras.containsKey(App.Key.CopyOtpCode)) {
-					otp = extras.getString(App.Key.CopyOtpCode, null)
+				if (extras.containsKey(App.Key.OTP_CODE_COPY_KEY)) {
+					otp = extras.getString(App.Key.OTP_CODE_COPY_KEY, null)
 				}
 			}
 		}

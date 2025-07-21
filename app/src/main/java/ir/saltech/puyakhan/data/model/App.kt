@@ -2,12 +2,13 @@ package ir.saltech.puyakhan.data.model
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.dataStore
 import ir.saltech.puyakhan.data.util.get
 import ir.saltech.puyakhan.data.util.set
-import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 
 object App {
 	enum class Page {
@@ -15,18 +16,21 @@ object App {
 	}
 
 	data class Settings(
-		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.Notify),
+		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.NOTIFY),
 		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 		var otpWindowPos: WindowPosition? = null,
-		var disclaimerAccepted: Boolean = false
+		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
+		var privacyAccepted: Boolean = false,
+		var savedOtpCodesCount: Int = 0,
 	)
 
 	object Key {
-		const val CopyOtpCode = "otp_code_copy_key"
+		const val OTP_CODE_COPY_KEY = "otp_code_copy_key"
 		val PresentMethod = stringSetPreferencesKey("present_method")
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")
-		val DisclaimerAccepted = booleanPreferencesKey("disclaimer_accepted")
+		val PrivacyAccepted = booleanPreferencesKey("privacy_accepted")
+		val SavedOtpCodesCount = intPreferencesKey("saved_otp_codes_count")
 	}
 
 	data class WindowPosition(
@@ -45,26 +49,28 @@ object App {
 
 	sealed class PresentMethod {
 		object Otp {
-			const val Copy = "copy"
-			const val Notify = "notify"
-			const val Select = "select"
+			const val COPY = "copy"
+			const val NOTIFY = "notify"
+			const val SELECT = "select"
 		}
 	}
 
-	fun getSettings(context: Context): Settings {
+	suspend fun getSettings(context: Context): Settings {
 		return Settings(
-			context.dataStore[Key.PresentMethod] ?: mutableSetOf(PresentMethod.Otp.Notify),
+			context.dataStore[Key.PresentMethod] ?: mutableSetOf(PresentMethod.Otp.NOTIFY),
 			context.dataStore[Key.ExpireTime] ?: MAX_OTP_SMS_EXPIRATION_TIME,
 			context.dataStore[Key.WindowPosition]?.let { WindowPosition.fromStringSet(it) },
-			context.dataStore[Key.DisclaimerAccepted] ?: false
+			context.dataStore[Key.PrivacyAccepted] ?: false,
+			context.dataStore[Key.SavedOtpCodesCount] ?: 0
 		)
 	}
 
-	fun setSettings(context: Context, settings: Settings) {
+	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
 		if (settings.otpWindowPos != null) context.dataStore[Key.WindowPosition] =
 			settings.otpWindowPos!!.toStringSet()
-		context.dataStore[Key.DisclaimerAccepted] = settings.disclaimerAccepted
+		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
+		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}
 }

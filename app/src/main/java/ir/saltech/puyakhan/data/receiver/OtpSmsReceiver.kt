@@ -26,6 +26,9 @@ import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 
@@ -37,37 +40,44 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	@SuppressLint("UnsafeProtectedBroadcastReceiver")
 	override fun onReceive(context: Context, intent: Intent) {
 		if (intent.extras == null) return
-		try {
-			appSettings = App.getSettings(context)
-			val smsMessage = getNewOtpSms(intent.extras)
-//			val (otp, bank) = OtpManager.getOtpFromSms() ?: return
-			if (smsMessage != null) {
-				val otpCodeObj = OtpProcessor.extractOtpInfo(smsMessage.body.trim(), smsMessage.date, appSettings)
-				if (otpCodeObj != null) {
-					if (otpCodeObj.otp.isNotEmpty()) {
-						handleReceivedOtp(
-							context,
-							otpCodeObj.otp,
-							otpCodeObj.bank,
-							price = otpCodeObj.price
-						)
+		val pendingResult = goAsync()
+		CoroutineScope(Dispatchers.IO).launch {
+			try {
+				appSettings = App.getSettings(context)
+				val smsMessage = getNewOtpSms(intent.extras)
+				if (smsMessage != null) {
+					val otpCodeObj = OtpProcessor.extractOtpInfo(
+						smsMessage.body.trim(),
+						smsMessage.date,
+						appSettings
+					)
+					if (otpCodeObj != null) {
+						if (otpCodeObj.otp.isNotEmpty()) {
+							handleReceivedOtp(
+								context,
+								otpCodeObj.otp,
+								otpCodeObj.bank,
+								price = otpCodeObj.price
+							)
+						}
 					}
 				}
+			} catch (e: Exception) {
+				Log.e("SmsReceiver", "Exception smsReceiver: $e")
+			} finally {
+				pendingResult.finish()
 			}
-		} catch (e: Exception) {
-			e.printStackTrace()
-			Log.e("SmsReceiver", "Exception smsReceiver: $e")
 		}
 	}
 
 	private fun handleReceivedOtp(context: Context, otp: String, bank: String?, price: String?) {
 		for (presentMethod in appSettings.presentMethods) {
 			when (presentMethod) {
-				App.PresentMethod.Otp.Copy -> copyOtpToClipboard(context, otp)
+				App.PresentMethod.Otp.COPY -> copyOtpToClipboard(context, otp)
 
-				App.PresentMethod.Otp.Notify -> showOtpNotification(context, otp, bank, price)
+				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, otp, bank, price)
 
-				App.PresentMethod.Otp.Select -> SelectOtpWindow.show(context)
+				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context)
 
 				else -> throw UnknownPresentMethodException("The Present method must be either of Copy, Notify or Select")
 			}
@@ -127,7 +137,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						PendingIntent.getActivity(
 							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.CopyOtpCode, otp)
+								putExtra(App.Key.OTP_CODE_COPY_KEY, otp)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()
