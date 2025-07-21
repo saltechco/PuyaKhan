@@ -35,8 +35,6 @@ class OtpDataStore(context: Context) {
 			currentCodes.filterNot { it.id == otpCode.id }.toMutableStateList()
 		}
 	}
-		}
-	}
 
 	suspend fun clearAll() {
 		dataStore.updateData {
