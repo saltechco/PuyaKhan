@@ -69,10 +69,10 @@ import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.past
+import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.copySelectedCode
-import ir.saltech.puyakhan.ui.view.activity.shareSelectedCode
 
 internal object SegmentedButtonOrder {
 	val First = RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp)
@@ -279,7 +279,7 @@ internal fun OtpCodeCard(
 							.padding(8.dp)
 					) {
 						Spacer(modifier = Modifier.weight(1f, true))
-						OutlinedButton(onClick = { shareSelectedCode(context, code) }) {
+						OutlinedButton(onClick = { shareSelectedOtpCode(context, code) }) {
 							Text(
 								stringResource(R.string.otp_card_share),
 								style = MaterialTheme.typography.labelSmall

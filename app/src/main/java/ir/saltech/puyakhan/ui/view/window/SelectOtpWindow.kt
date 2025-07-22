@@ -37,14 +37,13 @@ import kotlin.math.roundToInt
 
 private const val OTP_VIEWER_WINDOW = "OTP Viewer Window"
 
-class SelectOtpWindow(private val context: Context) {
+class SelectOtpWindow(private val context: Context, private val appSettings: App.Settings) {
 	private var wait: Int = 0
 	private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 	private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 	private val layoutInflater =
 		context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 	private val view = layoutInflater.inflate(R.layout.layout_window_select_otp, null)
-	private lateinit var appSettings: App.Settings
 	private var windowParams = WindowManager.LayoutParams(
 		WindowManager.LayoutParams.WRAP_CONTENT,
 		WindowManager.LayoutParams.WRAP_CONTENT,
@@ -66,7 +65,6 @@ class SelectOtpWindow(private val context: Context) {
 	}
 
 	private fun initValues() {
-		loadAppSettings()
 		// todo: then load new otp codes from OtpProcessor here.
 	}
 
@@ -133,8 +131,8 @@ class SelectOtpWindow(private val context: Context) {
 		}
 	}
 
-	private fun setupOtpCodesViewer(otpCodes: List<OtpCode>, otpCodesView: RecyclerView) {
-		val adapter = OtpCodesViewAdapter(otpCodes)
+	private fun setupOtpCodesViewer(otpCodes: MutableList<OtpCode>, otpCodesView: RecyclerView) {
+		val adapter = OtpCodesViewAdapter(appSettings, otpCodes)
 		otpCodesView.adapter = adapter
 		otpCodesView.layoutManager =
 			LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -176,12 +174,6 @@ class SelectOtpWindow(private val context: Context) {
 		}
 	}
 
-	private fun loadAppSettings() {
-		CoroutineScope(Dispatchers.IO).launch {
-			appSettings = App.getSettings(context)
-		}
-	}
-
 	private fun saveAppSettings() {
 		CoroutineScope(Dispatchers.IO).launch {
 			App.setSettings(context, appSettings)
@@ -189,19 +181,22 @@ class SelectOtpWindow(private val context: Context) {
 	}
 
 	companion object {
-		fun show(context: Context) {
+		const val APP_SETTINGS_KEY = "app_settings"
+
+		fun show(context: Context, appSettings: App.Settings) {
 			if (Settings.canDrawOverlays(context)) {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 					ContextCompat.startForegroundService(
-						context, prepareIntentService(context)
+						context, prepareIntentService(context, appSettings)
 					)
 				} else {
-					context.startService(prepareIntentService(context))
+					context.startService(prepareIntentService(context, appSettings))
 				}
 			}
 		}
 
-		private fun prepareIntentService(context: Context): Intent =
-			Intent(context, SelectOtpService::class.java)
+    private fun prepareIntentService(context: Context, appSettings: App.Settings): Intent = Intent(context, SelectOtpService::class.java).apply {
+			putExtra(APP_SETTINGS_KEY, appSettings)
+		}
 	}
 }

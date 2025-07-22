@@ -308,24 +308,6 @@ internal fun copySelectedCode(context: Context, code: String) {
 	).show()
 }
 
-internal fun shareSelectedCode(context: Context, code: OtpCode) {
-	val shareIntent = Intent(Intent.ACTION_SEND)
-	shareIntent.type = "text/plain"
-	shareIntent.putExtra(
-		Intent.EXTRA_TEXT, context.getString(
-			R.string.share_otp_code_text,
-			code.bank ?: context.getString(R.string.unknown_bank),
-			code.otp
-		)
-	)
-	// Todo: add price, bank detection to share otp code; this must be flexible.
-	context.startActivity(
-		Intent.createChooser(
-			shareIntent, context.getString(R.string.send_otp_to)
-		).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-	)
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun OverallPreview() {

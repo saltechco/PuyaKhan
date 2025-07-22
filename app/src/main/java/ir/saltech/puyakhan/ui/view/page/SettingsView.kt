@@ -33,6 +33,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedTextField
@@ -95,14 +96,17 @@ private fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
 	}, navigationIcon = {
 		Row {
 			Spacer(modifier = Modifier.width(16.dp))
-			Icon(
-				modifier = Modifier
-					.size(26.dp)
-					.align(Alignment.Bottom)
-					.clickable { onPageChanged(App.Page.Main) },
-				imageVector = Symbols.Default.Back,
-				contentDescription = stringResource(R.string.back_to_the_main_page_cd)
-			)
+			IconButton(onClick = {
+				onPageChanged(App.Page.Main)
+			}) {
+				Icon(
+					modifier = Modifier
+						.size(26.dp)
+						.align(Alignment.Bottom),
+					imageVector = Symbols.Default.Back,
+					contentDescription = stringResource(R.string.back_to_the_main_page_cd)
+				)
+			}
 			Spacer(modifier = Modifier.width(16.dp))
 		}
 	})

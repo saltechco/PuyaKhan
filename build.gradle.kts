@@ -4,6 +4,7 @@ plugins {
 	alias(libs.plugins.kotlinAndroid) apply false
 	alias(libs.plugins.kotlinCompose) apply false
 	alias(libs.plugins.googleProtobuf) apply false
+	alias(libs.plugins.kotlinParcelize) apply false
 }
 
 true // Needed to make the Suppress annotation work for the plugins block

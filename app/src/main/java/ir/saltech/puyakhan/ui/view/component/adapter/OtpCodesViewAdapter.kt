@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
@@ -21,17 +20,14 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 
 
 private const val INTERVAL = 1000L
 
-internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
+internal class OtpCodesViewAdapter(private val appSettings: App.Settings, private var otpCodes: MutableList<OtpCode>) :
 	Adapter<OtpCodesViewAdapter.OtpCodesViewHolder>() {
 	private lateinit var context: Context
-	private lateinit var appSettings: App.Settings
 
 	internal inner class OtpCodesViewHolder(v: View) : ViewHolder(v) {
 		val otpCard: CardView = v.findViewById(R.id.otp_card)
@@ -41,13 +37,10 @@ internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		val codeExpireBar: ProgressBar = v.findViewById(R.id.otp_expire_bar)
 	}
 
-	override fun onCreateViewHolder(p0: ViewGroup, p1: Int): OtpCodesViewHolder {
-		context = p0.context
-		CoroutineScope(Dispatchers.IO).launch {
-			appSettings = App.getSettings(context)
-		}
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OtpCodesViewHolder {
+		context = parent.context
 		return OtpCodesViewHolder(
-			LayoutInflater.from(p0.context).inflate(R.layout.layout_template_otp, p0, false)
+			LayoutInflater.from(parent.context).inflate(R.layout.layout_template_otp, parent, false)
 		)
 	}
 
@@ -59,9 +52,7 @@ internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 			copyOtpCode(otpCodes[position].otp)
 		}
 		holder.shareOtpCode.setOnClickListener {
-			shareOtpCode(
-				otpCodes[position].otp, otpCodes[position].bank
-			)
+			shareSelectedOtpCode(context, otpCodes[position])
 		}
 		object : CountDownTimer(
 			100000000, INTERVAL
@@ -100,17 +91,6 @@ internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		holder.shareOtpCode.visibility = View.INVISIBLE
 	}
 
-	@SuppressLint("NotifyDataSetChanged")
-	private fun deleteOtpCode(position: Int) {
-		if (position >= 0) {
-			otpCodes = otpCodes.minusElement(otpCodes[position])
-			Toast.makeText(
-				context, context.getString(R.string.otp_code_deleted), Toast.LENGTH_SHORT
-			).show()
-			notifyDataSetChanged()
-		}
-	}
-
 	private fun copyOtpCode(otpCode: String) {
 		val clipboardManager =
 			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -120,21 +100,6 @@ internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
 		Toast.makeText(
 			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
 		).show()
-	}
-
-	private fun getOtpCodeText(otpCode: String, bank: String?): String {
-		return context.getString(R.string.share_otp_code_text, bank, otpCode)
-	}
-
-	private fun shareOtpCode(otpCode: String, bank: String?) {
-		val shareIntent = Intent(Intent.ACTION_SEND)
-		shareIntent.type = "text/plain"
-		shareIntent.putExtra(Intent.EXTRA_TEXT, getOtpCodeText(otpCode, bank))
-		context.startActivity(
-			Intent.createChooser(
-				shareIntent, context.getString(R.string.send_otp_to)
-			).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		)
 	}
 
 	override fun getItemCount(): Int = otpCodes.size

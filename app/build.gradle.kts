@@ -2,7 +2,8 @@ plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
 	alias(libs.plugins.kotlinCompose)
-	alias(libs.plugins.googleProtobuf)
+  alias(libs.plugins.googleProtobuf)
+  alias(libs.plugins.kotlinParcelize)
 }
 
 android {
@@ -44,9 +45,6 @@ android {
 				getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 			)
 			signingConfig = signingConfigs.getByName("release")
-		}
-		getByName("debug") {
-			signingConfig = signingConfigs.getByName("debug")
 		}
 	}
 	compileOptions {

@@ -78,7 +78,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 
 				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, otp, bank, price)
 
-				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context)
+				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context, appSettings)
 
 				else -> throw UnknownPresentMethodException("The Present method must be either of Copy, Notify or Select")
 			}

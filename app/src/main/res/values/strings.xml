@@ -28,7 +28,10 @@
     <string name="otp_codes_empty_view">رمز پویایی وجود ندارد!</string>
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
     <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
-    <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
+    <string name="share_otp_code_text">کد فعالسازی (رمز پویای) من، %s می باشد.</string>
+    <string name="share_otp_code_text_from_bank">رمز پویای من در یک تراکنش، از بانک %s، %s می باشد.</string>
+    <string name="share_otp_code_text_from_bank_with_price">رمز پویای من در یک تراکنش به مبلغ %s، از بانک %s، %s می باشد.</string>
+    <string name="share_otp_code_text_with_price">رمز پویای من در یک تراکنش به مبلغ %s، %s می باشد.</string>
     <string name="privacy_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.\nهمچنین پویاخوان به صورت متن باز ارائه شده است.</string>
     <string name="memory_leaked_error">برخی از عملکرد های این برنامه برای دستگاه شما، متأسفانه هنوز بهینه نشده است!</string>
     <string name="unknown_bank">بانک ناشناخته</string>

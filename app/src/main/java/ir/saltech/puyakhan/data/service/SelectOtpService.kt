@@ -2,18 +2,36 @@ package ir.saltech.puyakhan.data.service
 
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 
 private const val OTP_OVERLAY_SERVICE_ID = 8482
 
 class SelectOtpService : Service() {
+	companion object {
+		private const val TAG = "SelectOtpService"
+	}
+
 	override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 		showWindowNotification()
-		SelectOtpWindow(this)
+		val appSettings: App.Settings? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			intent.getParcelableExtra(SelectOtpWindow.APP_SETTINGS_KEY,
+				App.Settings::class.java)
+		} else {
+			intent.getParcelableExtra(SelectOtpWindow.APP_SETTINGS_KEY)
+		}
+		if (appSettings != null) {
+			SelectOtpWindow(applicationContext, appSettings)
+			Log.i(TAG, "Starting SelectOtpWindow ..")
+		} else {
+			Log.e(TAG, "AppSettings is null or is not initiated for this service")
+		}
 		return START_STICKY
 	}
 
