@@ -61,14 +61,11 @@ inline fun repeatForever(action: () -> Unit) {
 }
 
 private fun getShareOtpCodeText(context: Context, code: OtpCode): String {
-	return if (code.bank != null && code.price != null) {
-		context.getString(R.string.share_otp_code_text_from_bank_with_price, code.price, code.bank, code.otp)
-	} else if (code.bank != null) {
-		context.getString(R.string.share_otp_code_text_from_bank, code.bank, code.otp)
-	} else if (code.price != null) {
-		context.getString(R.string.share_otp_code_text_with_price, code.price, code.otp)
-	} else {
-		context.getString(R.string.share_otp_code_text, code.otp)
+	return when {
+		code.bank != null && code.price != null -> context.getString(R.string.share_otp_code_text_from_bank_with_price, code.price, code.bank, code.otp)
+		code.bank != null -> context.getString(R.string.share_otp_code_text_from_bank, code.bank, code.otp)
+		code.price != null -> context.getString(R.string.share_otp_code_text_with_price, code.price, code.otp)
+		else -> context.getString(R.string.share_otp_code_text, code.otp)
 	}
 }
 

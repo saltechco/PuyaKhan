@@ -14,6 +14,10 @@ import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 private const val OTP_OVERLAY_SERVICE_ID = 8482
 
 class SelectOtpService : Service() {
+	companion object {
+		private const val TAG = "SelectOtpService"
+	}
+
 	override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 		showWindowNotification()
 		val appSettings: App.Settings? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -24,9 +28,9 @@ class SelectOtpService : Service() {
 		}
 		if (appSettings != null) {
 			SelectOtpWindow(applicationContext, appSettings)
-			Log.i("TAG", "Starting SelectOtpWindow ..")
+			Log.i(TAG, "Starting SelectOtpWindow ..")
 		} else {
-			Log.e("TAG", "AppSettings is null or is not initiated for this service")
+			Log.e(TAG, "AppSettings is null or is not initiated for this service")
 		}
 		return START_STICKY
 	}

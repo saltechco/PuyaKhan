@@ -26,8 +26,8 @@ import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -41,7 +41,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
 		if (intent.extras == null) return
 		val pendingResult = goAsync()
-		GlobalScope.launch {
+		CoroutineScope(Dispatchers.IO).launch {
 			try {
 				appSettings = App.getSettings(context)
 				val smsMessage = getNewOtpSms(intent.extras)
