@@ -195,8 +195,8 @@ class SelectOtpWindow(private val context: Context, private val appSettings: App
 			}
 		}
 
-		private fun prepareIntentService(context: Context, appSettings: App.Settings): Intent = Intent(context, SelectOtpService::class.java).apply {
-			putExtra(APP_SETTINGS_KEY, appSettings) // Pass appSettings as an extra
+    private fun prepareIntentService(context: Context, appSettings: App.Settings): Intent = Intent(context, SelectOtpService::class.java).apply {
+			putExtra(APP_SETTINGS_KEY, appSettings)
 		}
 	}
 }

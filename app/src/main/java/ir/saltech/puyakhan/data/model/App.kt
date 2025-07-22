@@ -22,7 +22,7 @@ object App {
 		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.NOTIFY),
 		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 		var otpWindowPos: WindowPosition? = null,
-		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
+    @Deprecated("Privacy now added into SettingsView, so ignoring it.")
 		var privacyAccepted: Boolean = false,
 		var savedOtpCodesCount: Int = 0,
 	) : Parcelable
@@ -38,7 +38,7 @@ object App {
 
 	@Parcelize
 	data class WindowPosition(
-		var x: Int, var y: Int
+    var x: Int, var y: Int
 	): Parcelable {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
@@ -72,7 +72,7 @@ object App {
 	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
+    context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}

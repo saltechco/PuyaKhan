@@ -45,7 +45,7 @@ internal class OtpCodesViewAdapter(private val appSettings: App.Settings, privat
 	}
 
 	override fun onBindViewHolder(
-		holder: OtpCodesViewHolder, @SuppressLint("RecyclerView") position: Int
+		holder: OtpCodesViewHolder, @SuppressLint("RecyclerView") position: Int,
 	) {
 		holder.otpCode.text = otpCodes[position].otp
 		holder.copyOtpCode.setOnClickListener {
