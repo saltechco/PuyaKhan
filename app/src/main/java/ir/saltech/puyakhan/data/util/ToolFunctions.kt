@@ -1,12 +1,15 @@
 package ir.saltech.puyakhan.data.util
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.ui.unit.Dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.OtpCode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.contracts.ExperimentalContracts
@@ -55,4 +58,29 @@ inline fun repeatForever(action: () -> Unit) {
 	while (true) {
 		action()
 	}
+}
+
+private fun getShareOtpCodeText(context: Context, code: OtpCode): String {
+	return if (code.bank != null && code.price != null) {
+		context.getString(R.string.share_otp_code_text_from_bank_with_price, code.price, code.bank, code.otp)
+	} else if (code.bank != null) {
+		context.getString(R.string.share_otp_code_text_from_bank, code.bank, code.otp)
+	} else if (code.price != null) {
+		context.getString(R.string.share_otp_code_text_with_price, code.price, code.otp)
+	} else {
+		context.getString(R.string.share_otp_code_text, code.otp)
+	}
+}
+
+internal fun shareSelectedOtpCode(context: Context, code: OtpCode) {
+	val shareIntent = Intent(Intent.ACTION_SEND)
+	shareIntent.type = "text/plain"
+	shareIntent.putExtra(
+		Intent.EXTRA_TEXT, getShareOtpCodeText(context, code)
+	)
+	context.startActivity(
+		Intent.createChooser(
+			shareIntent, context.getString(R.string.send_otp_to)
+		).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	)
 }

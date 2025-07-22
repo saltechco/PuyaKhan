@@ -1,6 +1,7 @@
 package ir.saltech.puyakhan.data.model
 
 import android.content.Context
+import android.os.Parcelable
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -9,12 +10,14 @@ import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.dataStore
 import ir.saltech.puyakhan.data.util.get
 import ir.saltech.puyakhan.data.util.set
+import kotlinx.parcelize.Parcelize
 
 object App {
 	enum class Page {
 		Main, Settings
 	}
 
+	@Parcelize
 	data class Settings(
 		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.NOTIFY),
 		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
@@ -22,7 +25,7 @@ object App {
 		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
 		var privacyAccepted: Boolean = false,
 		var savedOtpCodesCount: Int = 0,
-	)
+	) : Parcelable
 
 	object Key {
 		const val OTP_CODE_COPY_KEY = "otp_code_copy_key"
@@ -33,9 +36,10 @@ object App {
 		val SavedOtpCodesCount = intPreferencesKey("saved_otp_codes_count")
 	}
 
+	@Parcelize
 	data class WindowPosition(
 		var x: Int, var y: Int
-	) {
+	): Parcelable {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
 				return WindowPosition(set.elementAt(0).toInt(), set.elementAt(1).toInt())
@@ -68,8 +72,7 @@ object App {
 	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-		if (settings.otpWindowPos != null) context.dataStore[Key.WindowPosition] =
-			settings.otpWindowPos!!.toStringSet()
+		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}

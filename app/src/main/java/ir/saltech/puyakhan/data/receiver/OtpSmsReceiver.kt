@@ -26,8 +26,8 @@ import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -41,7 +41,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
 		if (intent.extras == null) return
 		val pendingResult = goAsync()
-		CoroutineScope(Dispatchers.IO).launch {
+		GlobalScope.launch {
 			try {
 				appSettings = App.getSettings(context)
 				val smsMessage = getNewOtpSms(intent.extras)
@@ -77,7 +77,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 
 				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, otp, bank, price)
 
-				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context)
+				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context, appSettings)
 
 				else -> throw UnknownPresentMethodException("The Present method must be either of Copy, Notify or Select")
 			}
