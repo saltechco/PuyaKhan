@@ -1,13 +1,18 @@
 package ir.saltech.puyakhan.data.util
 
+import android.content.Context
 import android.util.Log
+import ir.saltech.puyakhan.data.datastore.OtpDataStore
 import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
+import kotlinx.coroutines.flow.Flow
 import java.util.regex.Pattern
 import kotlin.math.abs
 
 internal const val MAX_OTP_SMS_EXPIRATION_TIME = 120_000L
 internal const val CLIPBOARD_OTP_CODE = "otp_code"
+
+private const val ERROR_OTPCODE_ID = -1
 
 object OtpProcessor {
 	private data class FoundItem(val text: String, val index: Int)
@@ -16,12 +21,6 @@ object OtpProcessor {
 	object Actions {
 		const val COPY_OTP_ACTION = "ir.saltech.puyakhan.COPY_OTP_ACTION"
 	}
-
-	interface OtpReceivedListener {
-		fun onReceived(otp: OtpCode)
-	}
-
-	private var orListener: OtpReceivedListener? = null
 
 	private val ambiguousKeywords = listOf("کد", "code")
 
@@ -90,8 +89,6 @@ object OtpProcessor {
 		"reference number"
 	)
 
-	val otpCodesList = mutableListOf<OtpCode>()
-
 	/**
 	 * Analyzes an SMS message to extract transaction details including OTP,
 	 * bank name, and transaction amount.
@@ -99,7 +96,8 @@ object OtpProcessor {
 	 * @param message The SMS content to parse.
 	 * @return A [OtpCode] object containing the extracted data.
 	 */
-	fun extractOtpInfo(
+	suspend fun extractOtpInfo(
+		context: Context,
 		message: String,
 		sendTime: Long = 0L,
 		settings: App.Settings? = null,
@@ -109,21 +107,27 @@ object OtpProcessor {
 		val amount = extractAmount(message)?.trim()
 
 		val receivedOtp =
-			OtpCode(bank = bankName, price = amount, otp = otp, sentTime = sendTime, expirationTime = settings?.expireTime ?: 0L)
+			OtpCode(
+				id = kotlin.random.Random.nextInt(),
+				bank = bankName,
+				price = amount,
+				otp = otp,
+				sentTime = sendTime,
+				expirationTime = settings?.expireTime ?: 0L
+			)
 
 		Log.i("TAG", "Currently OTP Code : $receivedOtp")
-		removeExpiredOtpCodes()
-		otpCodesList.add(receivedOtp)
-		orListener?.onReceived(receivedOtp)
+		OtpDataStore(context).addOtpCode(receivedOtp)
+
+		if (settings != null)
+			App.setSettings(context, settings.apply { savedOtpCodesCount++ })
 
 		return receivedOtp
 	}
 
-	private fun removeExpiredOtpCodes() {
-		val backedUpList =
-			otpCodesList.filter { otp -> otp.sentTime + otp.expirationTime < System.currentTimeMillis() }
-		otpCodesList.clear()
-		otpCodesList.addAll(backedUpList)
+	fun getOtpCodes(context: Context): Flow<MutableList<OtpCode>> {
+		val dataStore = OtpDataStore(context)
+		return dataStore.getOtpCodes()
 	}
 
 	/**
@@ -305,9 +309,5 @@ object OtpProcessor {
 				)
 			}
 		}
-	}
-
-	fun setListener(listener: OtpReceivedListener) {
-		this.orListener = listener
 	}
 }

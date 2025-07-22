@@ -2,7 +2,8 @@ plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.kotlinAndroid)
 	alias(libs.plugins.kotlinCompose)
-	alias(libs.plugins.kotlinParcelize)
+  alias(libs.plugins.googleProtobuf)
+  alias(libs.plugins.kotlinParcelize)
 }
 
 android {
@@ -25,10 +26,10 @@ android {
 
 	defaultConfig {
 		applicationId = "ir.saltech.puyakhan"
-		minSdk = 21
-		targetSdk = 34
-		versionCode = 100145
-		versionName = "1.5.10.129"
+		minSdk = 23
+		targetSdk = 36
+		versionCode = 100454
+		versionName = "1.6.25"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -72,14 +73,33 @@ dependencies {
 	implementation(libs.material3)
 	implementation(libs.androidx.cardview)
 	implementation(libs.androidx.recyclerview)
+	implementation(libs.androidx.security.crypto)
+	implementation(libs.datastore)
 	implementation(libs.datastore.preferences)
 	implementation(libs.google.gson)
+	implementation(libs.google.protobuf)
 	implementation(platform(libs.compose.bom))
 	testImplementation(libs.junit)
+	androidTestImplementation(libs.espresso.core)
 	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(platform(libs.compose.bom))
 	androidTestImplementation(libs.ui.test.junit4)
 	androidTestImplementation(platform(libs.compose.bom))
 	debugImplementation(libs.ui.tooling)
 	debugImplementation(libs.ui.test.manifest)
+}
+
+protobuf {
+	protoc {
+		artifact = "com.google.protobuf:protoc:3.25.3"
+	}
+	generateProtoTasks {
+		all().forEach { task ->
+			task.builtins {
+				create("java") {
+					option("lite")
+				}
+			}
+		}
+	}
 }
