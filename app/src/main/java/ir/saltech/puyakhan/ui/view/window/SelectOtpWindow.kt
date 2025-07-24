@@ -14,7 +14,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -29,6 +28,7 @@ import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.data.util.past
@@ -69,7 +69,7 @@ class SelectOtpWindow private constructor(
 	private var otpCodesView: RecyclerView? = null
 	private var otpCodesViewAdapter: OtpCodesViewAdapter? = null
 	private var otpCodesEmptyView: TextView? = null
-	private var isClosedManual: Boolean = false
+	private var isClosedManually: Boolean = false
 
 	init {
 		setWindowParam()
@@ -85,7 +85,7 @@ class SelectOtpWindow private constructor(
 		otpCodesView = view.findViewById(R.id.otp_codes_view)
 
 		closeButton.setOnClickListener {
-			isClosedManual = true
+			isClosedManually = true
 			hide(context, windowManager, view)
 		}
 		setupWindowDrag(windowDragHandle, windowParent)
@@ -159,13 +159,17 @@ class SelectOtpWindow private constructor(
 	private fun setOtpCodeElapseTimer() {
 		windowScope.launch {
 			repeatWhile(isActive) {
+				if (isClosedManually) {
+					isClosedManually = false
+					cancel("Window Closed manually; so Countdown must be canceled")
+				}
 				runOnUiThread {
-					if (isClosedManual) {
-						isClosedManual = false
-						cancel("Window Closed manually; so Countdown must be canceled")
-					}
 					updateOtpCountdown {
 						hide(context, windowManager, view)
+						windowScope.launch {
+							OtpProcessor.clearOtpCodes(context)
+							cancel()
+						}
 						cancel("OtpCodes cleaned; so Countdown must be canceled")
 					}
 				}

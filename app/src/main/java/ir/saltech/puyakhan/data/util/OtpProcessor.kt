@@ -13,6 +13,8 @@ import kotlin.math.abs
 internal const val MAX_OTP_SMS_EXPIRATION_TIME = 120_000L
 internal const val CLIPBOARD_OTP_CODE_KEY = "otp_code"
 
+private const val TAG = "OtpProcessor"
+
 object OtpProcessor {
 	private data class FoundItem(val text: String, val index: Int)
 	private data class ScoredCode(val code: String, val score: Int)
@@ -146,7 +148,7 @@ object OtpProcessor {
 				expirationTime = preferredExpireTime
 			)
 
-		Log.i("TAG", "Currently OTP Code : $receivedOtp")
+		Log.d(TAG, "New OTP Code : $receivedOtp")
 		OtpDataStore(context).addOtpCode(receivedOtp)
 
 		return receivedOtp
@@ -159,6 +161,11 @@ object OtpProcessor {
 				System.currentTimeMillis() - it.sentTime < it.expirationTime
 			}.toMutableStateList()
 		}
+	}
+
+	suspend fun clearOtpCodes(context: Context) {
+		val dataStore = OtpDataStore(context)
+		dataStore.clearAll()
 	}
 
 	/**

@@ -47,13 +47,12 @@ object App {
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")
 		val PrivacyAccepted = booleanPreferencesKey("privacy_accepted")
-		val SavedOtpCodesCount = intPreferencesKey("saved_otp_codes_count")
 	}
 
 	@Parcelize
 	data class WindowPosition(
-    var x: Int, var y: Int
-	): Parcelable {
+		var x: Int, var y: Int,
+	) : Parcelable {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
 				return WindowPosition(set.elementAt(0).toInt(), set.elementAt(1).toInt())
@@ -85,7 +84,7 @@ object App {
 	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-        context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
+		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 	}
 }

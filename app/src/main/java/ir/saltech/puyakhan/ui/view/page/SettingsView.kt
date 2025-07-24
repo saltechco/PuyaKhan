@@ -144,7 +144,7 @@ private fun SettingsContent(
 				appSettings.expireTime = enteredExpiredTime
 				mainViewModel.saveAppSettings()
 			}
-			Spacer(modifier = Modifier.height(32.dp))
+			Spacer(modifier = Modifier.height(24.dp))
 			Text(
 				stringResource(R.string.referenced_settings),
 				style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),

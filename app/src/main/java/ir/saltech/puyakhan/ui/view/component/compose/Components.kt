@@ -112,20 +112,6 @@ internal fun PermissionAlert(
 	}
 }
 
-
-@Composable
-internal fun MemorySafety(
-	showMessage: Boolean = true, content: @Composable () -> Unit,
-) {
-	val context = LocalContext.current
-	val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-	if (!activityManager.isLowRamDevice) content()
-	else if (showMessage) Toast.makeText(
-		context, stringResource(R.string.memory_leaked_error), Toast.LENGTH_SHORT
-	).show()
-	else Log.e("MEMORY_SAFETY", "Memory Leaked Detected! Some features have disabled.")
-}
-
 @Composable
 internal fun OpenReferenceButton(title: String, contentDescription: String?, onClick: () -> Unit) {
 	Row(
@@ -332,7 +318,7 @@ private fun ExpiredLabel(modifier: Modifier = Modifier){
 		OutlinedCard(
 			modifier = Modifier
 				.rotate(-8f)
-				.scale(1.2f).padding(8.dp),
+				.scale(1.15f).padding(8.dp),
 			shape = RoundedCornerShape(8.dp),
 			border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
 			colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
