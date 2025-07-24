@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -25,12 +24,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -242,7 +243,7 @@ private fun PuyaKhanContent(
 ) {
 	val context = LocalContext.current
 	val codeList by otpCodesVM.otpCodes.collectAsState()
-	val codesLazyListState = rememberLazyListState()
+	val codesListState = rememberLazyStaggeredGridState()
 
 	MemorySafety { }
 	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -282,12 +283,15 @@ private fun PuyaKhanContent(
 				textAlign = TextAlign.Center,
 				maxLines = 1
 			)
-			AnimatedContent(codesLazyListState) { state ->
-				LazyColumn(
-					modifier = Modifier.padding(top = 5.dp, bottom = 8.dp),
+			AnimatedContent(codesListState) { state ->
+				LazyVerticalStaggeredGrid(
+					modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp).padding(horizontal = 16.dp),
+					columns = StaggeredGridCells.Adaptive(145.dp),
+					contentPadding = PaddingValues(8.dp),
 					state = state,
-					reverseLayout = true
-				) {
+					reverseLayout = true,
+					horizontalArrangement = Arrangement.Absolute.SpaceAround
+					) {
 					itemsIndexed(codeList) { index, _ ->
 						OtpCodeCard(context, codeList, index)
 					}
