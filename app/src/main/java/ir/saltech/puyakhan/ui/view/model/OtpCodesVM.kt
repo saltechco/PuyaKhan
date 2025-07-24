@@ -5,17 +5,18 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import ir.saltech.puyakhan.data.model.App
+import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.OtpProcessor
-import ir.saltech.puyakhan.data.util.repeatForever
+import ir.saltech.puyakhan.data.util.repeatWhile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal class OtpCodesVM(application: Application) : AndroidViewModel(application) {
@@ -34,11 +35,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 
 	private fun loadOtpCodes() {
 		viewModelScope.launch {
-			OtpProcessor.getOtpCodes(getApplication()).map { codes ->
-				codes.filter {
-					System.currentTimeMillis() - it.sentTime < it.expirationTime
-				}
-			}.collect { newCodes ->
+			OtpProcessor.getOtpCodes(getApplication()).collect { newCodes ->
 				_otpCodes.update { currentCodes ->
 					val currentIds = currentCodes.map { code -> code.id }.toSet()
 					val codesToAdd = newCodes.filter { newCode -> newCode.id !in currentIds }
@@ -55,7 +52,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 
 	private fun setTimeElapsedCounter() {
 		viewModelScope.launch {
-			repeatForever {
+			repeatWhile (isActive) {
 				val currentTime = System.currentTimeMillis()
 				_otpCodes.update {
 					it.apply {

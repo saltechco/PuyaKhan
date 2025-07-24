@@ -209,12 +209,12 @@ internal fun OtpCodeCard(
 ) {
 	var showActions by remember { mutableStateOf(false) }
 	var code by remember { mutableStateOf(codeList[position]) }
+	val isCodeExpired = fun (): Boolean = code.expirationTime past code.elapsedTime <= 0
 
 	Card(
 		modifier = Modifier
-			.fillMaxWidth()
-			.padding(16.dp),
-		enabled = code.expirationTime past code.elapsedTime > 0,
+			.fillMaxWidth().padding(8.dp),
+		enabled = !isCodeExpired(),
 		shape = MaterialTheme.shapes.medium,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
 		colors = CardColors(
@@ -229,45 +229,51 @@ internal fun OtpCodeCard(
 	) {
 		Box {
 			Column(
-				modifier = Modifier.fillMaxWidth()
+				modifier = Modifier.fillMaxWidth().align(Alignment.Center).alpha(if (isCodeExpired()) 0.4f else 1f),
 			) {
 				Spacer(modifier = Modifier.height(13.dp))
 				AnimatedVisibility(
-					code.expirationTime past code.elapsedTime > 0,
+					!isCodeExpired(),
 					enter = fadeIn(),
 					exit = fadeOut()
 				) {
 					RemainingTime(code.expirationTime past code.elapsedTime, code.expirationTime)
 				}
+				Spacer(modifier = Modifier.height(5.dp))
 				Column(
 					modifier = Modifier
 						.padding(16.dp)
 						.wrapContentHeight(Alignment.Top)
+						.fillMaxWidth(),
+					verticalArrangement = Arrangement.Center,
+					horizontalAlignment = Alignment.CenterHorizontally
 				) {
 					Text(
-						code.otp,
+						" ${code.otp} ",
 						style = MaterialTheme.typography.headlineMedium,
-						modifier = Modifier.clickable(code.expirationTime past code.elapsedTime > 0) {
+						modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(!isCodeExpired()) {
 							copySelectedCode(
 								context,
 								code.otp
 							)
 						})
-					Spacer(modifier = Modifier.height(6.dp))
+					Spacer(modifier = Modifier.height(8.dp))
 					AnimatedVisibility(code.price != null) {
 						Text(
-							modifier = Modifier.padding(bottom = 4.dp),
+							modifier = Modifier.padding(bottom = 8.dp),
 							text = context.getString(R.string.otp_code_with_price, code.price!!),
-							style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.outline)
+							style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
+							textAlign = TextAlign.Center
 						)
 					}
 					AnimatedVisibility(code.bank != null) {
 						Text(
+							modifier = Modifier.padding(horizontal = 8.dp),
 							text = context.getString(R.string.otp_code_from_bank, code.bank!!),
-							style = MaterialTheme.typography.labelLarge.copy(
-								color = MaterialTheme.colorScheme.outline,
-								fontStyle = FontStyle.Italic
-							)
+							style = MaterialTheme.typography.bodySmall.copy(
+								color = MaterialTheme.colorScheme.outline
+							),
+							textAlign = TextAlign.Center
 						)
 					}
 				}
@@ -276,7 +282,9 @@ internal fun OtpCodeCard(
 					Row(
 						modifier = Modifier
 							.fillMaxWidth()
-							.padding(8.dp)
+							.padding(8.dp),
+						horizontalArrangement = Arrangement.Absolute.SpaceAround,
+						verticalAlignment = Alignment.Bottom
 					) {
 						Spacer(modifier = Modifier.weight(1f, true))
 						OutlinedButton(onClick = { shareSelectedOtpCode(context, code) }) {
@@ -304,28 +312,14 @@ internal fun OtpCodeCard(
 				verticalArrangement = Arrangement.Center
 			) {
 				AnimatedVisibility(
-					code.expirationTime past code.elapsedTime <= 0,
+					isCodeExpired(),
 					enter = fadeIn() + scaleIn(initialScale = 1.1f),
 					exit = fadeOut()
 				) {
 					LaunchedEffect(showActions) {
 						showActions = false
 					}
-					OutlinedCard(
-						modifier = Modifier
-							.rotate(-14f)
-							.scale(1.4f)
-							.alpha(0.6f),
-						shape = RoundedCornerShape(8.dp),
-						border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
-						colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
-					) {
-						Text(
-							modifier = Modifier.padding(8.dp),
-							text = context.getString(R.string.otp_code_expired_2),
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.error)
-						)
-					}
+					ExpiredLabel()
 				}
 			}
 		}
@@ -333,10 +327,30 @@ internal fun OtpCodeCard(
 }
 
 @Composable
+private fun ExpiredLabel(modifier: Modifier = Modifier){
+	Column(modifier = modifier.padding(8.dp)) {
+		OutlinedCard(
+			modifier = Modifier
+				.rotate(-8f)
+				.scale(1.2f).padding(8.dp),
+			shape = RoundedCornerShape(8.dp),
+			border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
+			colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
+		) {
+			Text(
+				modifier = Modifier.padding(8.dp),
+				text = stringResource(R.string.otp_code_expired_2),
+				style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.error)
+			)
+		}
+	}
+}
+
+@Composable
 private fun RemainingTime(
-	remainingTime: Long, originTime: Long,
+	remainingTime: Long, originTime: Long, modifier: Modifier = Modifier
 ) {
-	Row {
+	Row (modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
 		Spacer(modifier = Modifier.width(13.dp))
 		Box(modifier = Modifier.size(28.dp)) {
 			CircularProgressIndicator(
@@ -350,7 +364,7 @@ private fun RemainingTime(
 				modifier = Modifier.padding(4.75.dp),
 			)
 		}
-		Spacer(modifier = Modifier.width(5.dp))
+		Spacer(modifier = Modifier.width(8.dp))
 		Text(
 			printTime(remainingTime), style = MaterialTheme.typography.bodyLarge.copy(
 				fontWeight = FontWeight.Bold, letterSpacing = 2.sp, fontSize = 18.sp
