@@ -9,19 +9,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
-import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
-import ir.saltech.puyakhan.data.model.App
-import ir.saltech.puyakhan.data.model.OtpSms
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.data.util.OtpProcessor
+import ir.saltech.puyakhan.data.util.OtpSmsHandler.getNewOtpSms
+import ir.saltech.puyakhan.data.util.runOnUiThread
 import ir.saltech.puyakhan.ui.view.activity.BackgroundActivity
 import ir.saltech.puyakhan.ui.view.activity.MainActivity
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_OTP_CHANNEL_ID
@@ -30,9 +30,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-
-private const val SMS_PDUS_KEY = "pdus"
-private const val SMS_FORMAT = "3gpp"
 
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
@@ -43,22 +40,20 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		val pendingResult = goAsync()
 		CoroutineScope(Dispatchers.IO).launch {
 			try {
-				appSettings = App.getSettings(context)
 				val smsMessage = getNewOtpSms(intent.extras)
 				if (smsMessage != null) {
-					val otpCodeObj = OtpProcessor.extractOtpInfo(
-            context,
+					appSettings = App.getSettings(context)
+					val newOtpCode = OtpProcessor.extractOtpInfo(
+						context,
 						smsMessage.body.trim(),
 						smsMessage.date,
-						appSettings
+						appSettings.expireTime
 					)
-					if (otpCodeObj != null) {
-						if (otpCodeObj.otp.isNotEmpty()) {
+					if (newOtpCode != null) {
+						if (newOtpCode.otp.isNotEmpty()) {
 							handleReceivedOtp(
 								context,
-								otpCodeObj.otp,
-								otpCodeObj.bank,
-								price = otpCodeObj.price
+								newOtpCode
 							)
 						}
 					}
@@ -71,12 +66,12 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		}
 	}
 
-	private fun handleReceivedOtp(context: Context, otp: String, bank: String?, price: String?) {
+	private fun handleReceivedOtp(context: Context, newOtpCode: OtpCode) {
 		for (presentMethod in appSettings.presentMethods) {
 			when (presentMethod) {
-				App.PresentMethod.Otp.COPY -> copyOtpToClipboard(context, otp)
+				App.PresentMethod.Otp.COPY -> copyOtpToClipboard(context, newOtpCode.otp)
 
-				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, otp, bank, price)
+				App.PresentMethod.Otp.NOTIFY -> showOtpNotification(context, newOtpCode)
 
 				App.PresentMethod.Otp.SELECT -> SelectOtpWindow.show(context, appSettings)
 
@@ -86,53 +81,62 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	}
 
 	private fun copyOtpToClipboard(context: Context, otp: String) {
-		val clipboardManager =
-			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otp))
-		)
-		Toast.makeText(
-			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
-		).show()
+		CoroutineScope(Dispatchers.IO).launch {
+			val clipboardManager =
+				context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+			clipboardManager.setPrimaryClip(
+				ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, otp))
+			)
+			runOnUiThread {
+				Toast.makeText(
+					context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
+				).show()
+			}
+		}
 	}
 
-	private fun showOtpNotification(context: Context, otp: String, bank: String?, price: String?) {
-		val expireTime = appSettings.expireTime
+	private fun showOtpNotification(context: Context, otpCode: OtpCode) {
 		val bigTextStyle = NotificationCompat.BigTextStyle()
-		if (bank != null) {
-			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otp))
-			if (price != null) {
+		if (otpCode.bank != null) {
+			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otpCode.otp))
+			if (otpCode.price != null) {
 				bigTextStyle.setBigContentTitle(
 					context.getString(
-						R.string.otp_code_from_bank_with_price, bank, price
+						R.string.otp_code_from_bank_with_price, otpCode.bank, otpCode.price
 					)
 				)
 			} else {
 				bigTextStyle.setBigContentTitle(
 					context.getString(
-						R.string.otp_code_from_bank, bank
+						R.string.otp_code_from_bank, otpCode.bank
 					)
 				)
 			}
-		} else if (price != null) {
-			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otp))
+		} else if (otpCode.price != null) {
+			bigTextStyle.bigText(context.getString(R.string.your_new_otp_code_is, otpCode.otp))
 			bigTextStyle.setBigContentTitle(
 				context.getString(
-					R.string.otp_code_with_price, price
+					R.string.otp_code_with_price, otpCode.price
 				)
 			)
 		} else {
 			bigTextStyle.bigText(context.getString(R.string.copy_otp_code_hint))
-			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otp))
+			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otpCode.otp))
 		}
 		val builder =
 			NotificationCompat.Builder(context, NOTIFY_OTP_CHANNEL_ID).setOnlyAlertOnce(true)
 				.setSmallIcon(R.drawable.one_time_password_icon)
 				.setContentTitle(context.getString(R.string.otp_sms_notification_title))
-				.setWhen(System.currentTimeMillis() + expireTime).setShowWhen(true)
+				.setWhen(System.currentTimeMillis() + otpCode.expirationTime).setShowWhen(true)
 				.setContentText(context.getString(R.string.otp_sms_notification_short_message))
-				.setContentIntent(PendingIntent.getActivity(context, 2312, Intent(context,
-					MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
+				.setContentIntent(
+					PendingIntent.getActivity(
+						context, 2312, Intent(
+							context,
+							MainActivity::class.java
+						), PendingIntent.FLAG_IMMUTABLE
+					)
+				)
 				.setStyle(bigTextStyle).addAction(
 					NotificationCompat.Action.Builder(
 						R.drawable.otp_action_copy,
@@ -140,14 +144,14 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						PendingIntent.getActivity(
 							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.OTP_CODE_COPY_KEY, otp)
+								putExtra(App.Key.OTP_CODE_COPY_KEY, otpCode.otp)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()
 				).setPriority(NotificationCompat.PRIORITY_HIGH)
-				.setVisibility(NotificationCompat.VISIBILITY_SECRET).setTimeoutAfter(expireTime)
+				.setVisibility(NotificationCompat.VISIBILITY_SECRET).setTimeoutAfter(otpCode.expirationTime)
 				.setAutoCancel(false).setUsesChronometer(true)
-				.setWhen(System.currentTimeMillis() + expireTime).setShowWhen(true)
+				.setWhen(System.currentTimeMillis() + otpCode.expirationTime).setShowWhen(true)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) builder.setChronometerCountDown(true)
 		with(NotificationManagerCompat.from(context)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -157,32 +161,6 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				) return
 			}
 			notify(Random.nextInt(100000, 1000000), builder.build())
-		}
-	}
-
-	private fun getNewOtpSms(bundle: Bundle?): OtpSms? {
-		if (bundle != null) {
-			if (bundle.containsKey(SMS_PDUS_KEY)) {
-				val pdus = bundle[SMS_PDUS_KEY]
-				if (pdus != null) {
-					val pdusObj = pdus as Array<*>
-					var message = ""
-					var date = 0L
-					for (i in pdusObj.indices) {
-						val currentMessage =
-							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?, SMS_FORMAT)
-						message += currentMessage.displayMessageBody
-						date = currentMessage.timestampMillis
-					}
-					return OtpSms(message, date)
-				} else {
-					return null
-				}
-			} else {
-				return null
-			}
-		} else {
-			return null
 		}
 	}
 }

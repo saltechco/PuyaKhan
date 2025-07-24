@@ -2,7 +2,7 @@ package ir.saltech.puyakhan.ui.view.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import ir.saltech.puyakhan.data.model.App
+import ir.saltech.puyakhan.App
 
 internal class BackgroundActivity : ComponentActivity() {
 	private var otp: String? = null

@@ -10,8 +10,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -52,10 +54,10 @@ internal infix operator fun Long.div(l: Long): Float {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun repeatForever(action: () -> Unit) {
+inline fun repeatWhile(until: Boolean = true, action: () -> Unit) {
 	contract { callsInPlace(action) }
 
-	while (true) {
+	while (until) {
 		action()
 	}
 }
@@ -80,4 +82,10 @@ internal fun shareSelectedOtpCode(context: Context, code: OtpCode) {
 			shareIntent, context.getString(R.string.send_otp_to)
 		).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	)
+}
+
+internal suspend fun runOnUiThread(run: () -> Unit) {
+	withContext(Dispatchers.Main) {
+		run()
+	}
 }
