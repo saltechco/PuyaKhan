@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -64,7 +65,6 @@ import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
-import ir.saltech.puyakhan.ui.view.component.compose.MemorySafety
 import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
 import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
@@ -101,6 +101,10 @@ internal class MainActivity : ComponentActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		window.setFlags(
+			WindowManager.LayoutParams.FLAG_SECURE,
+			WindowManager.LayoutParams.FLAG_SECURE
+		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			createOtpNotifyChannel()
 			createServicesNotifyChannel()
@@ -245,7 +249,6 @@ private fun PuyaKhanContent(
 	val codeList by otpCodesVM.otpCodes.collectAsState()
 	val codesListState = rememberLazyStaggeredGridState()
 
-	MemorySafety { }
 	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
 		Column(
 			modifier = Modifier

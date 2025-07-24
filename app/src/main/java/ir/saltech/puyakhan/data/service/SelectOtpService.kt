@@ -66,7 +66,7 @@ class SelectOtpService : Service() {
 	private fun getOtpCodes(otpWindow: SelectOtpWindow) {
 		serviceScope.launch {
 			OtpProcessor.getOtpCodes(applicationContext).collect { otpCodes ->
-				Log.i(TAG, "New Otp Codes are arrived")
+				Log.i(TAG, "serviceScope launch -> Maybe new otpCodes are arrived")
 				runOnUiThread {
 					otpWindow.setOtpCodes(otpCodes)
 				}
