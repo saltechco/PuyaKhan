@@ -44,7 +44,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private const val TAG = "OTP Viewer Window"
+private const val TAG = "SelectOtpWindow"
 
 class SelectOtpWindow private constructor(
 	private val context: Context,
@@ -167,7 +167,11 @@ class SelectOtpWindow private constructor(
 					updateOtpCountdown {
 						hide(context, windowManager, view)
 						windowScope.launch {
-							OtpProcessor.clearOtpCodes(context)
+							try {
+								OtpProcessor.clearOtpCodes(context)
+							} catch (e: Exception) {
+								Log.e(TAG, "Failed to clear OTP codes from storage.", e)
+							}
 							cancel()
 						}
 						cancel("OtpCodes cleaned; so Countdown must be canceled")

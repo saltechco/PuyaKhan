@@ -1,6 +1,7 @@
 package ir.saltech.puyakhan.ui.view.model
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private const val TAG = "OtpCodesVM"
 
 internal class OtpCodesVM(application: Application) : AndroidViewModel(application) {
 	private val _otpCodes = MutableStateFlow(mutableStateListOf<OtpCode>())
@@ -60,7 +63,13 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 						}
 						if (all { code -> code.elapsedTime >= MAX_OTP_SMS_EXPIRATION_TIME }) {
 							clear()
-							OtpProcessor.clearOtpCodes(getApplication())
+							launch {
+								try {
+									OtpProcessor.clearOtpCodes(getApplication())
+								} catch (e: Exception) {
+									Log.e(TAG, "Failed to clear expired OTP codes.", e)
+								}
+							}
 						}
 					}.toMutableStateList()
 				}
