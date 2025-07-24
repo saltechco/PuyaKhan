@@ -63,8 +63,8 @@ import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
-import ir.saltech.puyakhan.data.model.App.PresentMethod
+import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.App.PresentMethod
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.OVERLAY_PERMISSIONS_REQUEST_CODE

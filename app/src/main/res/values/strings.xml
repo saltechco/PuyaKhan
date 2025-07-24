@@ -18,7 +18,7 @@
     <!-- Common Strings -->
     <string name="app_name">پویا خوان</string>
     <string name="otp_code">%d</string>
-    <string name="select_otp_code_title">انتخاب رمز پویا</string>
+    <string name="select_otp_code_title">انتخاب رمز</string>
     <string name="otp_copied_to_clipboard">رمز پویا کپی شد.</string>
     <string name="send_otp_to">ارسال رمز پویا به …</string>
     <string name="delete_otp_yes">بلی</string>
@@ -76,5 +76,6 @@
     <string name="otp_code_expired_2">منقضی شده</string>
 	  <string name="permission_accept_button">باشه؛ مشکلی نیست</string>
     <string name="terms">قوانین و مقررات</string>
+	<string name="select_otp_code_window_title">Select OTP Code</string>
 
 </resources>

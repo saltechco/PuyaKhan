@@ -2,17 +2,16 @@ package ir.saltech.puyakhan.data.util
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.toMutableStateList
 import ir.saltech.puyakhan.data.datastore.OtpDataStore
-import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.regex.Pattern
 import kotlin.math.abs
 
 internal const val MAX_OTP_SMS_EXPIRATION_TIME = 120_000L
-internal const val CLIPBOARD_OTP_CODE = "otp_code"
-
-private const val ERROR_OTPCODE_ID = -1
+internal const val CLIPBOARD_OTP_CODE_KEY = "otp_code"
 
 object OtpProcessor {
 	private data class FoundItem(val text: String, val index: Int)
@@ -56,10 +55,41 @@ object OtpProcessor {
 	)
 
 	private val persianNegative = listOf(
-		"سفارش", "پیگیری", "مرسوله", "محصول", "کالا", "فاکتور", "شبا", "بارکد",
-		"تخفیف", "ملی", "اقتصادی", "پشتیبانی", "قرعه کشی", "شناسه", "پستی",
-		"مشتری", "پرواز", "رزرو", "بلیت", "صورتحساب", "اعتبار", "بسته", "حواله",
-		"بارنامه", "قرارداد", "رهگیری", "پرداخت", "شماره مشتری"
+		"پایا",
+		"ساتنا",
+		"سفارش",
+		"پیگیری",
+		"مرسوله",
+		"محصول",
+		"کالا",
+		"فاکتور",
+		"شبا",
+		"بارکد",
+		"تخفیف",
+		"ملی",
+		"اقتصادی",
+		"پشتیبانی",
+		"قرعه کشی",
+		"شناسه",
+		"پستی",
+		"قرعه\u200cکشی",
+		"قرعه کشي",
+		"مشتری",
+		"پرواز",
+		"رزرو",
+		"بلیت",
+		"صورتحساب",
+		"اعتبار",
+		"بسته",
+		"حواله",
+		"بارنامه",
+		"قرارداد",
+		"رهگیری",
+		"پرداخت",
+		"شماره مشتری",
+		"کدملي",
+		"ملي",
+		"رهگیري"
 	)
 	private val englishNegative = listOf(
 		"order",
@@ -100,7 +130,7 @@ object OtpProcessor {
 		context: Context,
 		message: String,
 		sendTime: Long = 0L,
-		settings: App.Settings? = null,
+		preferredExpireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 	): OtpCode? {
 		val otp = extractOtp(message)?.trim() ?: return null
 		val bankName = extractBankName(message)?.trim()
@@ -113,21 +143,22 @@ object OtpProcessor {
 				price = amount,
 				otp = otp,
 				sentTime = sendTime,
-				expirationTime = settings?.expireTime ?: 0L
+				expirationTime = preferredExpireTime
 			)
 
 		Log.i("TAG", "Currently OTP Code : $receivedOtp")
 		OtpDataStore(context).addOtpCode(receivedOtp)
-
-		if (settings != null)
-			App.setSettings(context, settings.apply { savedOtpCodesCount++ })
 
 		return receivedOtp
 	}
 
 	fun getOtpCodes(context: Context): Flow<MutableList<OtpCode>> {
 		val dataStore = OtpDataStore(context)
-		return dataStore.getOtpCodes()
+		return dataStore.getOtpCodes().map { codes ->
+			codes.filter {
+				System.currentTimeMillis() - it.sentTime < it.expirationTime
+			}.toMutableStateList()
+		}
 	}
 
 	/**
@@ -183,11 +214,8 @@ object OtpProcessor {
 	 * @return The extracted OTP as a String, or null if no valid OTP is found.
 	 */
 	private fun extractOtp(message: String): String? {
-
-		// 1. Find all potential numeric codes in the message.
 		val allNumericSequences = findItems(message, "(?<!\\d)(\\d{4,8})(?!\\d)")
 
-		// 2. Post-filter to remove numbers that are clearly part of a date or time.
 		val codeCandidates = allNumericSequences.filterNot { candidate ->
 			val indexAfterCode = candidate.index + candidate.text.length
 			if (indexAfterCode < message.length) {
@@ -206,11 +234,9 @@ object OtpProcessor {
 			return null
 		}
 
-		// 2. Find all positive and negative keywords
 		val positiveKeywords = findKeywords(message, persianPositive + englishPositive)
 		val negativeKeywords = findKeywords(message, persianNegative + englishNegative)
 
-		// Handle ambiguous "کد" and "code"
 		val ambiguousKeywords = findKeywords(message, ambiguousKeywords)
 		val allNegativeKeywords = negativeKeywords + findAmbiguousNegative(
 			message,
@@ -273,7 +299,6 @@ object OtpProcessor {
 		return found
 	}
 
-	// Helper to find ambiguous keywords that are likely negative
 	private fun findAmbiguousNegative(
 		message: String,
 		ambiguous: List<FoundItem>,
@@ -292,7 +317,6 @@ object OtpProcessor {
 		}
 	}
 
-	// Helper to find ambiguous keywords that are likely positive
 	private fun findAmbiguousPositive(
 		message: String,
 		ambiguous: List<FoundItem>,

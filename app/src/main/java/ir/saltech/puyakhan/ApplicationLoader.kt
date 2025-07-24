@@ -1,6 +1,8 @@
-package ir.saltech.puyakhan.data.model
+package ir.saltech.puyakhan
 
+import android.app.Application
 import android.content.Context
+import android.os.Handler
 import android.os.Parcelable
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -12,6 +14,19 @@ import ir.saltech.puyakhan.data.util.get
 import ir.saltech.puyakhan.data.util.set
 import kotlinx.parcelize.Parcelize
 
+class ApplicationLoader : Application() {
+	companion object {
+		lateinit var applicationHandler: Handler
+		private lateinit var applicationLoader: ApplicationLoader
+	}
+
+	override fun onCreate() {
+		super.onCreate()
+		applicationLoader = this
+		applicationHandler = Handler(applicationContext.mainLooper)
+	}
+}
+
 object App {
 	enum class Page {
 		Main, Settings
@@ -22,9 +37,8 @@ object App {
 		var presentMethods: Set<String> = mutableSetOf(PresentMethod.Otp.NOTIFY),
 		var expireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 		var otpWindowPos: WindowPosition? = null,
-    @Deprecated("Privacy now added into SettingsView, so ignoring it.")
+		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
 		var privacyAccepted: Boolean = false,
-		var savedOtpCodesCount: Int = 0,
 	) : Parcelable
 
 	object Key {
@@ -64,16 +78,14 @@ object App {
 			context.dataStore[Key.PresentMethod] ?: mutableSetOf(PresentMethod.Otp.NOTIFY),
 			context.dataStore[Key.ExpireTime] ?: MAX_OTP_SMS_EXPIRATION_TIME,
 			context.dataStore[Key.WindowPosition]?.let { WindowPosition.fromStringSet(it) },
-			context.dataStore[Key.PrivacyAccepted] ?: false,
-			context.dataStore[Key.SavedOtpCodesCount] ?: 0
+			context.dataStore[Key.PrivacyAccepted] ?: false
 		)
 	}
 
 	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-    context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
+        context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
-		context.dataStore[Key.SavedOtpCodesCount] = settings.savedOtpCodesCount
 	}
 }

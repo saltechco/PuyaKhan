@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,15 +16,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 
-
-private const val INTERVAL = 1000L
-
-internal class OtpCodesViewAdapter(private val appSettings: App.Settings, private var otpCodes: MutableList<OtpCode>) :
+internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 	Adapter<OtpCodesViewAdapter.OtpCodesViewHolder>() {
 	private lateinit var context: Context
 
@@ -54,28 +49,11 @@ internal class OtpCodesViewAdapter(private val appSettings: App.Settings, privat
 		holder.shareOtpCode.setOnClickListener {
 			shareSelectedOtpCode(context, otpCodes[position])
 		}
-		object : CountDownTimer(
-			100000000, INTERVAL
-		) {
-			override fun onTick(millisUntilFinished: Long) {
-				holder.codeExpireBar.progress =
-					100 - (((System.currentTimeMillis() - otpCodes[position].sentTime).toDouble() / appSettings.expireTime.toDouble()) * 100).toInt()
-
-				if (holder.codeExpireBar.progress == 0) {
-					Toast.makeText(
-						context,
-						context.getString(R.string.otp_code_expired, otpCodes[position].otp),
-						Toast.LENGTH_SHORT
-					).show()
-					showAsExpiredCode(holder)
-					this.cancel()
-				}
-			}
-
-			override fun onFinish() {
-
-			}
-		}.start()
+		holder.codeExpireBar.progress =
+			100 - ((otpCodes[position].elapsedTime.toDouble() / otpCodes[position].expirationTime.toDouble()) * 100).toInt()
+		if (holder.codeExpireBar.progress == 0) {
+			showAsExpiredCode(holder)
+		}
 	}
 
 	private fun showAsExpiredCode(holder: OtpCodesViewHolder) {
@@ -95,7 +73,7 @@ internal class OtpCodesViewAdapter(private val appSettings: App.Settings, privat
 		val clipboardManager =
 			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otpCode))
+			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, otpCode))
 		)
 		Toast.makeText(
 			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT

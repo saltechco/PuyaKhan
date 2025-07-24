@@ -6,10 +6,17 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
+import ir.saltech.puyakhan.data.util.OtpProcessor
+import ir.saltech.puyakhan.data.util.runOnUiThread
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 private const val OTP_OVERLAY_SERVICE_ID = 8482
 
@@ -18,21 +25,53 @@ class SelectOtpService : Service() {
 		private const val TAG = "SelectOtpService"
 	}
 
+	private lateinit var serviceJob: Job
+	private lateinit var serviceScope: CoroutineScope
+
+	override fun onCreate() {
+		super.onCreate()
+		serviceJob = SupervisorJob()
+		serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+	}
+
 	override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 		showWindowNotification()
-		val appSettings: App.Settings? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			intent.getParcelableExtra(SelectOtpWindow.APP_SETTINGS_KEY,
-				App.Settings::class.java)
-		} else {
-			intent.getParcelableExtra(SelectOtpWindow.APP_SETTINGS_KEY)
-		}
+		val appSettings: App.Settings? =
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				intent.getParcelableExtra(
+					SelectOtpWindow.APP_SETTINGS_KEY,
+					App.Settings::class.java
+				)
+			} else {
+				intent.getParcelableExtra(SelectOtpWindow.APP_SETTINGS_KEY)
+			}
 		if (appSettings != null) {
-			SelectOtpWindow(applicationContext, appSettings)
+			val otpWindow = SelectOtpWindow.getInstance(applicationContext, appSettings)
+			getOtpCodes(otpWindow)
 			Log.i(TAG, "Starting SelectOtpWindow ..")
 		} else {
-			Log.e(TAG, "AppSettings is null or is not initiated for this service")
+			Log.e(
+				TAG,
+				"AppSettings is null or OtpCodes is null or them are not initiated for this service"
+			)
 		}
-		return START_STICKY
+		return START_STICKY_COMPATIBILITY
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		serviceJob.cancel()
+	}
+
+	private fun getOtpCodes(otpWindow: SelectOtpWindow) {
+		serviceScope.launch {
+			OtpProcessor.getOtpCodes(applicationContext).collect { otpCodes ->
+				Log.i(TAG, "New Otp Codes are arrived")
+				runOnUiThread {
+					otpWindow.setOtpCodes(otpCodes)
+				}
+			}
+		}
 	}
 
 	private fun showWindowNotification() {
