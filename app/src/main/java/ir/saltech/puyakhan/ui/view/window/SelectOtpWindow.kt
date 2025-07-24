@@ -37,6 +37,7 @@ import ir.saltech.puyakhan.data.util.runOnUiThread
 import ir.saltech.puyakhan.ui.view.component.adapter.OtpCodesViewAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -53,8 +54,9 @@ class SelectOtpWindow private constructor(
 	private var wait: Int = 0
 	private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 	private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+	@SuppressLint("InflateParams")
 	private val view = LayoutInflater.from(context)
-		.inflate(R.layout.layout_window_select_otp, FrameLayout(context))
+		.inflate(R.layout.layout_window_select_otp, null)
 	private var windowParams = WindowManager.LayoutParams(
 		WindowManager.LayoutParams.WRAP_CONTENT,
 		WindowManager.LayoutParams.WRAP_CONTENT,
@@ -62,6 +64,7 @@ class SelectOtpWindow private constructor(
 		WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
 		PixelFormat.TRANSLUCENT
 	)
+	private val windowScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private var otpCodes: MutableList<OtpCode> = mutableStateListOf()
 	private var otpCodesView: RecyclerView? = null
 	private var otpCodesViewAdapter: OtpCodesViewAdapter? = null
@@ -154,7 +157,7 @@ class SelectOtpWindow private constructor(
 	}
 
 	private fun setOtpCodeElapseTimer() {
-		CoroutineScope(Dispatchers.IO).launch {
+		windowScope.launch {
 			repeatWhile(isActive) {
 				runOnUiThread {
 					if (isClosedManual) {
@@ -229,12 +232,15 @@ class SelectOtpWindow private constructor(
 	companion object {
 		const val APP_SETTINGS_KEY = "app_settings"
 
-		@SuppressLint("StaticFieldLeak")
+		@Volatile @SuppressLint("StaticFieldLeak")
 		private var instance: SelectOtpWindow? = null
 
 		fun getInstance(context: Context, appSettings: App.Settings): SelectOtpWindow {
 			if (instance == null) {
-				instance = SelectOtpWindow(context, appSettings)
+				synchronized(this) {
+					if (instance == null)
+						instance = SelectOtpWindow(context, appSettings)
+				}
 			}
 			return instance!!
 		}
@@ -257,6 +263,7 @@ class SelectOtpWindow private constructor(
 			} catch (e: Exception) {
 				Log.e(TAG, e.toString())
 			} finally {
+				instance?.windowScope?.cancel()
 				instance = null
 				context.stopService(
 					Intent(

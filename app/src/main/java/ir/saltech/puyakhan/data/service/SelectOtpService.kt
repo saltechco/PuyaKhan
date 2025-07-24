@@ -14,6 +14,8 @@ import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
 import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 private const val OTP_OVERLAY_SERVICE_ID = 8482
@@ -21,6 +23,15 @@ private const val OTP_OVERLAY_SERVICE_ID = 8482
 class SelectOtpService : Service() {
 	companion object {
 		private const val TAG = "SelectOtpService"
+	}
+
+	private lateinit var serviceJob: Job
+	private lateinit var serviceScope: CoroutineScope
+
+	override fun onCreate() {
+		super.onCreate()
+		serviceJob = SupervisorJob()
+		serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 	}
 
 	override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -47,8 +58,13 @@ class SelectOtpService : Service() {
 		return START_STICKY_COMPATIBILITY
 	}
 
+	override fun onDestroy() {
+		super.onDestroy()
+		serviceJob.cancel()
+	}
+
 	private fun getOtpCodes(otpWindow: SelectOtpWindow) {
-		CoroutineScope(Dispatchers.IO).launch {
+		serviceScope.launch {
 			OtpProcessor.getOtpCodes(applicationContext).collect { otpCodes ->
 				Log.i(TAG, "New Otp Codes are arrived")
 				runOnUiThread {

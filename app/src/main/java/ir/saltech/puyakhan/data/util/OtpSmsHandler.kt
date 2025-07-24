@@ -9,28 +9,16 @@ private const val SMS_FORMAT = "3gpp"
 
 object OtpSmsHandler {
 	fun getNewOtpSms(bundle: Bundle?): OtpSms? {
-		if (bundle != null) {
-			if (bundle.containsKey(SMS_PDUS_KEY)) {
-				val pdus = bundle[SMS_PDUS_KEY]
-				if (pdus != null) {
-					val pdusObj = pdus as Array<*>
-					var message = ""
-					var date = 0L
-					for (i in pdusObj.indices) {
-						val currentMessage =
-							SmsMessage.createFromPdu(pdusObj[i] as ByteArray?, SMS_FORMAT)
-						message += currentMessage.displayMessageBody
-						date = currentMessage.timestampMillis
-					}
-					return OtpSms(message, date)
-				} else {
-					return null
-				}
-			} else {
-				return null
-			}
-		} else {
-			return null
+		val pdus = bundle?.get(SMS_PDUS_KEY) as? Array<*> ?: return null
+
+		var message = ""
+		var date = 0L
+		for (i in pdus.indices) {
+			val currentMessage =
+				SmsMessage.createFromPdu(pdus[i] as ByteArray?, SMS_FORMAT)
+			message += currentMessage.displayMessageBody
+			date = currentMessage.timestampMillis
 		}
+		return OtpSms(message, date)
 	}
 }
