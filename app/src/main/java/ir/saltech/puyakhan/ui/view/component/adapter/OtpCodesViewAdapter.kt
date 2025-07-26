@@ -15,9 +15,9 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 
 internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
@@ -73,7 +73,7 @@ internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 		val clipboardManager =
 			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, otpCode))
+			ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otpCode))
 		)
 		Toast.makeText(
 			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT

@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,10 +60,10 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
@@ -69,6 +71,9 @@ import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
 import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import ir.saltech.puyakhan.ui.view.page.SettingsView
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 
@@ -108,6 +113,9 @@ internal class MainActivity : ComponentActivity() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			createOtpNotifyChannel()
 			createServicesNotifyChannel()
+		}
+		with(NotificationManagerCompat.from(this)) {
+			cancelAll()
 		}
 		startProgram()
 	}
@@ -154,9 +162,9 @@ internal class MainActivity : ComponentActivity() {
 			description = descriptionText
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
-		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-			channel
-		)
+		with(NotificationManagerCompat.from(this)) {
+			createNotificationChannel(channel)
+		}
 	}
 
 	@RequiresApi(Build.VERSION_CODES.O)
@@ -168,9 +176,9 @@ internal class MainActivity : ComponentActivity() {
 			description = descriptionText
 			lockscreenVisibility = NotificationCompat.VISIBILITY_SECRET
 		}
-		(getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-			channel
-		)
+		with(NotificationManagerCompat.from(this)) {
+			createNotificationChannel(channel)
+		}
 	}
 
 	private fun checkAppPermissions(): Boolean {
@@ -248,8 +256,37 @@ private fun PuyaKhanContent(
 	val context = LocalContext.current
 	val codeList by otpCodesVM.otpCodes.collectAsState()
 	val codesListState = rememberLazyStaggeredGridState()
+	var showProgress by remember { mutableStateOf(true) }
 
-	AnimatedVisibility(visible = codeList.isEmpty(), enter = fadeIn(), exit = fadeOut()) {
+	LaunchedEffect(showProgress) {
+		coroutineScope {
+			launch {
+				delay(1500 + (codeList.size * 150L))
+				showProgress = false
+			}
+		}
+	}
+
+	AnimatedVisibility(
+		visible = showProgress,
+		enter = fadeIn(),
+		exit = fadeOut()
+	) {
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(contentPadding),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			CircularProgressIndicator(modifier = Modifier.size(48.dp))
+		}
+	}
+	AnimatedVisibility(
+		visible = codeList.isEmpty() && !showProgress,
+		enter = fadeIn(),
+		exit = fadeOut()
+	) {
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -259,7 +296,7 @@ private fun PuyaKhanContent(
 		) {
 			Text(
 				stringResource(R.string.empty_code_list),
-				style = MaterialTheme.typography.labelLarge.copy(
+				style = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.outline,
 					textDirection = TextDirection.ContentOrRtl
 				),
@@ -267,7 +304,11 @@ private fun PuyaKhanContent(
 			)
 		}
 	}
-	AnimatedVisibility(visible = codeList.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+	AnimatedVisibility(
+		visible = codeList.isNotEmpty() && !showProgress,
+		enter = fadeIn(),
+		exit = fadeOut()
+	) {
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
@@ -288,13 +329,16 @@ private fun PuyaKhanContent(
 			)
 			AnimatedContent(codesListState) { state ->
 				LazyVerticalStaggeredGrid(
-					modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp).padding(horizontal = 16.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 4.dp, bottom = 8.dp)
+						.padding(horizontal = 16.dp),
 					columns = StaggeredGridCells.Adaptive(145.dp),
 					contentPadding = PaddingValues(8.dp),
 					state = state,
 					reverseLayout = true,
 					horizontalArrangement = Arrangement.Absolute.SpaceAround
-					) {
+				) {
 					itemsIndexed(codeList) { index, _ ->
 						OtpCodeCard(context, codeList, index)
 					}
@@ -307,7 +351,7 @@ private fun PuyaKhanContent(
 internal fun copySelectedCode(context: Context, code: String) {
 	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 	clipboardManager.setPrimaryClip(
-		ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, code))
+		ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, code))
 	)
 	Toast.makeText(
 		context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT

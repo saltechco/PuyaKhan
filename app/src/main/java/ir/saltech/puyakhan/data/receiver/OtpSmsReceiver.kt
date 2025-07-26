@@ -18,7 +18,6 @@ import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.data.util.OtpSmsHandler.getNewOtpSms
 import ir.saltech.puyakhan.data.util.runOnUiThread
@@ -29,13 +28,21 @@ import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.random.Random
+import kotlin.math.abs
+
+private const val TAG = "OtpSmsReceiver"
+
+private const val COPY_CODE_ACTION_REQUEST_CODE = 2312
+private const val SHARE_CODE_ACTION_REQUEST_CODE = 6749
 
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
 	override fun onReceive(context: Context, intent: Intent) {
-		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) return
+		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) {
+			Log.e(TAG, "unrelated intent action detected. so ignore it.")
+			return
+		}
 		if (intent.extras == null) return
 		val pendingResult = goAsync()
 		CoroutineScope(Dispatchers.IO).launch {
@@ -43,19 +50,20 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				val smsMessage = getNewOtpSms(intent.extras)
 				if (smsMessage != null) {
 					appSettings = App.getSettings(context)
-					val newOtpCode = OtpProcessor.extractOtpInfo(
+					val parsedOtpCode = OtpProcessor.parseOtpCode(
 						context,
-						smsMessage.body.trim(),
-						smsMessage.date,
+						smsMessage,
 						appSettings.expireTime
 					)
-					if (newOtpCode != null) {
-						if (newOtpCode.otp.isNotEmpty()) {
+					if (parsedOtpCode != null) {
+						if (parsedOtpCode.otp.isNotEmpty()) {
 							handleReceivedOtp(
 								context,
-								newOtpCode
+								parsedOtpCode
 							)
 						}
+					} else {
+						Log.e(TAG, "Failed to parseOtpCode: parsed otpCode is null!")
 					}
 				}
 			} catch (e: Exception) {
@@ -85,7 +93,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			val clipboardManager =
 				context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 			clipboardManager.setPrimaryClip(
-				ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, otp))
+				ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
 			)
 			runOnUiThread {
 				Toast.makeText(
@@ -121,7 +129,12 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			)
 		} else {
 			bigTextStyle.bigText(context.getString(R.string.copy_otp_code_hint))
-			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otpCode.otp))
+			bigTextStyle.setBigContentTitle(
+				context.getString(
+					R.string.your_new_otp_code_is,
+					otpCode.otp
+				)
+			)
 		}
 		val builder =
 			NotificationCompat.Builder(context, NOTIFY_OTP_CHANNEL_ID).setOnlyAlertOnce(true)
@@ -131,7 +144,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				.setContentText(context.getString(R.string.otp_sms_notification_short_message))
 				.setContentIntent(
 					PendingIntent.getActivity(
-						context, 2312, Intent(
+						context, COPY_CODE_ACTION_REQUEST_CODE, Intent(
 							context,
 							MainActivity::class.java
 						), PendingIntent.FLAG_IMMUTABLE
@@ -142,14 +155,15 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						R.drawable.otp_action_copy,
 						context.getString(R.string.copy_otp_code),
 						PendingIntent.getActivity(
-							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
+							context, SHARE_CODE_ACTION_REQUEST_CODE, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.OTP_CODE_COPY_KEY, otpCode.otp)
+								putExtra(App.Key.OTP_CODE_COPY, otpCode)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()
 				).setPriority(NotificationCompat.PRIORITY_HIGH)
-				.setVisibility(NotificationCompat.VISIBILITY_SECRET).setTimeoutAfter(otpCode.expirationTime)
+				.setVisibility(NotificationCompat.VISIBILITY_SECRET)
+				.setTimeoutAfter(otpCode.expirationTime)
 				.setAutoCancel(false).setUsesChronometer(true)
 				.setWhen(System.currentTimeMillis() + otpCode.expirationTime).setShowWhen(true)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) builder.setChronometerCountDown(true)
@@ -160,7 +174,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					) != PackageManager.PERMISSION_GRANTED
 				) return
 			}
-			notify(Random.nextInt(100000, 1000000), builder.build())
+			notify(abs(otpCode.id), builder.build())
 		}
 	}
 }

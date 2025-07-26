@@ -1,10 +1,8 @@
 package ir.saltech.puyakhan.ui.view.component.compose
 
-import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,9 +32,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,7 +57,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -64,8 +64,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.model.OtpSms
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.past
@@ -73,6 +75,7 @@ import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.copySelectedCode
+import kotlin.io.encoding.Base64
 
 internal object SegmentedButtonOrder {
 	val First = RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp)
@@ -194,12 +197,48 @@ internal fun OtpCodeCard(
 	context: Context, codeList: MutableList<OtpCode>, position: Int,
 ) {
 	var showActions by remember { mutableStateOf(false) }
+	var showBugReportDialog by remember { mutableStateOf(false) }
 	var code by remember { mutableStateOf(codeList[position]) }
-	val isCodeExpired = fun (): Boolean = code.expirationTime past code.elapsedTime <= 0
+	val isCodeExpired = fun(): Boolean = code.expirationTime past code.elapsedTime <= 0
 
+	if (showBugReportDialog) {
+		AlertDialog(
+			onDismissRequest = { showBugReportDialog = false },
+			confirmButton = {
+				Button(onClick = {
+					context.startActivity(
+						Intent(
+							Intent.ACTION_VIEW,
+							"https://pk-bugreport.saltech.ir/${if (code.relatedSms.body.trim().isNotBlank()) "?message=${Base64.UrlSafe.encode(code.relatedSms.body.trim().toByteArray())}" else ""}".toUri()
+						)
+					)
+				}) {
+					Text(stringResource(R.string.bug_report_submit_button))
+				}
+			},
+			title = {
+				Text(
+					stringResource(R.string.bug_report_title),
+					textAlign = TextAlign.Center
+				)
+			},
+			text = {
+				Text(
+					stringResource(R.string.bug_report_text), style = MaterialTheme.typography.bodySmall.copy(textDirection = TextDirection.ContentOrRtl), textAlign = TextAlign.Start
+				)
+			},
+			icon = {
+				Icon(
+					painter = painterResource(R.drawable.rounded_bug_report_24),
+					contentDescription = stringResource(R.string.bug_report_cd)
+				)
+			},
+		)
+	}
 	Card(
 		modifier = Modifier
-			.fillMaxWidth().padding(8.dp),
+			.fillMaxWidth()
+			.padding(8.dp),
 		enabled = !isCodeExpired(),
 		shape = MaterialTheme.shapes.medium,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -215,7 +254,10 @@ internal fun OtpCodeCard(
 	) {
 		Box {
 			Column(
-				modifier = Modifier.fillMaxWidth().align(Alignment.Center).alpha(if (isCodeExpired()) 0.4f else 1f),
+				modifier = Modifier
+					.fillMaxWidth()
+					.align(Alignment.Center)
+					.alpha(if (isCodeExpired()) 0.4f else 1f),
 			) {
 				Spacer(modifier = Modifier.height(13.dp))
 				AnimatedVisibility(
@@ -223,7 +265,34 @@ internal fun OtpCodeCard(
 					enter = fadeIn(),
 					exit = fadeOut()
 				) {
-					RemainingTime(code.expirationTime past code.elapsedTime, code.expirationTime)
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.SpaceBetween
+					) {
+						RemainingTime(
+							remainingTime = code.expirationTime past code.elapsedTime,
+							originTime = code.expirationTime
+						)
+						Spacer(modifier = Modifier.width(5.dp))
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							horizontalArrangement = Arrangement.Absolute.Right
+						) {
+							IconButton(
+								modifier = Modifier.padding(horizontal = 8.dp),
+								onClick = {
+									showBugReportDialog = true
+								}
+							) {
+								Icon(
+									painter = painterResource(R.drawable.rounded_bug_report_24),
+									contentDescription = "Report OtpCode",
+									tint = MaterialTheme.colorScheme.outline
+								)
+							}
+						}
+					}
 				}
 				Spacer(modifier = Modifier.height(5.dp))
 				Column(
@@ -237,12 +306,14 @@ internal fun OtpCodeCard(
 					Text(
 						" ${code.otp} ",
 						style = MaterialTheme.typography.headlineMedium,
-						modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(!isCodeExpired()) {
-							copySelectedCode(
-								context,
-								code.otp
-							)
-						})
+						modifier = Modifier
+							.clip(RoundedCornerShape(8.dp))
+							.clickable(!isCodeExpired()) {
+								copySelectedCode(
+									context,
+									code.otp
+								)
+							})
 					Spacer(modifier = Modifier.height(8.dp))
 					AnimatedVisibility(code.price != null) {
 						Text(
@@ -267,26 +338,25 @@ internal fun OtpCodeCard(
 					HorizontalDivider(modifier = Modifier.fillMaxWidth())
 					Row(
 						modifier = Modifier
-							.fillMaxWidth()
-							.padding(8.dp),
-						horizontalArrangement = Arrangement.Absolute.SpaceAround,
+							.padding(8.dp)
+							.fillMaxWidth(),
+						horizontalArrangement = Arrangement.Absolute.SpaceBetween,
 						verticalAlignment = Alignment.Bottom
 					) {
-						Spacer(modifier = Modifier.weight(1f, true))
 						OutlinedButton(onClick = { shareSelectedOtpCode(context, code) }) {
-							Text(
-								stringResource(R.string.otp_card_share),
-								style = MaterialTheme.typography.labelSmall
+							Icon(
+								modifier = Modifier.scale(0.9f),
+								painter = painterResource(R.drawable.otp_action_share),
+								contentDescription = stringResource(R.string.share_otp_code_cd),
 							)
 						}
-						Spacer(modifier = Modifier.width(8.dp))
 						Button(onClick = { copySelectedCode(context, code.otp) }) {
-							Text(
-								stringResource(R.string.otp_card_copy),
-								style = MaterialTheme.typography.labelSmall
+							Icon(
+								modifier = Modifier.scale(0.9f),
+								painter = painterResource(R.drawable.otp_action_copy),
+								contentDescription = stringResource(R.string.copy_otp_code_cd),
 							)
 						}
-						Spacer(modifier = Modifier.width(8.dp))
 					}
 				}
 			}
@@ -304,6 +374,7 @@ internal fun OtpCodeCard(
 				) {
 					LaunchedEffect(showActions) {
 						showActions = false
+						showBugReportDialog = false
 					}
 					ExpiredLabel()
 				}
@@ -313,12 +384,13 @@ internal fun OtpCodeCard(
 }
 
 @Composable
-private fun ExpiredLabel(modifier: Modifier = Modifier){
+private fun ExpiredLabel(modifier: Modifier = Modifier) {
 	Column(modifier = modifier.padding(8.dp)) {
 		OutlinedCard(
 			modifier = Modifier
 				.rotate(-8f)
-				.scale(1.15f).padding(8.dp),
+				.scale(1.15f)
+				.padding(8.dp),
 			shape = RoundedCornerShape(8.dp),
 			border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
 			colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
@@ -334,9 +406,13 @@ private fun ExpiredLabel(modifier: Modifier = Modifier){
 
 @Composable
 private fun RemainingTime(
-	remainingTime: Long, originTime: Long, modifier: Modifier = Modifier
+	remainingTime: Long, originTime: Long, modifier: Modifier = Modifier,
 ) {
-	Row (modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+	Row(
+		modifier = modifier,
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.Absolute.Left
+	) {
 		Spacer(modifier = Modifier.width(13.dp))
 		Box(modifier = Modifier.size(28.dp)) {
 			CircularProgressIndicator(
@@ -352,9 +428,12 @@ private fun RemainingTime(
 		}
 		Spacer(modifier = Modifier.width(8.dp))
 		Text(
-			printTime(remainingTime), style = MaterialTheme.typography.bodyLarge.copy(
+			modifier = Modifier.width(IntrinsicSize.Max),
+			text = printTime(remainingTime),
+			style = MaterialTheme.typography.bodyLarge.copy(
 				fontWeight = FontWeight.Bold, letterSpacing = 2.sp, fontSize = 18.sp
-			), textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.Bottom)
+			),
+			textAlign = TextAlign.Center
 		)
 	}
 }
@@ -381,7 +460,8 @@ private fun OtpCardPreview() {
 		"1,222,222",
 		1697436005137,
 		expirationTime = MAX_OTP_SMS_EXPIRATION_TIME,
-		elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME
+		elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME,
+		OtpSms("", 0L)
 	)
 	PuyaKhanTheme {
 		OtpCodeCard(context, mutableListOf(otpCode), 0)

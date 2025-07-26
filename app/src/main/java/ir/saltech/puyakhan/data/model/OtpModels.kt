@@ -12,6 +12,8 @@ data class OtpCode(
 	val sentTime: Long,
 	val expirationTime: Long,
 	var elapsedTime: Long = 0,
+	val relatedSms: OtpSms
 ) : Parcelable
 
-data class OtpSms(val body: String, val date: Long)
+@Parcelize
+data class OtpSms(val body: String, val sentTime: Long) : Parcelable

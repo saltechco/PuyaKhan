@@ -5,6 +5,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.model.OtpSms
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -26,7 +27,8 @@ class OtpCodeSerializer(private val keystoreManager: KeystoreManager) :
 					price = proto.price.ifEmpty { null },
 					sentTime = proto.sentTime,
 					expirationTime = proto.expirationTime,
-					elapsedTime = proto.elapsedTime
+					elapsedTime = proto.elapsedTime,
+					relatedSms = OtpSms(body = proto.relatedSms.body, sentTime = proto.relatedSms.sentTime)
 				)
 			}.toMutableStateList()
 		} catch (e: Exception) {
@@ -39,7 +41,7 @@ class OtpCodeSerializer(private val keystoreManager: KeystoreManager) :
 				ir.saltech.puyakhan.data.datastore.OtpCode.newBuilder().setId(code.id)
 					.setOtp(code.otp).setBank(code.bank ?: "").setPrice(code.price ?: "")
 					.setSentTime(code.sentTime).setExpirationTime(code.expirationTime)
-					.setElapsedTime(code.elapsedTime).build()
+					.setElapsedTime(code.elapsedTime).setRelatedSms(ir.saltech.puyakhan.data.datastore.OtpSms.newBuilder().setBody(code.relatedSms.body).setSentTime(code.relatedSms.sentTime).build()).build()
 			}).build()
 		val encryptedBytes = keystoreManager.encrypt(otpCodesProto.toByteArray())
 		output.write(encryptedBytes)

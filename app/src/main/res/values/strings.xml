@@ -14,6 +14,7 @@
     <string name="disable_battery_limitations_cd" translatable="false">Disable Battery Limitations</string>
     <string name="notification_permission_request_cd" translatable="false">Grant Post notification permission</string>
     <string name="overlay_window_permission_cd">Grant Show Small Window permission</string>
+    <string name="bug_report_cd">Bug Report</string>
 
     <!-- Common Strings -->
     <string name="app_name">پویا خوان</string>
@@ -77,5 +78,8 @@
 	  <string name="permission_accept_button">باشه؛ مشکلی نیست</string>
     <string name="terms">قوانین و مقررات</string>
 	<string name="select_otp_code_window_title">Select OTP Code</string>
+	<string name="bug_report_text">مایلید به صفحه گزارش خطا هدایت شوید تا مشکل مربوط به شناسایی رمز موقت را گزارش کنید؟\n\nبرای بررسی دقیق‌تر، لازم است محتوای پیامک دریافتی شما را مشاهده کنیم.\n\nاطمینان می‌دهیم که اطلاعات حساس شما با نهایت امنیت نزد ما محفوظ خواهند ماند.</string>
+    <string name="bug_report_title">گزارش خطا در تشخیص رمز</string>
+    <string name="bug_report_submit_button">ثبت گزارش</string>
 
 </resources>
