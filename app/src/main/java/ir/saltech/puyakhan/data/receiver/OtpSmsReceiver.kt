@@ -18,7 +18,6 @@ import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.data.util.OtpSmsHandler.getNewOtpSms
 import ir.saltech.puyakhan.data.util.runOnUiThread
@@ -30,12 +29,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+private const val TAG = "OtpSmsReceiver"
+
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
 	override fun onReceive(context: Context, intent: Intent) {
 		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) {
-			Log.e("OtpSmsReceiver", "unrelated intent action detected. so ignore it.")
+			Log.e(TAG, "unrelated intent action detected. so ignore it.")
 			return
 		}
 		if (intent.extras == null) return
@@ -45,18 +46,20 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				val smsMessage = getNewOtpSms(intent.extras)
 				if (smsMessage != null) {
 					appSettings = App.getSettings(context)
-					val newOtpCode = OtpProcessor.extractOtpInfo(
+					val parsedOtpCode = OtpProcessor.parseOtpCode(
 						context,
 						smsMessage,
 						appSettings.expireTime
 					)
-					if (newOtpCode != null) {
-						if (newOtpCode.otp.isNotEmpty()) {
+					if (parsedOtpCode != null) {
+						if (parsedOtpCode.otp.isNotEmpty()) {
 							handleReceivedOtp(
 								context,
-								newOtpCode
+								parsedOtpCode
 							)
 						}
+					} else {
+						Log.e(TAG, "Failed to parseOtpCode: parsed otpCode is null!")
 					}
 				}
 			} catch (e: Exception) {
@@ -86,7 +89,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			val clipboardManager =
 				context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 			clipboardManager.setPrimaryClip(
-				ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, otp))
+				ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
 			)
 			runOnUiThread {
 				Toast.makeText(
@@ -150,7 +153,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						PendingIntent.getActivity(
 							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.OTP_CODE_COPY_KEY, otpCode)
+								putExtra(App.Key.OTP_CODE_COPY, otpCode)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()

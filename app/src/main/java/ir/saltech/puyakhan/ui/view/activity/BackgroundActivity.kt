@@ -25,11 +25,11 @@ internal class BackgroundActivity : ComponentActivity() {
 		if (intent != null) {
 			val extras = intent.extras
 			if (extras != null) {
-				if (extras.containsKey(App.Key.OTP_CODE_COPY_KEY)) {
+				if (extras.containsKey(App.Key.OTP_CODE_COPY)) {
 					otpCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-						extras.getParcelable(App.Key.OTP_CODE_COPY_KEY, OtpCode::class.java)
+						extras.getParcelable(App.Key.OTP_CODE_COPY, OtpCode::class.java)
 					} else {
-						extras.getParcelable(App.Key.OTP_CODE_COPY_KEY)
+						extras.getParcelable(App.Key.OTP_CODE_COPY)
 					}
 				}
 			}

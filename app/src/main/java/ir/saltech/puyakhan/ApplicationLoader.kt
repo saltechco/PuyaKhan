@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Parcelable
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
@@ -42,7 +41,7 @@ object App {
 	) : Parcelable
 
 	object Key {
-		const val OTP_CODE_COPY_KEY = "otp_code_copy_key"
+		const val OTP_CODE_COPY = "otp_code_copy_key"
 		val PresentMethod = stringSetPreferencesKey("present_method")
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")

@@ -64,7 +64,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.util.CLIPBOARD_OTP_CODE_KEY
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
@@ -352,7 +351,7 @@ private fun PuyaKhanContent(
 internal fun copySelectedCode(context: Context, code: String) {
 	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 	clipboardManager.setPrimaryClip(
-		ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE_KEY, code))
+		ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, code))
 	)
 	Toast.makeText(
 		context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
