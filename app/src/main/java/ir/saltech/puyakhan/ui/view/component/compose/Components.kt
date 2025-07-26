@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.model.OtpSms
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.div
 import ir.saltech.puyakhan.data.util.past
@@ -74,6 +75,7 @@ import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.copySelectedCode
+import kotlin.io.encoding.Base64
 
 internal object SegmentedButtonOrder {
 	val First = RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp)
@@ -207,7 +209,7 @@ internal fun OtpCodeCard(
 					context.startActivity(
 						Intent(
 							Intent.ACTION_VIEW,
-							"https://pk-bugreport.saltech.ir".toUri()
+							"https://pk-bugreport.saltech.ir/${if (code.relatedSms.body.trim().isNotBlank()) "?message=${Base64.encode(code.relatedSms.body.trim().toByteArray())}" else ""}".toUri()
 						)
 					)
 				}) {
@@ -461,7 +463,8 @@ private fun OtpCardPreview() {
 		"1,222,222",
 		1697436005137,
 		expirationTime = MAX_OTP_SMS_EXPIRATION_TIME,
-		elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME
+		elapsedTime = MAX_OTP_SMS_EXPIRATION_TIME,
+		OtpSms("", 0L)
 	)
 	PuyaKhanTheme {
 		OtpCodeCard(context, mutableListOf(otpCode), 0)

@@ -1,10 +1,12 @@
 package ir.saltech.puyakhan.data.util
 
+import android.R.id.message
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.toMutableStateList
 import ir.saltech.puyakhan.data.datastore.OtpDataStore
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.model.OtpSms
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.regex.Pattern
@@ -160,10 +162,10 @@ object OtpProcessor {
 	 */
 	suspend fun extractOtpInfo(
 		context: Context,
-		message: String,
-		sendTime: Long = 0L,
+		sms: OtpSms,
 		preferredExpireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
 	): OtpCode? {
+		val message = sms.body.trim()
 		val otp = extractOtp(message)?.trim() ?: return null
 		val bankName = extractBankName(message)?.trim()
 		val amount = extractAmount(message)?.trim()
@@ -174,8 +176,9 @@ object OtpProcessor {
 				bank = bankName,
 				price = amount,
 				otp = otp,
-				sentTime = sendTime,
-				expirationTime = preferredExpireTime
+				sentTime = sms.sentTime,
+				expirationTime = preferredExpireTime,
+				relatedSms = sms
 			)
 
 		Log.d(TAG, "New OTP Code : $receivedOtp")
@@ -364,10 +367,7 @@ object OtpProcessor {
 			return true
 		}
 		val indexBefore = candidate.index - 1
-		if (indexBefore >= 0 && (message[indexBefore] == '/' || message[indexBefore] == '-')) {
-			return true
-		}
-		return false
+		return indexBefore >= 0 && (message[indexBefore] == '/' || message[indexBefore] == '-')
 	}
 
 	/**
@@ -380,10 +380,7 @@ object OtpProcessor {
 			return true
 		}
 		val indexAfter = candidate.index + candidate.text.length
-		if (indexAfter < message.length && (message[indexAfter] == '*' || message[indexAfter] == '#')) {
-			return true
-		}
-		return false
+		return indexAfter < message.length && (message[indexAfter] == '*' || message[indexAfter] == '#')
 	}
 
 

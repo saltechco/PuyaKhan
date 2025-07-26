@@ -3,6 +3,11 @@ syntax = "proto3";
 option java_package = "ir.saltech.puyakhan.data.datastore";
 option java_multiple_files = true;
 
+message OtpSms {
+  string body = 1;
+  int64 sent_time = 2;
+}
+
 message OtpCode {
   int32 id = 1;
   string otp = 2;
@@ -11,6 +16,7 @@ message OtpCode {
   int64 sent_time = 5;
   int64 expiration_time = 6;
   int64 elapsed_time = 7;
+  OtpSms related_sms = 8;
 }
 
 message OtpCodes {
