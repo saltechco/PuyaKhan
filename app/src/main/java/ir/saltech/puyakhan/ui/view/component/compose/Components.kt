@@ -209,7 +209,7 @@ internal fun OtpCodeCard(
 					context.startActivity(
 						Intent(
 							Intent.ACTION_VIEW,
-							"https://pk-bugreport.saltech.ir/${if (code.relatedSms.body.trim().isNotBlank()) "?message=${Base64.encode(code.relatedSms.body.trim().toByteArray())}" else ""}".toUri()
+							"https://pk-bugreport.saltech.ir/${if (code.relatedSms.body.trim().isNotBlank()) "?message=${Base64.UrlSafe.encode(code.relatedSms.body.trim().toByteArray())}" else ""}".toUri()
 						)
 					)
 				}) {
@@ -286,10 +286,7 @@ internal fun OtpCodeCard(
 								}
 							) {
 								Icon(
-									modifier = Modifier
-										.size(26.dp)
-										.rotate(180f),
-									imageVector = Symbols.Default.Info,
+									painter = painterResource(R.drawable.rounded_bug_report_24),
 									contentDescription = "Report OtpCode",
 									tint = MaterialTheme.colorScheme.outline
 								)

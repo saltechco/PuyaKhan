@@ -180,7 +180,7 @@ object OtpParser {
 			NEGATIVE_KEYWORDS_PATTERN
 		)
 
-		if (allPositiveKeywords.isEmpty()) return candidates.firstOrNull()?.text
+		if (allPositiveKeywords.isEmpty()) return null
 
 		val scoredCandidates = candidates.map { code ->
 			val distToPositive = code.findMinDistance(allPositiveKeywords, message.length)

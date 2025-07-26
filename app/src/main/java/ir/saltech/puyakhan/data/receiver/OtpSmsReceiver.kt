@@ -28,8 +28,12 @@ import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 private const val TAG = "OtpSmsReceiver"
+
+private const val COPY_CODE_ACTION_REQUEST_CODE = 2312
+private const val SHARE_CODE_ACTION_REQUEST_CODE = 6749
 
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
@@ -140,7 +144,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				.setContentText(context.getString(R.string.otp_sms_notification_short_message))
 				.setContentIntent(
 					PendingIntent.getActivity(
-						context, 2312, Intent(
+						context, COPY_CODE_ACTION_REQUEST_CODE, Intent(
 							context,
 							MainActivity::class.java
 						), PendingIntent.FLAG_IMMUTABLE
@@ -151,7 +155,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						R.drawable.otp_action_copy,
 						context.getString(R.string.copy_otp_code),
 						PendingIntent.getActivity(
-							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
+							context, SHARE_CODE_ACTION_REQUEST_CODE, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
 								putExtra(App.Key.OTP_CODE_COPY, otpCode)
 							}, PendingIntent.FLAG_IMMUTABLE
@@ -170,7 +174,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					) != PackageManager.PERMISSION_GRANTED
 				) return
 			}
-			notify(otpCode.id, builder.build())
+			notify(abs(otpCode.id), builder.build())
 		}
 	}
 }
