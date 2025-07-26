@@ -29,13 +29,15 @@ import ir.saltech.puyakhan.ui.view.window.SelectOtpWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
 	override fun onReceive(context: Context, intent: Intent) {
-		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) return
+		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) {
+			Log.e("OtpSmsReceiver", "unrelated intent action detected. so ignore it.")
+			return
+		}
 		if (intent.extras == null) return
 		val pendingResult = goAsync()
 		CoroutineScope(Dispatchers.IO).launch {
@@ -120,7 +122,12 @@ class OtpSmsReceiver : BroadcastReceiver() {
 			)
 		} else {
 			bigTextStyle.bigText(context.getString(R.string.copy_otp_code_hint))
-			bigTextStyle.setBigContentTitle(context.getString(R.string.your_new_otp_code_is, otpCode.otp))
+			bigTextStyle.setBigContentTitle(
+				context.getString(
+					R.string.your_new_otp_code_is,
+					otpCode.otp
+				)
+			)
 		}
 		val builder =
 			NotificationCompat.Builder(context, NOTIFY_OTP_CHANNEL_ID).setOnlyAlertOnce(true)
@@ -143,12 +150,13 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						PendingIntent.getActivity(
 							context, 6749, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.OTP_CODE_COPY_KEY, otpCode.otp)
+								putExtra(App.Key.OTP_CODE_COPY_KEY, otpCode)
 							}, PendingIntent.FLAG_IMMUTABLE
 						)
 					).build()
 				).setPriority(NotificationCompat.PRIORITY_HIGH)
-				.setVisibility(NotificationCompat.VISIBILITY_SECRET).setTimeoutAfter(otpCode.expirationTime)
+				.setVisibility(NotificationCompat.VISIBILITY_SECRET)
+				.setTimeoutAfter(otpCode.expirationTime)
 				.setAutoCancel(false).setUsesChronometer(true)
 				.setWhen(System.currentTimeMillis() + otpCode.expirationTime).setShowWhen(true)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) builder.setChronometerCountDown(true)
@@ -159,7 +167,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					) != PackageManager.PERMISSION_GRANTED
 				) return
 			}
-			notify(Random.nextInt(100000, 1000000), builder.build())
+			notify(otpCode.id, builder.build())
 		}
 	}
 }
