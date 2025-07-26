@@ -77,5 +77,8 @@
 	  <string name="permission_accept_button">باشه؛ مشکلی نیست</string>
     <string name="terms">قوانین و مقررات</string>
 	<string name="select_otp_code_window_title">Select OTP Code</string>
+	<string name="bug_report_text">آیا مایلید به صفحه گزارش خطا هدایت شوید، تا این اشکال در تشخیص رمز موقت را گزارش کنید؟</string>
+    <string name="bug_report_title">گزارش خطا در تشخیص رمز</string>
+    <string name="bug_report_submit_button">ثبت گزارش</string>
 
 </resources>
