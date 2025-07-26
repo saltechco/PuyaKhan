@@ -262,7 +262,7 @@ private fun PuyaKhanContent(
 	LaunchedEffect(showProgress) {
 		coroutineScope {
 			launch {
-				delay(1750)
+				delay(1500 + (codeList.size * 150L))
 				showProgress = false
 			}
 		}

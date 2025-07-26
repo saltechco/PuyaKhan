@@ -224,13 +224,13 @@ internal fun OtpCodeCard(
 			},
 			text = {
 				Text(
-					stringResource(R.string.bug_report_text), textAlign = TextAlign.End
+					stringResource(R.string.bug_report_text), style = MaterialTheme.typography.bodySmall.copy(textDirection = TextDirection.ContentOrRtl), textAlign = TextAlign.Start
 				)
 			},
 			icon = {
 				Icon(
 					painter = painterResource(R.drawable.rounded_bug_report_24),
-					contentDescription = "Bug Report"
+					contentDescription = stringResource(R.string.bug_report_cd)
 				)
 			},
 		)
@@ -341,7 +341,8 @@ internal fun OtpCodeCard(
 					HorizontalDivider(modifier = Modifier.fillMaxWidth())
 					Row(
 						modifier = Modifier
-							.padding(8.dp).fillMaxWidth(),
+							.padding(8.dp)
+							.fillMaxWidth(),
 						horizontalArrangement = Arrangement.Absolute.SpaceBetween,
 						verticalAlignment = Alignment.Bottom
 					) {
@@ -352,7 +353,6 @@ internal fun OtpCodeCard(
 								contentDescription = stringResource(R.string.share_otp_code_cd),
 							)
 						}
-//						Spacer(modifier = Modifier.width(5.dp))
 						Button(onClick = { copySelectedCode(context, code.otp) }) {
 							Icon(
 								modifier = Modifier.scale(0.9f),
