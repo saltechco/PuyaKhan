@@ -10,6 +10,7 @@ import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.OtpProcessor
+import ir.saltech.puyakhan.data.util.past
 import ir.saltech.puyakhan.data.util.repeatWhile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 	private val _otpCodes = MutableStateFlow(mutableStateListOf<OtpCode>())
 	val otpCodes: StateFlow<MutableList<OtpCode>> = _otpCodes.asStateFlow()
 	var appSettings: App.Settings? = null
+	var initProgressShow = true
 
 	init {
 		loadAppSettings()
@@ -59,7 +61,8 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 				_otpCodes.update {
 					it.apply {
 						forEach { code ->
-							code.elapsedTime = currentTime - code.sentTime
+							code.elapsedTime = currentTime past code.sms.sentTime
+							Log.d(TAG, "elapsedTime is ${code.elapsedTime} | ${code.elapsedTime > 1L}")
 						}
 						if (all { code -> code.elapsedTime >= MAX_OTP_SMS_EXPIRATION_TIME }) {
 							clear()

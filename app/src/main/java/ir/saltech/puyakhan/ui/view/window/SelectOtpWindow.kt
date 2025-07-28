@@ -187,7 +187,7 @@ class SelectOtpWindow private constructor(
 		val currentTime = System.currentTimeMillis()
 		otpCodes.apply {
 			forEachIndexed { index, otp ->
-				otp.elapsedTime = currentTime past otp.sentTime
+				otp.elapsedTime = currentTime past otp.sms.sentTime
 			}
 			if (all { code -> code.elapsedTime >= MAX_OTP_SMS_EXPIRATION_TIME }) {
 				clear()

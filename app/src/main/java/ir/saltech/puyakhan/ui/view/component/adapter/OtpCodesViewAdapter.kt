@@ -69,12 +69,12 @@ internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 		holder.shareOtpCode.visibility = View.INVISIBLE
 	}
 
-	private fun copyOtpCode(otpCode: String) {
-		val clipboardManager =
-			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otpCode))
-		)
+	private fun copyOtpCode(otp: String) {
+		with(context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager) {
+			setPrimaryClip(
+				ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
+			)
+		}
 		Toast.makeText(
 			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
 		).show()

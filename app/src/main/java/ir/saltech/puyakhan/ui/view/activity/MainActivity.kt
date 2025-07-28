@@ -3,9 +3,11 @@ package ir.saltech.puyakhan.ui.view.activity
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -59,11 +61,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.os.bundleOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.model.OtpSms
+import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
+import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
@@ -74,6 +83,7 @@ import ir.saltech.puyakhan.ui.view.page.SettingsView
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.system.exitProcess
 
 
@@ -83,6 +93,9 @@ internal const val NOTIFY_SERVICE_CHANNEL_ID = "ir.saltech.puyakhan.BACKGROUND_S
 
 internal lateinit var activity: ComponentActivity
 internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+
+private const val INIT_TIME_DELAY = 1500
+private const val CODE_TIME_DELAY = 150L
 
 internal class MainActivity : ComponentActivity() {
 	private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(
@@ -198,6 +211,16 @@ internal class MainActivity : ComponentActivity() {
 	private fun requestAppPermissions() {
 		permissionLauncher.launch(permissions)
 	}
+
+	override fun onResume() {
+		super.onResume()
+		ApplicationLoader.isActivityLaunched = true
+	}
+
+	override fun onPause() {
+		super.onPause()
+		ApplicationLoader.isActivityLaunched = false
+	}
 }
 
 @Composable
@@ -214,13 +237,24 @@ private fun PuyaKhanApp() {
 }
 
 @Composable
-private fun PuyaKhanView(onPageChanged: (App.Page) -> Unit) {
+private fun PuyaKhanView(otpCodesVM: OtpCodesVM = viewModel(), onPageChanged: (App.Page) -> Unit) {
+	val codeList by otpCodesVM.otpCodes.collectAsState()
+
+	LaunchedEffect(otpCodesVM.initProgressShow) {
+		coroutineScope {
+			launch {
+				delay(INIT_TIME_DELAY + (codeList.size * CODE_TIME_DELAY))
+				otpCodesVM.initProgressShow = false
+			}
+		}
+	}
+
 	Scaffold(
 		topBar = {
 			PuyaKhanTopBar(onPageChanged = { onPageChanged(it) })
 		},
-	) {
-		PuyaKhanContent(it)
+	) { contentPadding ->
+		PuyaKhanContent(codeList, otpCodesVM.initProgressShow, contentPadding)
 	}
 }
 
@@ -250,22 +284,11 @@ private fun PuyaKhanTopBar(
 
 @Composable
 private fun PuyaKhanContent(
+	codeList: MutableList<OtpCode>, showProgress: Boolean,
 	contentPadding: PaddingValues = PaddingValues(0.dp),
-	otpCodesVM: OtpCodesVM = viewModel(),
 ) {
 	val context = LocalContext.current
-	val codeList by otpCodesVM.otpCodes.collectAsState()
 	val codesListState = rememberLazyStaggeredGridState()
-	var showProgress by remember { mutableStateOf(true) }
-
-	LaunchedEffect(showProgress) {
-		coroutineScope {
-			launch {
-				delay(1500 + (codeList.size * 150L))
-				showProgress = false
-			}
-		}
-	}
 
 	AnimatedVisibility(
 		visible = showProgress,
@@ -279,7 +302,7 @@ private fun PuyaKhanContent(
 			verticalArrangement = Arrangement.Center,
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			CircularProgressIndicator(modifier = Modifier.size(48.dp))
+			CircularProgressIndicator(modifier = Modifier.size(32.dp))
 		}
 	}
 	AnimatedVisibility(
@@ -296,7 +319,7 @@ private fun PuyaKhanContent(
 		) {
 			Text(
 				stringResource(R.string.empty_code_list),
-				style = MaterialTheme.typography.bodyMedium.copy(
+				style = MaterialTheme.typography.labelLarge.copy(
 					color = MaterialTheme.colorScheme.outline,
 					textDirection = TextDirection.ContentOrRtl
 				),
@@ -346,16 +369,6 @@ private fun PuyaKhanContent(
 			}
 		}
 	}
-}
-
-internal fun copySelectedCode(context: Context, code: String) {
-	val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-	clipboardManager.setPrimaryClip(
-		ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, code))
-	)
-	Toast.makeText(
-		context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
-	).show()
 }
 
 @Preview(showBackground = true)

@@ -13,9 +13,10 @@ import ir.saltech.puyakhan.data.util.OtpParser.extractOtp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.collections.filter
+import kotlin.io.encoding.Base64
 import kotlin.random.Random
 
-internal const val MAX_OTP_SMS_EXPIRATION_TIME = 120_000L
+internal const val MAX_OTP_SMS_EXPIRATION_TIME = 180_000L
 
 private const val TAG = "OtpProcessor"
 
@@ -35,7 +36,7 @@ object OtpProcessor {
 	suspend fun parseOtpCode(
 		context: Context,
 		sms: OtpSms,
-		preferredExpireTime: Long = MAX_OTP_SMS_EXPIRATION_TIME,
+		preferredExpireTime: Long
 	): OtpCode? {
 		val message = sms.body.trim()
 		val otp = extractOtp(message)?.trim() ?: return null
@@ -48,9 +49,8 @@ object OtpProcessor {
 				bank = bankName,
 				price = amount,
 				otp = otp,
-				sentTime = sms.sentTime,
 				expirationTime = preferredExpireTime,
-				relatedSms = sms
+				sms = sms.copy(body = Base64.UrlSafe.encode(message.toByteArray()))
 			)
 
 		Log.d(TAG, "New OTP Code : $receivedOtp")
@@ -63,7 +63,7 @@ object OtpProcessor {
 		val dataStore = OtpDataStore(context)
 		return dataStore.getOtpCodes().map { codes ->
 			codes.filter {
-				System.currentTimeMillis() - it.sentTime < it.expirationTime
+				System.currentTimeMillis() - it.sms.sentTime < it.expirationTime
 			}.toMutableStateList()
 		}
 	}

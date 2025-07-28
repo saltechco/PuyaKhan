@@ -1,44 +1,44 @@
 package ir.saltech.puyakhan.ui.view.activity
 
-import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.core.app.NotificationManagerCompat
 import ir.saltech.puyakhan.App
-import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.util.copySelectedCode
+import kotlin.math.abs
 
 internal class BackgroundActivity : ComponentActivity() {
-	private var otpCode: OtpCode? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		handleIntents()
-		with(NotificationManagerCompat.from(this)) {
-			cancel(otpCode?.id ?: return@with)
-		}
-		doCopyTask()
 		finishAffinity()
-		finish()
 	}
 
 	private fun handleIntents() {
 		if (intent != null) {
 			val extras = intent.extras
 			if (extras != null) {
-				if (extras.containsKey(App.Key.OTP_CODE_COPY)) {
-					otpCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-						extras.getParcelable(App.Key.OTP_CODE_COPY, OtpCode::class.java)
-					} else {
-						extras.getParcelable(App.Key.OTP_CODE_COPY)
-					}
+				if (extras.containsKey(App.Key.OTP_ID_INTENT)) {
+					removeRelatedNotification(extras.getInt(App.Key.OTP_ID_INTENT))
+				}
+				if (extras.containsKey(App.Key.OTP_CODE_INTENT)) {
+					doCopyTask(extras.getString(App.Key.OTP_CODE_INTENT)!!)
 				}
 			}
 		}
 	}
 
-	private fun doCopyTask() {
-		if (otpCode != null) {
-			copySelectedCode(this, otpCode!!.otp)
+	private fun removeRelatedNotification(id: Int) {
+		with(NotificationManagerCompat.from(this)) {
+			Log.i("TAG", "Try to remove related notification -> $id")
+			cancel(abs(id))
 		}
+	}
+
+	private fun doCopyTask(code: String) {
+		Log.i("TAG", "copy the code -> code is $code")
+		copySelectedCode(this, code)
 	}
 }

@@ -12,12 +12,12 @@ object OtpSmsHandler {
 		val pdus = bundle?.get(SMS_PDUS_KEY) as? Array<*> ?: return null
 
 		var message = ""
-		var date = 0L
+		val date = System.currentTimeMillis()
 		for (i in pdus.indices) {
 			val currentMessage =
 				SmsMessage.createFromPdu(pdus[i] as ByteArray?, SMS_FORMAT)
 			message += currentMessage.displayMessageBody
-			date = currentMessage.timestampMillis
+//			date = currentMessage.timestampMillis -> This represents the time above of sent time! :(
 		}
 		return OtpSms(message, date)
 	}

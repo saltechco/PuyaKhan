@@ -16,12 +16,15 @@ import kotlinx.parcelize.Parcelize
 class ApplicationLoader : Application() {
 	companion object {
 		lateinit var applicationHandler: Handler
+		lateinit var applicationContext: Context
+		internal var isActivityLaunched = false
 		private lateinit var applicationLoader: ApplicationLoader
 	}
 
 	override fun onCreate() {
 		super.onCreate()
 		applicationLoader = this
+		Companion.applicationContext = applicationContext
 		applicationHandler = Handler(applicationContext.mainLooper)
 	}
 }
@@ -41,7 +44,9 @@ object App {
 	) : Parcelable
 
 	object Key {
-		const val OTP_CODE_COPY = "otp_code_copy_key"
+		const val OTP_CODE_INTENT = "otp_code_intent"
+		const val OTP_ID_INTENT = "otp_id_intent"
+		const val OTP_CODE_COPY = "otp_code_copy"
 		val PresentMethod = stringSetPreferencesKey("present_method")
 		val ExpireTime = longPreferencesKey("expire_time")
 		val WindowPosition = stringSetPreferencesKey("window_position")
@@ -54,7 +59,11 @@ object App {
 	) : Parcelable {
 		companion object {
 			fun fromStringSet(set: Set<String>): WindowPosition {
-				return WindowPosition(set.elementAt(0).toInt(), set.elementAt(1).toInt())
+				return if (set.size != 2) {
+					WindowPosition(0, 0)
+				} else {
+					WindowPosition(set.elementAt(0).toInt(), set.elementAt(1).toInt())
+				}
 			}
 		}
 
@@ -83,7 +92,7 @@ object App {
 	suspend fun setSettings(context: Context, settings: Settings) {
 		context.dataStore[Key.PresentMethod] = settings.presentMethods
 		context.dataStore[Key.ExpireTime] = settings.expireTime
-		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf()
+		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf("0", "0")
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
 	}
 }
