@@ -227,7 +227,7 @@ internal class MainActivity : ComponentActivity() {
 			grantXiaomiPermissions()
 		}
 		try {
-			stopService(Intent(ApplicationLoader.applicationContext, KeepAliveService::class.java))
+			stopService(keepAliveServiceIntent)
 		} catch (_: Exception) {
 		}
 	}
