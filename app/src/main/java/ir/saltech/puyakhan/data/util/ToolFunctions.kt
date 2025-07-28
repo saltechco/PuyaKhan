@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.unit.Dp
@@ -15,6 +16,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.ui.view.activity.keepAliveServiceIntent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -135,5 +137,24 @@ internal fun copySelectedCode(context: Context, otp: String) {
 internal suspend fun runOnUiThread(run: () -> Unit) {
 	withContext(Dispatchers.Main) {
 		run()
+	}
+}
+
+internal fun startKeepAliveService(context: Context) {
+	try {
+		if (XiaomiUtilities.isMIUI()) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				context.startForegroundService(
+					keepAliveServiceIntent
+				)
+			} else {
+				context.startService(
+					keepAliveServiceIntent
+				)
+			}
+		}
+	} catch (serviceE: Exception) {
+		Log.e("PuyaKhan", "Failed to run foreground service for keep alive.")
+		serviceE.printStackTrace()
 	}
 }
