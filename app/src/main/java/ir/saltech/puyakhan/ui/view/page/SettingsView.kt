@@ -65,7 +65,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.App.PresentMethod
-import ir.saltech.puyakhan.data.util.XiaomiUtilities
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.OVERLAY_PERMISSIONS_REQUEST_CODE
@@ -159,7 +158,6 @@ private fun SettingsContent(
 			GrantWindowOverlayPermission(context)
 			AllowBatteryOptimization(context)
 			Spacer(modifier = Modifier.height(16.dp))
-			if (XiaomiUtilities.isMIUI()) XiaomiUsingWithCaution()
 			SomeUsefulHelps()
 			Row(
 				modifier = Modifier
@@ -203,11 +201,6 @@ private fun SettingsContent(
 private fun SomeUsefulHelps() {
 	MinimalHelpText(text = stringResource(R.string.disable_battery_limitations_help_text))
 	MinimalHelpText(text = stringResource(R.string.disabled_buttons_help_text))
-}
-
-@Composable
-private fun XiaomiUsingWithCaution() {
-	MinimalHelpText(text = stringResource(R.string.xiaomi_device_assertion))
 }
 
 @Composable

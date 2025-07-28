@@ -162,7 +162,6 @@ class OtpSmsReceiver : BroadcastReceiver() {
 							SHARE_CODE_ACTION_REQUEST_CODE,
 							Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								Log.i(TAG, "Show OTP -> otpCode -> ${otpCode.id} | otpId -> ${otpCode.otp}")
 								putExtras(
 									bundleOf(
 										App.Key.OTP_ID_INTENT to otpCode.id,

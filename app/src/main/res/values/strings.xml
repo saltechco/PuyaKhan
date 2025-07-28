@@ -21,7 +21,7 @@
     <string name="otp_code">%d</string>
     <string name="select_otp_code_title">انتخاب رمز</string>
     <string name="otp_copied_to_clipboard">رمز پویا کپی شد.</string>
-    <string name="send_otp_to">ارسال رمز پویا به …</string>
+    <string name="send_otp_to">ارسال کد یکبارمصرف به …</string>
     <string name="delete_otp_yes">بلی</string>
     <string name="delete_otp_no">خیر</string>
     <string name="delete_otp_code_title">حذف این رمز پویا</string>
@@ -44,6 +44,7 @@
     <string name="otp_sms_notification_short_message">برای مشاهده رمز، این را به پایین بکشید.</string>
     <string name="copy_otp_code">کپی کردن</string>
     <string name="otp_sms_window_alert">در حال نمایش پنجره رمز یکبار مصرف</string>
+    <string name="app_keep_alive_alert">پویاخوان منتظر دریافت پیامک دارای کد می باشد.</string>
     <string name="privacy_dialog_title">حریم شخصی</string>
     <string name="privacy_accept">می پذیرم</string>
     <string name="app_permission_title">نیازمند مجوز دسترسی</string>
@@ -65,7 +66,6 @@
     <string name="disable_battery_limitations_button">غیرفعال کردن محدودیت‌های باتری</string>
     <string name="notification_permission_request_button">اعطای مجوز دسترسی به اعلان</string>
     <string name="overlay_window_permission_button">اعطای مجوز نمایش پنجره</string>
-    <string name="xiaomi_device_assertion">شما از دستگاه شیائومی استفاده می کنید که ممکن است استفاده از ویژگی کپی کردن رمز پویا به صورت مستقیم، به درستی کار نکند.</string>
     <string name="disabled_buttons_help_text">در صورت غیر فعال بودن بعضی از گزینه های نحوه نمایش، مجوز های آنها را اعطا کنید تا فعال شوند.</string>
     <string name="disable_battery_limitations_help_text">زمانی از غیرفعال کردن محدودیت‌های باتری استفاده کنید که برنامه به خوبی در همه مواقع کار نمی کند.\nسعی کنید حتی الامکان از این کار پرهیز کنید!</string>
     <string name="referenced_settings">تنظیمات ارجاعی</string>
@@ -82,5 +82,6 @@
     <string name="bug_report_title">گزارش خطا در تشخیص رمز</string>
     <string name="bug_report_submit_button">ثبت گزارش</string>
 	<string name="background_activity_label">NotifyCopyHandler</string>
+    <string name="xiaomi_back_service_permissions">برای دسترسی به جدیدترین وضعیت پیامک ها، نیازمند اجرا در پس زمینه هستیم.\nآن را اچازه دهیم.</string>
 
 </resources>

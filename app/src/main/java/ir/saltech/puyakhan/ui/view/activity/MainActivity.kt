@@ -3,10 +3,6 @@ package ir.saltech.puyakhan.ui.view.activity
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -61,18 +57,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.os.bundleOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.data.model.OtpSms
-import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
-import ir.saltech.puyakhan.data.util.OtpProcessor
+import ir.saltech.puyakhan.data.service.KeepAliveService
+import ir.saltech.puyakhan.data.util.XiaomiUtilities
+import ir.saltech.puyakhan.data.util.startKeepAliveService
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
@@ -83,7 +77,6 @@ import ir.saltech.puyakhan.ui.view.page.SettingsView
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 import kotlin.system.exitProcess
 
 
@@ -96,6 +89,11 @@ internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
 private const val INIT_TIME_DELAY = 1500
 private const val CODE_TIME_DELAY = 150L
+
+internal val keepAliveServiceIntent = Intent(
+	ApplicationLoader.applicationContext,
+	KeepAliveService::class.java
+)
 
 internal class MainActivity : ComponentActivity() {
 	private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(
@@ -110,11 +108,20 @@ internal class MainActivity : ComponentActivity() {
 		permissionLauncher =
 			registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 				if (it.values.all { granted -> granted }) {
+					grantXiaomiPermissions()
 					startProgram()
 				} else {
 					exitProcess(-1)
 				}
 			}
+	}
+
+	private fun grantXiaomiPermissions() {
+		Toast.makeText(
+			this,
+			getString(R.string.xiaomi_back_service_permissions), Toast.LENGTH_SHORT
+		).show()
+		startActivity(XiaomiUtilities.getPermissionManagerIntent())
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,6 +136,10 @@ internal class MainActivity : ComponentActivity() {
 		}
 		with(NotificationManagerCompat.from(this)) {
 			cancelAll()
+		}
+		if (!(XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_BOOT_COMPLETED) &&
+			XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_SERVICE_FOREGROUND))) {
+			grantXiaomiPermissions()
 		}
 		startProgram()
 	}
@@ -215,11 +226,16 @@ internal class MainActivity : ComponentActivity() {
 	override fun onResume() {
 		super.onResume()
 		ApplicationLoader.isActivityLaunched = true
+		try {
+			stopService(Intent(ApplicationLoader.applicationContext, KeepAliveService::class.java))
+		} catch (_: Exception) {
+		}
 	}
 
 	override fun onPause() {
 		super.onPause()
 		ApplicationLoader.isActivityLaunched = false
+		startKeepAliveService(ApplicationLoader.applicationContext)
 	}
 }
 
