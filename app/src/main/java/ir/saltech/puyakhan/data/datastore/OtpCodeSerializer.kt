@@ -25,10 +25,9 @@ class OtpCodeSerializer(private val keystoreManager: KeystoreManager) :
 					otp = proto.otp,
 					bank = proto.bank.ifEmpty { null },
 					price = proto.price.ifEmpty { null },
-					sentTime = proto.sentTime,
 					expirationTime = proto.expirationTime,
 					elapsedTime = proto.elapsedTime,
-					relatedSms = OtpSms(body = proto.relatedSms.body, sentTime = proto.relatedSms.sentTime)
+					sms = OtpSms(body = proto.sms.body, sentTime = proto.sms.sentTime)
 				)
 			}.toMutableStateList()
 		} catch (e: Exception) {
@@ -40,8 +39,8 @@ class OtpCodeSerializer(private val keystoreManager: KeystoreManager) :
 		val otpCodesProto = OtpCodes.newBuilder().addAllCodes(t.map { code ->
 				ir.saltech.puyakhan.data.datastore.OtpCode.newBuilder().setId(code.id)
 					.setOtp(code.otp).setBank(code.bank ?: "").setPrice(code.price ?: "")
-					.setSentTime(code.sentTime).setExpirationTime(code.expirationTime)
-					.setElapsedTime(code.elapsedTime).setRelatedSms(ir.saltech.puyakhan.data.datastore.OtpSms.newBuilder().setBody(code.relatedSms.body).setSentTime(code.relatedSms.sentTime).build()).build()
+					.setExpirationTime(code.expirationTime).setElapsedTime(code.elapsedTime)
+					.setSms(ir.saltech.puyakhan.data.datastore.OtpSms.newBuilder().setBody(code.sms.body).setSentTime(code.sms.sentTime).build()).build()
 			}).build()
 		val encryptedBytes = keystoreManager.encrypt(otpCodesProto.toByteArray())
 		output.write(encryptedBytes)

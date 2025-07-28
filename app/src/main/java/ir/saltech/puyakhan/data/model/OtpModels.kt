@@ -1,19 +1,13 @@
 package ir.saltech.puyakhan.data.model
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class OtpCode(
 	val id: Int,
 	val otp: String,
-	val bank: String?,
-	val price: String?,
-	val sentTime: Long,
+	val bank: String? = null,
+	val price: String? = null,
 	val expirationTime: Long,
 	var elapsedTime: Long = 0,
-	val relatedSms: OtpSms
-) : Parcelable
+	val sms: OtpSms,
+)
 
-@Parcelize
-data class OtpSms(val body: String, val sentTime: Long) : Parcelable
+data class OtpSms(val body: String, val sentTime: Long)

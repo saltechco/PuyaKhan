@@ -14,7 +14,9 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.os.bundleOf
 import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.OtpCode
@@ -57,7 +59,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 					)
 					if (parsedOtpCode != null) {
 						if (parsedOtpCode.otp.isNotEmpty()) {
-							handleReceivedOtp(
+							showReceivedOtp(
 								context,
 								parsedOtpCode
 							)
@@ -74,7 +76,8 @@ class OtpSmsReceiver : BroadcastReceiver() {
 		}
 	}
 
-	private fun handleReceivedOtp(context: Context, newOtpCode: OtpCode) {
+	private fun showReceivedOtp(context: Context, newOtpCode: OtpCode) {
+		if (ApplicationLoader.isActivityLaunched) return
 		for (presentMethod in appSettings.presentMethods) {
 			when (presentMethod) {
 				App.PresentMethod.Otp.COPY -> copyOtpToClipboard(context, newOtpCode.otp)
@@ -90,11 +93,11 @@ class OtpSmsReceiver : BroadcastReceiver() {
 
 	private fun copyOtpToClipboard(context: Context, otp: String) {
 		CoroutineScope(Dispatchers.IO).launch {
-			val clipboardManager =
-				context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-			clipboardManager.setPrimaryClip(
-				ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
-			)
+			with(context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager) {
+				setPrimaryClip(
+					ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
+				)
+			}
 			runOnUiThread {
 				Toast.makeText(
 					context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
@@ -155,10 +158,19 @@ class OtpSmsReceiver : BroadcastReceiver() {
 						R.drawable.otp_action_copy,
 						context.getString(R.string.copy_otp_code),
 						PendingIntent.getActivity(
-							context, SHARE_CODE_ACTION_REQUEST_CODE, Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
+							context,
+							SHARE_CODE_ACTION_REQUEST_CODE,
+							Intent(OtpProcessor.Actions.COPY_OTP_ACTION).apply {
 								setClass(context.applicationContext, BackgroundActivity::class.java)
-								putExtra(App.Key.OTP_CODE_COPY, otpCode)
-							}, PendingIntent.FLAG_IMMUTABLE
+								Log.i(TAG, "Show OTP -> otpCode -> ${otpCode.id} | otpId -> ${otpCode.otp}")
+								putExtras(
+									bundleOf(
+										App.Key.OTP_ID_INTENT to otpCode.id,
+										App.Key.OTP_CODE_INTENT to otpCode.otp
+									)
+								)
+							},
+							PendingIntent.FLAG_MUTABLE
 						)
 					).build()
 				).setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -167,7 +179,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				.setAutoCancel(false).setUsesChronometer(true)
 				.setWhen(System.currentTimeMillis() + otpCode.expirationTime).setShowWhen(true)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) builder.setChronometerCountDown(true)
-		with(NotificationManagerCompat.from(context)) {
+		with(NotificationManagerCompat.from(ApplicationLoader.applicationContext)) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 				if (ActivityCompat.checkSelfPermission(
 						context, Manifest.permission.POST_NOTIFICATIONS

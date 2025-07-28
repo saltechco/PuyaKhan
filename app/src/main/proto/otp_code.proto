@@ -13,10 +13,9 @@ message OtpCode {
   string otp = 2;
   string bank = 3;
   string price = 4;
-  int64 sent_time = 5;
-  int64 expiration_time = 6;
-  int64 elapsed_time = 7;
-  OtpSms related_sms = 8;
+  int64 expiration_time = 5;
+  int64 elapsed_time = 6;
+  OtpSms sms = 7;
 }
 
 message OtpCodes {

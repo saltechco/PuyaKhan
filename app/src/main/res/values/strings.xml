@@ -81,5 +81,6 @@
 	<string name="bug_report_text">مایلید به صفحه گزارش خطا هدایت شوید تا مشکل مربوط به شناسایی رمز موقت را گزارش کنید؟\n\nبرای بررسی دقیق‌تر، لازم است محتوای پیامک دریافتی شما را مشاهده کنیم.\n\nاطمینان می‌دهیم که اطلاعات حساس شما با نهایت امنیت نزد ما محفوظ خواهند ماند.</string>
     <string name="bug_report_title">گزارش خطا در تشخیص رمز</string>
     <string name="bug_report_submit_button">ثبت گزارش</string>
+	<string name="background_activity_label">NotifyCopyHandler</string>
 
 </resources>

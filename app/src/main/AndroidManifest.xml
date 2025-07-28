@@ -7,7 +7,7 @@
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.RECEIVE_SMS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+	<uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS"/>
 	<uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -32,15 +32,15 @@
 		tools:targetApi="33">
 		<activity
 			android:name=".ui.view.activity.BackgroundActivity"
-			android:configChanges="uiMode"
-			android:exported="true"
-			android:theme="@style/Theme.PuyaKhan">
+			android:label="@string/background_activity_label"
+			android:exported="true">
 			<intent-filter>
 				<action android:name="ir.saltech.puyakhan.action.COPY_OTP_CODE" />
 			</intent-filter>
 		</activity>
 		<activity
 			android:name=".ui.view.activity.MainActivity"
+			android:configChanges="uiMode"
 			android:exported="true"
 			android:theme="@style/Theme.PuyaKhan"
 			android:windowSoftInputMode="adjustResize">
@@ -63,10 +63,10 @@
 			android:enabled="true"
 			android:exported="true"
 			android:permission="android.permission.BROADCAST_SMS">
-			<intent-filter android:priority="100000">
+			<intent-filter android:priority="999">
 				<action android:name="android.provider.Telephony.SMS_RECEIVED" />
 			</intent-filter>
-			<intent-filter android:priority="100000">
+			<intent-filter android:priority="999">
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
 			</intent-filter>
 		</receiver>
