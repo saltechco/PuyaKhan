@@ -1,4 +1,4 @@
-# PuyaKhan   ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=1.9.10&color=purple)
+# PuyaKhan   ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=2.2.0&color=purple)
 ###### Made By SalTech
 
 Nowadays, Payment and Banking services are online, so it isn't necessary to go to an ATM and do your work through it.
@@ -12,5 +12,5 @@ The app can show a dialog box of all passwords when you need it, or show you a n
 #### App Specifications
 - Based on Material Design 3
 - Designed by Jetpack Compose
-- Users with Android 5.0 or higher are able to use this app.
+- Users with Android 6.0 or higher are able to use this app.
 - Optimized to run on all devices, even on low-ram memory devices.
