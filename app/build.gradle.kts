@@ -28,8 +28,8 @@ android {
 		applicationId = "ir.saltech.puyakhan"
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 100454
-		versionName = "1.6.25"
+		versionCode = 101500
+		versionName = "1.9.36"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
