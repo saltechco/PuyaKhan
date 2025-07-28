@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Telephony
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -41,7 +42,7 @@ class OtpSmsReceiver : BroadcastReceiver() {
 	private lateinit var appSettings: App.Settings
 
 	override fun onReceive(context: Context, intent: Intent) {
-		if (!(intent.action == "android.provider.Telephony.SMS_RECEIVED" || intent.action == "android.intent.action.BOOT_COMPLETED")) {
+		if (!(intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION || intent.action == Intent.ACTION_BOOT_COMPLETED)) {
 			Log.e(TAG, "unrelated intent action detected. so ignore it.")
 			return
 		}

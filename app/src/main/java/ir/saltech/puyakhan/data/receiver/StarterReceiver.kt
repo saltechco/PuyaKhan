@@ -9,7 +9,7 @@ import ir.saltech.puyakhan.data.util.startKeepAliveService
 
 class StarterReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) {
-		if (intent?.action != "android.intent.action.BOOT_COMPLETED") {
+		if (intent?.action != Intent.ACTION_BOOT_COMPLETED) {
 			Log.e("StarterReceiver", "unrelated intent action detected. so ignore it.")
 			return
 		}

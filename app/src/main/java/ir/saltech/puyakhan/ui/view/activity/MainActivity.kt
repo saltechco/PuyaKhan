@@ -137,10 +137,6 @@ internal class MainActivity : ComponentActivity() {
 		with(NotificationManagerCompat.from(this)) {
 			cancelAll()
 		}
-		if (!(XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_BOOT_COMPLETED) &&
-			XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_SERVICE_FOREGROUND))) {
-			grantXiaomiPermissions()
-		}
 		startProgram()
 	}
 
@@ -226,6 +222,10 @@ internal class MainActivity : ComponentActivity() {
 	override fun onResume() {
 		super.onResume()
 		ApplicationLoader.isActivityLaunched = true
+		if (!(XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_BOOT_COMPLETED) &&
+					XiaomiUtilities.isCustomPermissionGranted(XiaomiUtilities.OP_SERVICE_FOREGROUND))) {
+			grantXiaomiPermissions()
+		}
 		try {
 			stopService(Intent(ApplicationLoader.applicationContext, KeepAliveService::class.java))
 		} catch (_: Exception) {
