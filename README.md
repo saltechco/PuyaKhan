@@ -27,7 +27,7 @@ PuyaKhan is designed to simplify the process of using OTPs by offering a variety
 
 ## Screenshots 📸
 
-![Main Screen](saltechco/puyakhan/PuyaKhan-dev/screenshots/Screenshot\_20250731\_164120.png)  ![Floating Window](saltechco/puyakhan/PuyaKhan-dev/screenshots/Screenshot\_20250731\_174728.png)  ![Notification](saltechco/puyakhan/PuyaKhan-dev/screenshots/Screenshot\_20250731\_180819.png)  ![Settings](saltechco/puyakhan/PuyaKhan-dev/screenshots/Screenshot\_20250731\_172019.png) 
+![Main Screen](https://github.com/saltechco/PuyaKhan/blob/dev/screenshots/Screenshot_20250731_164120.png)  ![Floating Window](https://github.com/saltechco/PuyaKhan/blob/dev/screenshots/Screenshot_20250731_174728.png)  ![Notification](https://github.com/saltechco/PuyaKhan/blob/dev/screenshots/Screenshot_20250731_180819.png)  ![Settings](https://github.com/saltechco/PuyaKhan/blob/dev/screenshots/Screenshot_20250731_172019.png) 
 
 -----
 
