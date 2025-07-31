@@ -1,9 +1,6 @@
-# PuyaKhan (پویا خوان)
+# PuyaKhan (پویا خوان)  ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=1.9.10&color=purple)
 
-[](https://www.android.com)
-[](https://kotlinlang.org)
-
-**Made By SalTech**
+###### Made By SalTech
 
 Nowadays, with payment and banking services moving online, visiting an ATM is often unnecessary. In Iran, all online payments require a One-Time Password (OTP).
 
