@@ -62,7 +62,6 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 					it.apply {
 						forEach { code ->
 							code.elapsedTime = currentTime past code.sms.sentTime
-							Log.d(TAG, "elapsedTime is ${code.elapsedTime} | ${code.elapsedTime > 1L}")
 						}
 						if (all { code -> code.elapsedTime >= MAX_OTP_SMS_EXPIRATION_TIME }) {
 							clear()
