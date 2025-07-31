@@ -1,4 +1,4 @@
-# PuyaKhan (پویا خوان)  ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=1.9.10&color=purple)
+# PuyaKhan (پویا خوان)  ![Android](https://img.shields.io/static/v1?label=Platform&message=Android&color=green)  ![Kotlin](https://img.shields.io/static/v1?label=Kotlin&message=2.2.0&color=purple)
 
 ###### Made By SalTech
 
