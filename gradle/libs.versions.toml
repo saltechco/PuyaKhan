@@ -3,20 +3,19 @@ agp = "8.11.1"
 kotlin = "2.2.0"
 core-ktx = "1.16.0"
 junit = "4.13.2"
-espresso-core = "3.6.1"
-androidx-test-ext-junit = "1.2.1"
+espresso-core = "3.7.0"
+androidx-test-ext-junit = "1.3.0"
 lifecycle-ktx = "2.9.2"
 activity-compose = "1.10.1"
 compose-bom = "2025.07.00"
 material3-compose = "1.3.2"
 compose-ui = "1.8.3"
-cardview = "1.0.0"
 recyclerview = "1.4.0"
 datastore = "1.1.7"
 gson = "2.13.1"
 protobufPlugin = "0.9.5"
 protobuf = "4.31.1"
-androidx-security = "1.1.0-beta01"
+androidx-security = "1.1.0"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -34,7 +33,6 @@ ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview
 ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose-ui" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "compose-ui" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-compose" }
-androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }

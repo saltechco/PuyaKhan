@@ -12,11 +12,10 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -78,8 +77,8 @@ class SelectOtpWindow private constructor(
 	}
 
 	private fun initViews() {
-		val windowParent = view.findViewById<ViewGroup>(R.id.select_otp_window_card)
-		val windowDragHandle = view.findViewById<CardView>(R.id.window_drag_handle)
+		val windowParent = view.findViewById<LinearLayout>(R.id.select_otp_window_card)
+		val windowDragHandle = view.findViewById<View>(R.id.window_drag_handle)
 		val closeButton = view.findViewById<ImageButton>(R.id.close_otp_window)
 		otpCodesEmptyView = view.findViewById(R.id.otp_codes_empty)
 		otpCodesView = view.findViewById(R.id.otp_codes_view)
@@ -227,7 +226,7 @@ class SelectOtpWindow private constructor(
 				}
 			}
 		} catch (e: Exception) {
-			Log.e(TAG, e.toString())
+			Log.e(TAG, "Failed to show select otp window: ${e.toString()}")
 		}
 	}
 
@@ -240,7 +239,8 @@ class SelectOtpWindow private constructor(
 	companion object {
 		const val APP_SETTINGS_KEY = "app_settings"
 
-		@Volatile @SuppressLint("StaticFieldLeak")
+		@Volatile
+		@SuppressLint("StaticFieldLeak")
 		private var instance: SelectOtpWindow? = null
 
 		fun getInstance(context: Context, appSettings: App.Settings): SelectOtpWindow {
@@ -269,7 +269,7 @@ class SelectOtpWindow private constructor(
 			try {
 				windowManager.removeView(view)
 			} catch (e: Exception) {
-				Log.e(TAG, e.toString())
+				Log.e(TAG, "Failed to hide (close) select otp window : ${e.toString()}")
 			} finally {
 				instance?.windowScope?.cancel()
 				instance = null

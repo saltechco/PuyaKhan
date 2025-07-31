@@ -4,14 +4,16 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -25,11 +27,13 @@ internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 	private lateinit var context: Context
 
 	internal inner class OtpCodesViewHolder(v: View) : ViewHolder(v) {
-		val otpCard: CardView = v.findViewById(R.id.otp_card)
+		val otpExpiredLayout: FrameLayout = v.findViewById(R.id.otp_expired_layout)
+		val otpCard: LinearLayout = v.findViewById(R.id.otp_card)
+		val otpCardLayout: LinearLayout = v.findViewById(R.id.otp_card_layout)
 		val otpCode: TextView = v.findViewById(R.id.otp_code)
 		val copyOtpCode: ImageButton = v.findViewById(R.id.copy_otp_code)
 		val shareOtpCode: ImageButton = v.findViewById(R.id.share_otp_code)
-		val codeExpireBar: ProgressBar = v.findViewById(R.id.otp_expire_bar)
+		val codeDurationBar: ProgressBar = v.findViewById(R.id.otp_code_duration_bar)
 	}
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OtpCodesViewHolder {
@@ -49,24 +53,49 @@ internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 		holder.shareOtpCode.setOnClickListener {
 			shareSelectedOtpCode(context, otpCodes[position])
 		}
-		holder.codeExpireBar.progress =
-			100 - ((otpCodes[position].elapsedTime.toDouble() / otpCodes[position].expirationTime.toDouble()) * 100).toInt()
-		if (holder.codeExpireBar.progress == 0) {
-			showAsExpiredCode(holder)
+		if (holder.codeDurationBar.progress == 0) {
+			showOtpCodeAsExpired(holder)
+		} else {
+			showOtpCode(holder, position)
 		}
 	}
 
-	private fun showAsExpiredCode(holder: OtpCodesViewHolder) {
-		holder.otpCard.setCardBackgroundColor(
+	private fun showOtpExpirationProgress(
+		holder: OtpCodesViewHolder,
+		position: Int,
+	) {
+		val expirationTime = otpCodes[position].expirationTime.toDouble()
+		val elapsedTime = otpCodes[position].elapsedTime.toDouble()
+		val progress =
+			if (expirationTime > 0) ((elapsedTime / expirationTime) * 100).toInt() else 100
+		holder.codeDurationBar.progress = 100 - progress
+	}
+
+	private fun showOtpCode(holder: OtpCodesViewHolder, position: Int) {
+		showOtpExpirationProgress(holder, position)
+		holder.otpCard.backgroundTintList =
+			ColorStateList.valueOf(ContextCompat.getColor(context, R.color.otpCardBackground))
+		holder.otpCard.isClickable = true
+		holder.codeDurationBar.visibility = View.VISIBLE
+		holder.copyOtpCode.visibility = View.VISIBLE
+		holder.shareOtpCode.visibility = View.VISIBLE
+		holder.otpCardLayout.alpha = 1.0f
+		holder.otpExpiredLayout.visibility = View.INVISIBLE
+	}
+
+	private fun showOtpCodeAsExpired(holder: OtpCodesViewHolder) {
+		holder.otpCard.backgroundTintList = ColorStateList.valueOf(
 			ContextCompat.getColor(
 				context, R.color.otpExpiredCardBackground
 			)
 		)
 		holder.otpCard.isClickable = false
-		holder.codeExpireBar.progress = 0
-		holder.codeExpireBar.visibility = View.GONE
+		holder.codeDurationBar.progress = 0
+		holder.codeDurationBar.visibility = View.GONE
 		holder.copyOtpCode.visibility = View.INVISIBLE
 		holder.shareOtpCode.visibility = View.INVISIBLE
+		holder.otpCardLayout.alpha = 0.5f
+		holder.otpExpiredLayout.visibility = View.VISIBLE
 	}
 
 	private fun copyOtpCode(otp: String) {
