@@ -77,7 +77,6 @@ dependencies {
 	implementation(libs.google.gson)
 	implementation(libs.google.protobuf)
 	implementation(libs.ui.tooling.preview)
-	implementation(platform(libs.compose.bom))
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.espresso.core)
 	androidTestImplementation(libs.androidx.test.ext.junit)
