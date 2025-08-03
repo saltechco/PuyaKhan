@@ -30,9 +30,6 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 
 	init {
 		loadAppSettings()
-	}
-
-	init {
 		loadOtpCodes()
 		setTimeElapsedCounter()
 	}

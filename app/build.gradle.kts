@@ -62,11 +62,11 @@ android {
 }
 
 dependencies {
+	implementation(platform(libs.compose.bom))
 	implementation(libs.core.ktx)
 	implementation(libs.lifecycle.runtime.ktx)
 	implementation(libs.lifecycle.viewmodel.compose)
 	implementation(libs.activity.compose)
-	implementation(platform(libs.compose.bom))
 	implementation(libs.ui)
 	implementation(libs.ui.graphics)
 	implementation(libs.material3)
@@ -74,14 +74,12 @@ dependencies {
 	implementation(libs.androidx.security.crypto)
 	implementation(libs.datastore)
 	implementation(libs.datastore.preferences)
-	implementation(libs.google.gson)
 	implementation(libs.google.protobuf)
 	implementation(libs.ui.tooling.preview)
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.espresso.core)
-	androidTestImplementation(libs.androidx.test.ext.junit)
-	androidTestImplementation(platform(libs.compose.bom))
 	androidTestImplementation(libs.ui.test.junit4)
+	androidTestImplementation(libs.androidx.test.ext.junit)
 	androidTestImplementation(platform(libs.compose.bom))
 	debugImplementation(libs.ui.tooling)
 	debugImplementation(libs.ui.test.manifest)
