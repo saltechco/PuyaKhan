@@ -75,5 +75,5 @@ This project showcases modern Android development practices and technologies:
 
 ## License 📜
 
-This project is licensed under the GPL-3.0 license for app, SIL Open Font License 1.1 for fonts and the Apache License 2.0
+This project is licensed under the GPL-3.0 license for project, SIL Open Font License 1.1 for fonts and the Apache License 2.0
 for dependencies.
