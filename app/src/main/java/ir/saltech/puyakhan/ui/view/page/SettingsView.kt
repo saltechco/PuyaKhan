@@ -17,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,15 +29,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -50,14 +54,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.checkSelfPermission
 import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
-import ir.saltech.puyakhan.data.model.App.PresentMethod
+import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.App.PresentMethod
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.OVERLAY_PERMISSIONS_REQUEST_CODE
@@ -66,7 +73,7 @@ import ir.saltech.puyakhan.ui.view.activity.permissionLauncher
 import ir.saltech.puyakhan.ui.view.component.compose.MinimalHelpText
 import ir.saltech.puyakhan.ui.view.component.compose.OpenReferenceButton
 import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
-import androidx.core.net.toUri
+import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 
 @Composable
 internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
@@ -89,23 +96,35 @@ private fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
 	}, navigationIcon = {
 		Row {
 			Spacer(modifier = Modifier.width(16.dp))
-			Icon(
-				modifier = Modifier
-					.size(26.dp)
-					.align(Alignment.Bottom)
-					.clickable { onPageChanged(App.Page.Main) },
-				imageVector = Symbols.Default.Back,
-				contentDescription = stringResource(R.string.back_to_the_main_page_cd)
-			)
+			IconButton(onClick = {
+				onPageChanged(App.Page.Main)
+			}) {
+				Icon(
+					modifier = Modifier
+						.size(26.dp)
+						.align(Alignment.Bottom),
+					imageVector = Symbols.Default.Back,
+					contentDescription = stringResource(R.string.back_to_the_main_page_cd)
+				)
+			}
 			Spacer(modifier = Modifier.width(16.dp))
 		}
 	})
 }
 
 @Composable
-private fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) {
+private fun SettingsContent(
+	paddingValues: PaddingValues = PaddingValues(0.dp),
+	mainViewModel: OtpCodesVM = viewModel(),
+) {
 	val context = LocalContext.current
-	val appSettings = App.getSettings(context)
+	val appSettings: App.Settings = mainViewModel.appSettings ?: App.Settings()
+	var canShowPrivacy by remember { mutableStateOf(false) }
+	if (canShowPrivacy) {
+		PrivacyAcceptation {
+			canShowPrivacy = false
+		}
+	}
 	LazyColumn(
 		modifier = Modifier
 			.padding(paddingValues)
@@ -116,26 +135,64 @@ private fun SettingsContent(paddingValues: PaddingValues = PaddingValues(0.dp)) 
 			)
 	) {
 		items(1) {
-			MethodSelection(context, appSettings)
+			MethodSelection(context, appSettings.presentMethods) { newPresentMethods ->
+				appSettings.presentMethods = newPresentMethods
+				mainViewModel.saveAppSettings()
+			}
 			Spacer(modifier = Modifier.height(4.dp))
-			ExpireTimeSelection(context, appSettings)
-			Spacer(modifier = Modifier.height(44.dp))
+			ExpireTimeSelection(appSettings.expireTime) { enteredExpiredTime ->
+				appSettings.expireTime = enteredExpiredTime
+				mainViewModel.saveAppSettings()
+			}
+			Spacer(modifier = Modifier.height(24.dp))
 			Text(
 				stringResource(R.string.referenced_settings),
 				style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(horizontal = 26.dp)
+					.padding(bottom = 8.dp)
 					.alpha(0.75f)
 			)
-			Spacer(modifier = Modifier.height(5.dp))
 			GrantNotificationPermission(context)
 			GrantWindowOverlayPermission(context)
 			AllowBatteryOptimization(context)
 			Spacer(modifier = Modifier.height(16.dp))
-			if (Build.MANUFACTURER == "Xiaomi") XiaomiUsingWithCaution()
 			SomeUsefulHelps()
-			Spacer(modifier = Modifier.height(16.dp))
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 32.dp)
+					.padding(top = 32.dp, bottom = 16.dp),
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Text(
+					modifier = Modifier
+						.clip(RoundedCornerShape(100.dp))
+						.clickable { canShowPrivacy = true },
+					text = " ${stringResource(R.string.privacy_dialog_title)} ",
+					style = MaterialTheme.typography.bodyMedium,
+					textAlign = TextAlign.Center,
+					textDecoration = TextDecoration.Underline
+				)
+				Text(
+					text = " • ",
+					style = MaterialTheme.typography.bodyMedium,
+					textAlign = TextAlign.Center,
+				)
+				Text(
+					modifier = Modifier
+						.clip(RoundedCornerShape(100.dp))
+						.clickable {
+							context.startActivity(Intent(Intent.ACTION_VIEW, "https://saltech.ir/terms".toUri()))
+						},
+					text = " ${stringResource(R.string.terms)} ",
+					style = MaterialTheme.typography.bodyMedium,
+					textAlign = TextAlign.Center,
+					textDecoration = TextDecoration.Underline
+				)
+			}
 		}
 	}
 }
@@ -147,19 +204,12 @@ private fun SomeUsefulHelps() {
 }
 
 @Composable
-private fun XiaomiUsingWithCaution() {
-	MinimalHelpText(text = stringResource(R.string.xiaomi_device_assertion))
-}
-
-@Composable
 private fun GrantWindowOverlayPermission(context: Context) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-		OpenReferenceButton(
-			title = stringResource(R.string.overlay_window_permission_button),
-			contentDescription = stringResource(R.string.overlay_window_permission_cd)
-		) {
-			grantScreenOverlayPermission(context)
-		}
+	OpenReferenceButton(
+		title = stringResource(R.string.overlay_window_permission_button),
+		contentDescription = stringResource(R.string.overlay_window_permission_cd)
+	) {
+		grantScreenOverlayPermission(context)
 	}
 }
 
@@ -186,9 +236,9 @@ private fun AllowBatteryOptimization(context: Context) {
 }
 
 @Composable
-private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
+private fun ExpireTimeSelection(currentTimeSelection: Long, onTimeChanged: (Long) -> Unit) {
 	var expireTime by remember {
-		mutableLongStateOf(appSettings.expireTime)
+		mutableLongStateOf(currentTimeSelection)
 	}
 	Column(
 		modifier = Modifier
@@ -205,7 +255,8 @@ private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 				.padding(16.dp)
 				.fillMaxWidth()
 		) {
-			OutlinedTextField(value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
+			OutlinedTextField(
+				value = if (expireTime >= 1) (expireTime / 60_000).toString() else "",
 				onValueChange = { time ->
 					if (time.isEmpty()) {
 						expireTime = 0
@@ -213,8 +264,7 @@ private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 					}
 					if (time.toIntOrNull() in 1..3) {
 						expireTime = time.toLong() * 60_000
-						appSettings.expireTime = expireTime
-						App.setSettings(context, appSettings)
+						onTimeChanged(expireTime)
 					}
 				},
 				placeholder = {
@@ -246,9 +296,13 @@ private fun ExpireTimeSelection(context: Context, appSettings: App.Settings) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MethodSelection(context: Context, appSettings: App.Settings) {
-	var preferredMethod by remember {
-		mutableStateOf(appSettings.presentMethods)
+private fun MethodSelection(
+	context: Context,
+	currentPreferredMethods: Set<String>,
+	onPreferredMethodChanged: (Set<String>) -> Unit,
+) {
+	var preferredMethods: Set<String> by remember {
+		mutableStateOf(currentPreferredMethods)
 	}
 	Column(
 		modifier = Modifier
@@ -270,13 +324,13 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 			Spacer(modifier = Modifier.height(16.dp))
 			MultiChoiceSegmentedButtonRow(modifier = Modifier.align(Alignment.CenterHorizontally)) {
 				SegmentedButton(
-					checked = preferredMethod.contains(PresentMethod.Otp.Copy),
+          checked = preferredMethods.contains(PresentMethod.Otp.COPY),
 					onCheckedChange = {
-						preferredMethod =
-							if (it) preferredMethod.plus(PresentMethod.Otp.Copy) else preferredMethod.minus(
-								PresentMethod.Otp.Copy
+						preferredMethods =
+							if (it) preferredMethods.plus(PresentMethod.Otp.COPY) else preferredMethods.minus(
+								PresentMethod.Otp.COPY
 							)
-						updatePreferredMethods(appSettings, preferredMethod, context)
+						onPreferredMethodChanged(preferredMethods)
 					},
 					shape = SegmentedButtonOrder.First,
 					//icon = { Icon(imageVector = Symbols.CopyCode, contentDescription = "Copy code method") },
@@ -287,61 +341,82 @@ private fun MethodSelection(context: Context, appSettings: App.Settings) {
 					enabled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) (checkSelfPermission(
 						context, android.Manifest.permission.POST_NOTIFICATIONS
 					) == PackageManager.PERMISSION_GRANTED) else true,
-					checked = preferredMethod.contains(PresentMethod.Otp.Notify),
+          checked = preferredMethods.contains(PresentMethod.Otp.NOTIFY),
 					onCheckedChange = {
-						preferredMethod =
-							if (it) preferredMethod.plus(PresentMethod.Otp.Notify) else preferredMethod.minus(
-								PresentMethod.Otp.Notify
+						preferredMethods =
+							if (it) preferredMethods.plus(PresentMethod.Otp.NOTIFY) else preferredMethods.minus(
+								PresentMethod.Otp.NOTIFY
 							)
-						updatePreferredMethods(appSettings, preferredMethod, context)
+						onPreferredMethodChanged(preferredMethods)
 					},
-					shape = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) SegmentedButtonOrder.Middle else SegmentedButtonOrder.Last
+					shape = SegmentedButtonOrder.Middle
 				) {
 					Text(text = stringResource(R.string.otp_notify_method))
 				}
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-					SegmentedButton(
-						enabled = Settings.canDrawOverlays(context),
-						checked = preferredMethod.contains(PresentMethod.Otp.Select),
-						onCheckedChange = {
-							preferredMethod =
-								if (it) preferredMethod.plus(PresentMethod.Otp.Select) else preferredMethod.minus(
-									PresentMethod.Otp.Select
-								)
-							updatePreferredMethods(appSettings, preferredMethod, context)
-						},
-						shape = SegmentedButtonOrder.Last,
-					) {
-						Text(text = stringResource(R.string.otp_show_method))
-					}
+				SegmentedButton(
+					enabled = Settings.canDrawOverlays(context),
+					checked = preferredMethods.contains(PresentMethod.Otp.SELECT),
+					onCheckedChange = {
+						preferredMethods =
+							if (it) preferredMethods.plus(PresentMethod.Otp.SELECT) else preferredMethods.minus(
+								PresentMethod.Otp.SELECT
+							)
+						onPreferredMethodChanged(preferredMethods)
+					},
+					shape = SegmentedButtonOrder.Last,
+				) {
+					Text(text = stringResource(R.string.otp_window_method))
 				}
 			}
 		}
 	}
 }
 
-private fun updatePreferredMethods(
-	appSettings: App.Settings, preferredMethod: Set<String>, context: Context,
+@Composable
+private fun PrivacyAcceptation(
+	onConfirm: () -> Unit,
 ) {
-	appSettings.presentMethods = preferredMethod
-	App.setSettings(context, appSettings)
+	var dismiss by remember { mutableStateOf(false) }
+	if (dismiss) return
+	AlertDialog(icon = {
+		Icon(
+			imageVector = Symbols.Default.Privacy,
+			contentDescription = stringResource(R.string.privacy_dialog_cd)
+		)
+	}, onDismissRequest = {
+		dismiss = true
+	}, title = {
+		Text(
+			text = stringResource(R.string.privacy_dialog_title),
+			style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl)
+		)
+	}, text = {
+		Text(
+			text = stringResource(R.string.privacy_text),
+			style = MaterialTheme.typography.bodyLarge.copy(
+				textDirection = TextDirection.ContentOrRtl, textAlign = TextAlign.Justify
+			)
+		)
+	}, confirmButton = {
+		TextButton(onClick = onConfirm) {
+			Text(text = stringResource(R.string.privacy_accept))
+		}
+	})
 }
 
 private fun grantScreenOverlayPermission(context: Context) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-		if (!Settings.canDrawOverlays(context)) {
-			startActivityForResult(
-				activity, Intent(
-					Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-					("package:" + context.applicationContext.packageName).toUri()
-				), OVERLAY_PERMISSIONS_REQUEST_CODE, null
-			)
+	if (!Settings.canDrawOverlays(context)) {
+		startActivityForResult(
+			activity, Intent(
+				Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+				("package:" + context.applicationContext.packageName).toUri()
+			), OVERLAY_PERMISSIONS_REQUEST_CODE, null
+		)
 
-		} else {
-			Toast.makeText(
-				context, context.getString(R.string.permission_granted_recently), Toast.LENGTH_SHORT
-			).show()
-		}
+	} else {
+		Toast.makeText(
+			context, context.getString(R.string.permission_granted_recently), Toast.LENGTH_SHORT
+		).show()
 	}
 }
 
@@ -362,24 +437,18 @@ private fun grantNotificationPermission(context: Context) {
 
 @SuppressLint("BatteryLife")
 private fun disableBatteryLimitations(context: Context) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-		val intent = Intent()
-		val packageName = context.packageName
-		val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-		if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-			intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-			intent.setData("package:$packageName".toUri())
-			context.startActivity(intent, null)
-		} else {
-			Toast.makeText(
-				context,
-				context.getString(R.string.battery_optimization_disabled),
-				Toast.LENGTH_SHORT
-			).show()
-		}
+	val intent = Intent()
+	val packageName = context.packageName
+	val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+	if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+		intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+		intent.setData("package:$packageName".toUri())
+		context.startActivity(intent, null)
 	} else {
 		Toast.makeText(
-			context, context.getString(R.string.device_doesnt_support), Toast.LENGTH_SHORT
+			context,
+			context.getString(R.string.battery_optimization_disabled),
+			Toast.LENGTH_SHORT
 		).show()
 	}
 }

@@ -7,20 +7,21 @@
     <string name="share_otp_code_cd" translatable="false">Share OTP Code</string>
     <string name="delete_otp_code_cd" translatable="false">Delete OTP Code</string>
     <string name="close_select_otp_code_cd" translatable="false">Close select OTP code</string>
-    <string name="select_otp_code_icon_cd" translatable="false">SelectOTP Code Icon</string>
+    <string name="select_otp_code_icon_cd" translatable="false">Select OTP Code Icon</string>
     <string name="back_to_the_main_page_cd" translatable="false">Back to the main page</string>
-    <string name="disclaimer_dialog_cd" translatable="false">Disclaimer Dialog</string>
+    <string name="privacy_dialog_cd" translatable="false">Privacy Dialog</string>
     <string name="code_expiration_time_cd" translatable="false">Code Expiration Time</string>
     <string name="disable_battery_limitations_cd" translatable="false">Disable Battery Limitations</string>
     <string name="notification_permission_request_cd" translatable="false">Grant Post notification permission</string>
     <string name="overlay_window_permission_cd">Grant Show Small Window permission</string>
+    <string name="bug_report_cd">Bug Report</string>
 
     <!-- Common Strings -->
     <string name="app_name">پویا خوان</string>
     <string name="otp_code">%d</string>
-    <string name="select_otp_code_title">انتخاب رمز پویا</string>
+    <string name="select_otp_code_title">انتخاب رمز</string>
     <string name="otp_copied_to_clipboard">رمز پویا کپی شد.</string>
-    <string name="send_otp_to">ارسال رمز پویا به …</string>
+    <string name="send_otp_to">ارسال کد یکبارمصرف به …</string>
     <string name="delete_otp_yes">بلی</string>
     <string name="delete_otp_no">خیر</string>
     <string name="delete_otp_code_title">حذف این رمز پویا</string>
@@ -28,20 +29,26 @@
     <string name="otp_codes_empty_view">رمز پویایی وجود ندارد!</string>
     <string name="otp_code_deleted">رمز پویا با موفقیت حذف شد.</string>
     <string name="empty_code_list">هیچ رمز پویایی تاکنون درخواست نشده است!</string>
-    <string name="share_otp_code_text">رمز پویای من در یک تراکنش، در بانک %s، %s می باشد.</string>
-    <string name="disclaimer_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.</string>
+    <string name="share_otp_code_text">کد فعالسازی (رمز پویای) من، %s می باشد.</string>
+    <string name="share_otp_code_text_from_bank">رمز پویای من در یک تراکنش، از بانک %s، %s می باشد.</string>
+    <string name="share_otp_code_text_from_bank_with_price">رمز پویای من در یک تراکنش به مبلغ %s، از بانک %s، %s می باشد.</string>
+    <string name="share_otp_code_text_with_price">رمز پویای من در یک تراکنش به مبلغ %s، %s می باشد.</string>
+    <string name="privacy_text">صالتک هیچگونه سوء استفاده و دخالت به حریم خصوصی و پیامک\u200cهای شما نخواهد کرد و دسترسی به پیامک\u200cها صرفاً به جهت تشخیص و نمایش رمز پویای پیامک شده از طریق بانک مزبور است؛ لازم به ذکر است که پویا خوان فقط پیام های جدید را مشاهده می کند و نیازی به همه پیام های شما ندارد. ضمن اینکه این برنامه هیچ دسترسی به اینترنت نداشته و ضمانت می کند که هرگز اطلاعات شما را به اینترنت ارسال نخواهد کرد.\nهمچنین پویاخوان به صورت متن باز ارائه شده است.</string>
     <string name="memory_leaked_error">برخی از عملکرد های این برنامه برای دستگاه شما، متأسفانه هنوز بهینه نشده است!</string>
     <string name="unknown_bank">بانک ناشناخته</string>
     <string name="your_new_otp_code_is">رمز یکبارمصرف شما %s می باشد.</string>
-    <string name="otp_code_from_bank">از %s</string>
+    <string name="otp_code_from_bank">بانک %s</string>
+    <string name="otp_code_with_price">مبلغ %s</string>
+    <string name="otp_code_from_bank_with_price">بانک %s | مبلغ %s</string>
     <string name="otp_sms_notification_title">رمز یکبار مصرف جدید</string>
     <string name="otp_sms_notification_short_message">برای مشاهده رمز، این را به پایین بکشید.</string>
     <string name="copy_otp_code">کپی کردن</string>
     <string name="otp_sms_window_alert">در حال نمایش پنجره رمز یکبار مصرف</string>
-    <string name="disclaimer_dialog_title">سلب مسئولیت</string>
-    <string name="discalimer_accept">پذیرش و ادامه</string>
+    <string name="app_keep_alive_alert">پویاخوان منتظر دریافت پیامک دارای کد می باشد.</string>
+    <string name="privacy_dialog_title">حریم شخصی</string>
+    <string name="privacy_accept">می پذیرم</string>
     <string name="app_permission_title">نیازمند مجوز دسترسی</string>
-    <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.</string>
+    <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.\n\nلطفاً به صفحه تنظیمات برنامه رفته و در قسمت مجوزها، مجوز های مورد نیاز را اعطا کنید.</string>
     <string name="otp_notify_channel_title">اعلان رمز یکبار مصرف</string>
     <string name="otp_notify_channel_desc">هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن نمایش داده می شود.</string>
     <string name="overlay_window_alert_title">نمایش پنجره‌های ثانویه</string>
@@ -52,19 +59,30 @@
     <string name="device_doesnt_support">این دستگاه از این قابلیت پشتیبانی نمی‌کند.</string>
     <string name="battery_optimization_disabled">محدودیت‌های باتری قبلاً خاموش شده اند!</string>
     <string name="permission_granted_recently">این مجوز قبلاً اخذ گردیده است.</string>
-    <string name="otp_show_method">نمایش</string>
+    <string name="otp_window_method">پنجره</string>
     <string name="otp_code_present_method">نحوه دسترسی به رمز پویا جدید</string>
     <string name="code_expiration_time_title">:مدت انقضای رمز</string>
     <string name="code_expiration_time_unit">دقیقه</string>
     <string name="disable_battery_limitations_button">غیرفعال کردن محدودیت‌های باتری</string>
     <string name="notification_permission_request_button">اعطای مجوز دسترسی به اعلان</string>
     <string name="overlay_window_permission_button">اعطای مجوز نمایش پنجره</string>
-    <string name="xiaomi_device_assertion">شما از دستگاه شیائومی استفاده می کنید که ممکن است استفاده از ویژگی کپی کردن رمز پویا به صورت مستقیم، به درستی کار نکند.</string>
     <string name="disabled_buttons_help_text">در صورت غیر فعال بودن بعضی از گزینه های نحوه نمایش، مجوز های آنها را اعطا کنید تا فعال شوند.</string>
     <string name="disable_battery_limitations_help_text">زمانی از غیرفعال کردن محدودیت‌های باتری استفاده کنید که برنامه به خوبی در همه مواقع کار نمی کند.\nسعی کنید حتی الامکان از این کار پرهیز کنید!</string>
     <string name="referenced_settings">تنظیمات ارجاعی</string>
     <string name="settings_view_title">تنظیمات</string>
     <string name="otp_notify_method">اعلان</string>
     <string name="otp_copy_method">کپی</string>
+    <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
+    <string name="list_otp_codes_title">کدهای یکبارمصرف (رمزهای پویا) دریافت شده</string>
+    <string name="otp_code_expired_2">منقضی شده</string>
+	  <string name="permission_accept_button">باشه؛ به تنظیمات برو.</string>
+    <string name="terms">قوانین و مقررات</string>
+	<string name="select_otp_code_window_title">Select OTP Code</string>
+	<string name="bug_report_text">مایلید به صفحه گزارش خطا هدایت شوید تا مشکل مربوط به شناسایی رمز موقت را گزارش کنید؟\n\nبرای بررسی دقیق‌تر، لازم است محتوای پیامک دریافتی شما را مشاهده کنیم.\n\nاطمینان می‌دهیم که اطلاعات حساس شما با نهایت امنیت نزد ما محفوظ خواهند ماند.</string>
+    <string name="bug_report_title">گزارش خطا در تشخیص رمز</string>
+    <string name="bug_report_submit_button">ثبت گزارش</string>
+	<string name="background_activity_label">NotifyCopyHandler</string>
+    <string name="xiaomi_back_service_permissions">برای دسترسی به جدیدترین وضعیت پیامک ها، نیازمند اجرا در پس زمینه هستیم.\nآن را اچازه دهیم.</string>
+    <string name="app_permissions_needed">لطفاً برای استفاده، مجوز های مورد نیاز را اعطا کنید.</string>
 
 </resources>

@@ -1,37 +1,44 @@
 package ir.saltech.puyakhan.ui.view.activity
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import ir.saltech.puyakhan.data.model.App
-import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
-import ir.saltech.puyakhan.ui.view.component.manager.OtpManager
+import androidx.core.app.NotificationManagerCompat
+import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.data.util.copySelectedCode
+import kotlin.math.abs
 
 internal class BackgroundActivity : ComponentActivity() {
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContent {
-			DoCopyTask()
-			finishAffinity()
+		handleIntents()
+		finishAffinity()
+	}
+
+	private fun handleIntents() {
+		if (intent != null) {
+			val extras = intent.extras
+			if (extras != null) {
+				if (extras.containsKey(App.Key.OTP_ID_INTENT)) {
+					removeRelatedNotification(extras.getInt(App.Key.OTP_ID_INTENT))
+				}
+				if (extras.containsKey(App.Key.OTP_CODE_INTENT)) {
+					doCopyTask(extras.getString(App.Key.OTP_CODE_INTENT)!!)
+				}
+			}
 		}
 	}
-}
 
-@Composable
-private fun DoCopyTask() {
-	val context = LocalContext.current
-	val appSettings = App.getSettings(context)
-	val code = OtpManager.getCodeList(context, appSettings).first()
-	copySelectedCode(context, code)
-}
+	private fun removeRelatedNotification(id: Int) {
+		with(NotificationManagerCompat.from(this)) {
+			Log.i("TAG", "Try to remove related notification -> $id")
+			cancel(abs(id))
+		}
+	}
 
-@Preview(showBackground = true)
-@Composable
-private fun BackgroundPreview() {
-	PuyaKhanTheme {
-		DoCopyTask()
+	private fun doCopyTask(code: String) {
+		Log.i("TAG", "copy the code -> code is $code")
+		copySelectedCode(this, code)
 	}
 }

@@ -1,5 +1,11 @@
 pluginManagement {
 	repositories {
+		maven {
+			url = uri("jitpack.io")
+		}
+		maven {
+			url = uri("https://maven.myket.ir")
+		}
 		google()
 		mavenCentral()
 		gradlePluginPortal()
@@ -8,8 +14,14 @@ pluginManagement {
 dependencyResolutionManagement {
 	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 	repositories {
-		google()
 		mavenCentral()
+		maven {
+			url = uri("https://maven.myket.ir")
+		}
+		maven {
+			url = uri("jitpack.io")
+		}
+		google()
 	}
 }
 

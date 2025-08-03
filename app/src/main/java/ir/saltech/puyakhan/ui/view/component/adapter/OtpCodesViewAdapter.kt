@@ -4,132 +4,109 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.os.CountDownTimer
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.R
-import ir.saltech.puyakhan.data.model.App
 import ir.saltech.puyakhan.data.model.OtpCode
-import ir.saltech.puyakhan.ui.view.component.manager.CLIPBOARD_OTP_CODE
+import ir.saltech.puyakhan.data.util.shareSelectedOtpCode
 
-
-private const val INTERVAL = 1000L
-
-internal class OtpCodesViewAdapter(private var otpCodes: List<OtpCode>) :
+internal class OtpCodesViewAdapter(private var otpCodes: MutableList<OtpCode>) :
 	Adapter<OtpCodesViewAdapter.OtpCodesViewHolder>() {
 	private lateinit var context: Context
-	private lateinit var appSettings: App.Settings
 
 	internal inner class OtpCodesViewHolder(v: View) : ViewHolder(v) {
-		val otpCard: CardView = v.findViewById(R.id.otp_card)
+		val otpExpiredLayout: FrameLayout = v.findViewById(R.id.otp_expired_layout)
+		val otpCard: LinearLayout = v.findViewById(R.id.otp_card)
+		val otpCardLayout: LinearLayout = v.findViewById(R.id.otp_card_layout)
 		val otpCode: TextView = v.findViewById(R.id.otp_code)
 		val copyOtpCode: ImageButton = v.findViewById(R.id.copy_otp_code)
 		val shareOtpCode: ImageButton = v.findViewById(R.id.share_otp_code)
-		val codeExpireBar: ProgressBar = v.findViewById(R.id.otp_expire_bar)
+		val codeDurationBar: ProgressBar = v.findViewById(R.id.otp_code_duration_bar)
 	}
 
-	override fun onCreateViewHolder(p0: ViewGroup, p1: Int): OtpCodesViewHolder {
-		context = p0.context
-		appSettings = App.getSettings(context)
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OtpCodesViewHolder {
+		context = parent.context
 		return OtpCodesViewHolder(
-			LayoutInflater.from(p0.context).inflate(R.layout.layout_template_otp, p0, false)
+			LayoutInflater.from(parent.context).inflate(R.layout.layout_template_otp, parent, false)
 		)
 	}
 
 	override fun onBindViewHolder(
-		holder: OtpCodesViewHolder, @SuppressLint("RecyclerView") position: Int
+		holder: OtpCodesViewHolder, @SuppressLint("RecyclerView") position: Int,
 	) {
 		holder.otpCode.text = otpCodes[position].otp
 		holder.copyOtpCode.setOnClickListener {
 			copyOtpCode(otpCodes[position].otp)
 		}
 		holder.shareOtpCode.setOnClickListener {
-			shareOtpCode(
-				otpCodes[position].otp, otpCodes[position].bank
-			)
+			shareSelectedOtpCode(context, otpCodes[position])
 		}
-		object : CountDownTimer(
-			100000000, INTERVAL
-		) {
-			override fun onTick(millisUntilFinished: Long) {
-				holder.codeExpireBar.progress =
-					100 - (((System.currentTimeMillis() - otpCodes[position].sentTime).toDouble() / appSettings.expireTime.toDouble()) * 100).toInt()
-
-				if (holder.codeExpireBar.progress == 0) {
-					Toast.makeText(
-						context,
-						context.getString(R.string.otp_code_expired, otpCodes[position].otp),
-						Toast.LENGTH_SHORT
-					).show()
-					showAsExpiredCode(holder)
-					this.cancel()
-				}
-			}
-
-			override fun onFinish() {
-
-			}
-		}.start()
+		if (holder.codeDurationBar.progress == 0) {
+			showOtpCodeAsExpired(holder)
+		} else {
+			showOtpCode(holder, position)
+		}
 	}
 
-	private fun showAsExpiredCode(holder: OtpCodesViewHolder) {
-		holder.otpCard.setCardBackgroundColor(
+	private fun showOtpExpirationProgress(
+		holder: OtpCodesViewHolder,
+		position: Int,
+	) {
+		val expirationTime = otpCodes[position].expirationTime.toDouble()
+		val elapsedTime = otpCodes[position].elapsedTime.toDouble()
+		val progress =
+			if (expirationTime > 0) ((elapsedTime / expirationTime) * 100).toInt() else 100
+		holder.codeDurationBar.progress = 100 - progress
+	}
+
+	private fun showOtpCode(holder: OtpCodesViewHolder, position: Int) {
+		showOtpExpirationProgress(holder, position)
+		holder.otpCard.backgroundTintList =
+			ColorStateList.valueOf(ContextCompat.getColor(context, R.color.otpCardBackground))
+		holder.otpCard.isClickable = true
+		holder.codeDurationBar.visibility = View.VISIBLE
+		holder.copyOtpCode.visibility = View.VISIBLE
+		holder.shareOtpCode.visibility = View.VISIBLE
+		holder.otpCardLayout.alpha = 1.0f
+		holder.otpExpiredLayout.visibility = View.INVISIBLE
+	}
+
+	private fun showOtpCodeAsExpired(holder: OtpCodesViewHolder) {
+		holder.otpCard.backgroundTintList = ColorStateList.valueOf(
 			ContextCompat.getColor(
 				context, R.color.otpExpiredCardBackground
 			)
 		)
 		holder.otpCard.isClickable = false
-		holder.codeExpireBar.progress = 0
-		holder.codeExpireBar.visibility = View.GONE
+		holder.codeDurationBar.progress = 0
+		holder.codeDurationBar.visibility = View.GONE
 		holder.copyOtpCode.visibility = View.INVISIBLE
 		holder.shareOtpCode.visibility = View.INVISIBLE
+		holder.otpCardLayout.alpha = 0.5f
+		holder.otpExpiredLayout.visibility = View.VISIBLE
 	}
 
-	@SuppressLint("NotifyDataSetChanged")
-	private fun deleteOtpCode(position: Int) {
-		if (position >= 0) {
-			otpCodes = otpCodes.minusElement(otpCodes[position])
-			Toast.makeText(
-				context, context.getString(R.string.otp_code_deleted), Toast.LENGTH_SHORT
-			).show()
-			notifyDataSetChanged()
+	private fun copyOtpCode(otp: String) {
+		with(context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager) {
+			setPrimaryClip(
+				ClipData(ClipData.newPlainText(App.Key.OTP_CODE_COPY, otp))
+			)
 		}
-	}
-
-	private fun copyOtpCode(otpCode: String) {
-		val clipboardManager =
-			context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-		clipboardManager.setPrimaryClip(
-			ClipData(ClipData.newPlainText(CLIPBOARD_OTP_CODE, otpCode))
-		)
 		Toast.makeText(
 			context, context.getString(R.string.otp_copied_to_clipboard), Toast.LENGTH_SHORT
 		).show()
-	}
-
-	private fun getOtpCodeText(otpCode: String, bank: String?): String {
-		return context.getString(R.string.share_otp_code_text, bank, otpCode)
-	}
-
-	private fun shareOtpCode(otpCode: String, bank: String?) {
-		val shareIntent = Intent(Intent.ACTION_SEND)
-		shareIntent.type = "text/plain"
-		shareIntent.putExtra(Intent.EXTRA_TEXT, getOtpCodeText(otpCode, bank))
-		context.startActivity(
-			Intent.createChooser(
-				shareIntent, context.getString(R.string.send_otp_to)
-			).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		)
 	}
 
 	override fun getItemCount(): Int = otpCodes.size
