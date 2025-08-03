@@ -67,9 +67,9 @@ This project showcases modern Android development practices and technologies:
   sophisticated algorithm based on regular expressions and contextual keyword analysis. It
   identifies positive keywords (like "رمز", "code") and negative keywords (like "تخفیف", "order") to
   accurately distinguish OTPs from other numerical data in messages.
-* **Platform Support limitations:** This app designed for Android 6.0 (Marshmallow) or above,
+* **Platform Support:** This app is designed for Android 6.0 (Marshmallow) or above,
   ensuring compatibility with most devices.
-    * Your device needs `telephony` capability for receiving SMS message.
+    * Your device needs `telephony` capability for receiving SMS messages.
 
 -----
 

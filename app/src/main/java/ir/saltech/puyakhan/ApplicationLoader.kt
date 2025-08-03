@@ -24,8 +24,8 @@ class ApplicationLoader : Application() {
 	override fun onCreate() {
 		super.onCreate()
 		applicationLoader = this
-		Companion.applicationContext = applicationContext
-		applicationHandler = Handler(applicationContext.mainLooper)
+		Companion.applicationContext = this.applicationContext
+		Companion.applicationHandler = Handler(Companion.applicationContext.mainLooper)
 	}
 }
 
