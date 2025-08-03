@@ -2,6 +2,7 @@ package ir.saltech.puyakhan.ui.view.component.compose
 
 import android.content.Context
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -40,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,7 +52,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,10 +84,13 @@ internal object SegmentedButtonOrder {
 }
 
 @Composable
-internal fun PermissionAlert(
+internal fun PermissionRationale(
 	title: String, text: String, onConfirm: () -> Unit, dismissible: Boolean = false,
 ) {
 	var dismiss by remember { mutableStateOf(false) }
+	BackHandler {
+		dismiss = true
+	}
 	if (!dismiss) {
 		AlertDialog(icon = {
 			Icon(
@@ -192,10 +199,16 @@ internal fun LockedDirection(
 internal fun OtpCodeCard(
 	context: Context, codeList: MutableList<OtpCode>, position: Int,
 ) {
+	val density = LocalDensity.current
+	var otpCardWidth by remember { mutableStateOf(0.dp) }
 	var showActions by remember { mutableStateOf(false) }
 	var showBugReportDialog by remember { mutableStateOf(false) }
 	var code by remember { mutableStateOf(codeList[position]) }
 	val isCodeExpired = fun(): Boolean = code.expirationTime past code.elapsedTime <= 0
+
+	BackHandler {
+		showBugReportDialog = false
+	}
 
 	if (showBugReportDialog) {
 		AlertDialog(
@@ -229,7 +242,12 @@ internal fun OtpCodeCard(
 	Card(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(8.dp),
+			.padding(8.dp)
+			.onGloballyPositioned { coordinates ->
+				with(density) {
+					otpCardWidth = coordinates.size.width.toDp()
+				}
+			},
 		enabled = !isCodeExpired(),
 		shape = MaterialTheme.shapes.medium,
 		border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -278,7 +296,7 @@ internal fun OtpCodeCard(
 				) {
 					Text(
 						" ${code.otp} ",
-						style = MaterialTheme.typography.headlineMedium,
+						style = if (otpCardWidth <= 250.dp && code.otp.length >= 6) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
 						modifier = Modifier
 							.clip(RoundedCornerShape(8.dp))
 							.clickable(!isCodeExpired()) {
@@ -290,7 +308,7 @@ internal fun OtpCodeCard(
 					Spacer(modifier = Modifier.height(8.dp))
 					AnimatedVisibility(code.price != null) {
 						Text(
-							modifier = Modifier.padding(bottom = 8.dp),
+							modifier = Modifier.padding(bottom = 8.dp).scale(1.05f),
 							text = context.getString(R.string.otp_code_with_price, code.price!!),
 							style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
 							textAlign = TextAlign.Center

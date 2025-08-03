@@ -5,8 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -71,7 +74,7 @@ import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.component.compose.LockedDirection
 import ir.saltech.puyakhan.ui.view.component.compose.OtpCodeCard
-import ir.saltech.puyakhan.ui.view.component.compose.PermissionAlert
+import ir.saltech.puyakhan.ui.view.component.compose.PermissionRationale
 import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
 import ir.saltech.puyakhan.ui.view.page.SettingsView
 import kotlinx.coroutines.coroutineScope
@@ -86,6 +89,7 @@ internal const val NOTIFY_SERVICE_CHANNEL_ID = "ir.saltech.puyakhan.BACKGROUND_S
 
 internal lateinit var activity: ComponentActivity
 internal lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+internal lateinit var appInfoLauncher: ActivityResultLauncher<Intent>
 
 private const val INIT_TIME_DELAY = 1500
 private const val CODE_TIME_DELAY = 150L
@@ -111,8 +115,14 @@ internal class MainActivity : ComponentActivity() {
 					grantXiaomiPermissions()
 					startProgram()
 				} else {
+					Toast.makeText(this,
+						getString(R.string.app_permissions_needed), Toast.LENGTH_LONG).show()
 					exitProcess(-1)
 				}
+			}
+		appInfoLauncher =
+			registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+				Log.i("PuyaKhanActivity", "App Info Intent -> Launched")
 			}
 	}
 
@@ -162,11 +172,13 @@ internal class MainActivity : ComponentActivity() {
 	@Composable
 	private fun RequestPermission() {
 		when {
-			needsAppPermissionsRational() -> PermissionAlert(
+			needsAppPermissionsRational() -> PermissionRationale(
 				stringResource(R.string.app_permission_title),
 				stringResource(R.string.app_permission_message),
 				onConfirm = {
-					requestAppPermissions()
+					appInfoLauncher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+						setData(Uri.fromParts("package", activity.packageName, null))
+					})
 				})
 
 			else -> requestAppPermissions()

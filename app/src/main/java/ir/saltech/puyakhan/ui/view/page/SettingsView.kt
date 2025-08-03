@@ -365,7 +365,7 @@ private fun MethodSelection(
 					},
 					shape = SegmentedButtonOrder.Last,
 				) {
-					Text(text = stringResource(R.string.otp_show_method))
+					Text(text = stringResource(R.string.otp_window_method))
 				}
 			}
 		}

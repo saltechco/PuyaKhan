@@ -48,7 +48,7 @@
     <string name="privacy_dialog_title">حریم شخصی</string>
     <string name="privacy_accept">می پذیرم</string>
     <string name="app_permission_title">نیازمند مجوز دسترسی</string>
-    <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.</string>
+    <string name="app_permission_message">پویا خوان برای بررسی کد های رمز پویای دریافتی از طرف دستگاه شما، نیازمند دسترسی به پیام های شماست.\n\nلطفاً به صفحه تنظیمات برنامه رفته و در قسمت مجوزها، مجوز های مورد نیاز را اعطا کنید.</string>
     <string name="otp_notify_channel_title">اعلان رمز یکبار مصرف</string>
     <string name="otp_notify_channel_desc">هنگامی که رمز یکبار مصرف دریافت شد، اعلان آن نمایش داده می شود.</string>
     <string name="overlay_window_alert_title">نمایش پنجره‌های ثانویه</string>
@@ -59,7 +59,7 @@
     <string name="device_doesnt_support">این دستگاه از این قابلیت پشتیبانی نمی‌کند.</string>
     <string name="battery_optimization_disabled">محدودیت‌های باتری قبلاً خاموش شده اند!</string>
     <string name="permission_granted_recently">این مجوز قبلاً اخذ گردیده است.</string>
-    <string name="otp_show_method">نمایش</string>
+    <string name="otp_window_method">پنجره</string>
     <string name="otp_code_present_method">نحوه دسترسی به رمز پویا جدید</string>
     <string name="code_expiration_time_title">:مدت انقضای رمز</string>
     <string name="code_expiration_time_unit">دقیقه</string>
@@ -75,7 +75,7 @@
     <string name="copy_otp_code_hint">با زدن روی دکمه پایین، میتوانید رمز خود را کپی کنید.</string>
     <string name="list_otp_codes_title">کدهای یکبارمصرف (رمزهای پویا) دریافت شده</string>
     <string name="otp_code_expired_2">منقضی شده</string>
-	  <string name="permission_accept_button">باشه؛ مشکلی نیست</string>
+	  <string name="permission_accept_button">باشه؛ به تنظیمات برو.</string>
     <string name="terms">قوانین و مقررات</string>
 	<string name="select_otp_code_window_title">Select OTP Code</string>
 	<string name="bug_report_text">مایلید به صفحه گزارش خطا هدایت شوید تا مشکل مربوط به شناسایی رمز موقت را گزارش کنید؟\n\nبرای بررسی دقیق‌تر، لازم است محتوای پیامک دریافتی شما را مشاهده کنیم.\n\nاطمینان می‌دهیم که اطلاعات حساس شما با نهایت امنیت نزد ما محفوظ خواهند ماند.</string>
@@ -83,5 +83,6 @@
     <string name="bug_report_submit_button">ثبت گزارش</string>
 	<string name="background_activity_label">NotifyCopyHandler</string>
     <string name="xiaomi_back_service_permissions">برای دسترسی به جدیدترین وضعیت پیامک ها، نیازمند اجرا در پس زمینه هستیم.\nآن را اچازه دهیم.</string>
+    <string name="app_permissions_needed">لطفاً برای استفاده، مجوز های مورد نیاز را اعطا کنید.</string>
 
 </resources>

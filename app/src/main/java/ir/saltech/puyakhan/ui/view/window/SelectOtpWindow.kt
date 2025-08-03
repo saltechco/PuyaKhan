@@ -17,8 +17,6 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,8 +26,6 @@ import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.service.SelectOtpService
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.OtpProcessor
-import ir.saltech.puyakhan.data.util.div
-import ir.saltech.puyakhan.data.util.minus
 import ir.saltech.puyakhan.data.util.past
 import ir.saltech.puyakhan.data.util.repeatWhile
 import ir.saltech.puyakhan.data.util.runOnUiThread
@@ -53,6 +49,7 @@ class SelectOtpWindow private constructor(
 	private var wait: Int = 0
 	private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 	private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
 	@SuppressLint("InflateParams")
 	private val view = LayoutInflater.from(context)
 		.inflate(R.layout.layout_window_select_otp, null)
@@ -110,20 +107,18 @@ class SelectOtpWindow private constructor(
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
-	private fun setupWindowDrag(handle: View, parent: View) {
-		handle.setOnTouchListener { _, e ->
+	private fun setupWindowDrag(handleBtn: View, parent: View) {
+		handleBtn.setOnTouchListener { _, e ->
 			when (e.action) {
 				MotionEvent.ACTION_MOVE -> {
-					if (wait >= 1000) {
-						if (wait == 1000) {
+					if (wait >= 200) {
+						if (wait == 200) {
 							vibrator.vibrate(50)
-							handle.backgroundTintList = ContextCompat.getColorStateList(
-								context, R.color.colorAccent
-							)
+							showDragHandler(handleBtn, true)
 							wait++
 						}
-						windowParams.x = (e.rawX - (parent.measuredWidth / 1.25.dp)).roundToInt()
-						windowParams.y = (e.rawY - (parent.measuredHeight * 2.25.dp)).roundToInt()
+						windowParams.x = (e.rawX - (parent.measuredWidth / 1.25f)).roundToInt()
+						windowParams.y = (e.rawY - (parent.measuredHeight * 2.55f)).roundToInt()
 						windowManager.updateViewLayout(view, windowParams)
 						afterMove = true
 					} else {
@@ -137,14 +132,18 @@ class SelectOtpWindow private constructor(
 							App.WindowPosition(windowParams.x, windowParams.y)
 						saveAppSettings()
 					}
-					handle.backgroundTintList = ContextCompat.getColorStateList(
-						context, R.color.otpExpiredCardBackground
-					)
+					showDragHandler(handleBtn, false)
 					wait = 0
 				}
 			}
 			true
 		}
+	}
+
+	private fun showDragHandler(handleBtn: View, turnedOn: Boolean = false) {
+		handleBtn.backgroundTintList = ContextCompat.getColorStateList(
+			context, if (turnedOn) R.color.colorAccent else R.color.otpExpiredCardBackground
+		)
 	}
 
 	private fun setOtpCodesAdapter(otpCodes: MutableList<OtpCode>) {
