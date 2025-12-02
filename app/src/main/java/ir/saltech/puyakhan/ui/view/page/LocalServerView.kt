@@ -148,6 +148,7 @@ private fun LocalServerViewContent(
 
     // کنترل سرویس (شروع/توقف)
     fun toggleServer(enable: Boolean) {
+        isServerRunning = App.TripleStateSwitchStatus.Loading
         Log.i("TAG", "Save new run local server state .. $enable")
         ApplicationLoader.canRunLocalServer = enable
         mainViewModel.appSettings?.runLocalServer = enable
@@ -165,7 +166,7 @@ private fun LocalServerViewContent(
                     context, context.getString(R.string.local_server_stopped), Toast.LENGTH_SHORT
                 ).show()
             }
-            isServerRunning = enable
+            isServerRunning = if (enable) App.TripleStateSwitchStatus.On else App.TripleStateSwitchStatus.Off
         }
     }
 
@@ -182,7 +183,7 @@ private fun LocalServerViewContent(
 
         item {
             ServerStatusCard(
-                isRunning = isServerRunning, onToggle = { toggleServer(it) })
+                isRunning = isServerRunning == App.TripleStateSwitchStatus.On, onToggle = { toggleServer(it) })
         }
 
         item {
