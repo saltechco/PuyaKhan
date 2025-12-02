@@ -21,6 +21,7 @@ import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.data.error.UnknownPresentMethodException
 import ir.saltech.puyakhan.data.model.OtpCode
+import ir.saltech.puyakhan.data.net.WebSocketManager
 import ir.saltech.puyakhan.data.util.OtpProcessor
 import ir.saltech.puyakhan.data.util.OtpSmsHandler.getNewOtpSms
 import ir.saltech.puyakhan.data.util.runOnUiThread
@@ -53,18 +54,22 @@ class OtpSmsReceiver : BroadcastReceiver() {
 				val smsMessage = getNewOtpSms(intent.extras)
 				if (smsMessage != null) {
 					appSettings = App.getSettings(context)
-					val parsedOtpCode = OtpProcessor.parseOtpCode(
+					val parsedOtpCode: OtpCode? = OtpProcessor.parseOtpCode(
 						context,
 						smsMessage,
 						appSettings.expireTime
 					)
 					if (parsedOtpCode != null) {
 						if (parsedOtpCode.otp.isNotEmpty()) {
+                            // Send to android app layer
 							showReceivedOtp(
 								context,
 								parsedOtpCode
 							)
-						}
+
+                            // Send to network layer
+                            WebSocketManager.broadcastOtpCode(parsedOtpCode)
+                        }
 					} else {
 						Log.e(TAG, "Failed to parseOtpCode: parsed otpCode is null!")
 					}

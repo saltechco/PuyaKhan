@@ -84,5 +84,23 @@
 	<string name="background_activity_label">NotifyCopyHandler</string>
     <string name="xiaomi_back_service_permissions">برای دسترسی به جدیدترین وضعیت پیامک ها، نیازمند اجرا در پس زمینه هستیم.\nآن را اچازه دهیم.</string>
     <string name="app_permissions_needed">لطفاً برای استفاده، مجوز های مورد نیاز را اعطا کنید.</string>
+	<string name="miui_permission_request_button">اعطای سایر دسترسی های شیائومی</string>
+    <string name="miui_permission_request_cd">Grant MiUi permissions</string>
+    <string name="run_in_background_title">امکان اجرا در پس زمینه</string>
+    <string name="lan_network_server_service_channel">سرویس اتصال شبکه داخلی</string>
+    <string name="lan_network_server_service_notify_title">سرویس اشتراک‌گذاری OTP شبکه داخلی</string>
+    <string name="lan_network_server_service_notify_message">سرور فعال است: پورت %d</string>
+    <string name="local_server_view_title">اتصال به کامپیوتر</string>
+    <string name="local_server_on">سرور فعال است</string>
+    <string name="local_server_off">سرور غیرفعال است</string>
+    <string name="local_server_ready">آماده ارسال کدهای OTP دریافتی به کامپیوتر</string>
+    <string name="local_server_start_communicate">برای شروع ارتباط، دکمه را روشن کنید</string>
+    <string name="local_server_connection_info">اطلاعات اتصال</string>
+    <string name="local_server_use_address_help">این آدرس را در افزونه مرورگر وارد کنید:</string>
+    <string name="local_server_ip_address_and_port"><![CDATA[IP Address & Port]]></string>
+    <string name="local_server_wifi_settings_title">تنظیمات وای‌فای گوشی</string>
+    <string name="local_server_wifi_tip">نکته: مطمئن شوید لپ‌تاپ و گوشی به یک شبکه متصل هستند. اگر از فیلترشکن روی لپ‌تاپ استفاده می‌کنید، ممکن است نیاز باشد آن را موقتاً خاموش کنید.</string>
+    <string name="local_server_started">سرور روشن شد</string>
+    <string name="local_server_stopped">سرور خاموش شد</string>
 
 </resources>

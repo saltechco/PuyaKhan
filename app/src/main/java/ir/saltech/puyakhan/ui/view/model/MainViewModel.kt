@@ -7,6 +7,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ir.saltech.puyakhan.App
+import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.data.model.OtpCode
 import ir.saltech.puyakhan.data.util.MAX_OTP_SMS_EXPIRATION_TIME
 import ir.saltech.puyakhan.data.util.OtpProcessor
@@ -20,9 +21,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-private const val TAG = "OtpCodesVM"
+private const val TAG = "MainViewModel"
 
-internal class OtpCodesVM(application: Application) : AndroidViewModel(application) {
+internal class MainViewModel(application: Application) : AndroidViewModel(application) {
 	private val _otpCodes = MutableStateFlow(mutableStateListOf<OtpCode>())
 	val otpCodes: StateFlow<MutableList<OtpCode>> = _otpCodes.asStateFlow()
 	var appSettings: App.Settings? = null
@@ -80,6 +81,10 @@ internal class OtpCodesVM(application: Application) : AndroidViewModel(applicati
 	fun loadAppSettings() {
 		viewModelScope.launch {
 			appSettings = App.getSettings(getApplication())
+			if (appSettings != null) {
+				ApplicationLoader.canRunInBackground = appSettings!!.runInBackground
+                ApplicationLoader.canRunLocalServer = appSettings!!.runLocalServer
+			}
 		}
 	}
 

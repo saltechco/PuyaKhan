@@ -19,6 +19,8 @@ class ApplicationLoader : Application() {
 		lateinit var applicationContext: Context
 		internal var isActivityLaunched = false
 		private lateinit var applicationLoader: ApplicationLoader
+		internal var canRunInBackground = true
+		internal var canRunLocalServer = false
 	}
 
 	override fun onCreate() {
@@ -30,9 +32,24 @@ class ApplicationLoader : Application() {
 }
 
 object App {
+    enum class TripleStateSwitchStatus {
+        On, Loading, Off
+    }
 	enum class Page {
-		Main, Settings
+		Main, Settings, LocalServer
 	}
+
+    object Key {
+        const val OTP_CODE_INTENT = "otp_code_intent"
+        const val OTP_ID_INTENT = "otp_id_intent"
+        const val OTP_CODE_COPY = "otp_code_copy"
+        val PresentMethod = stringSetPreferencesKey("present_method")
+        val ExpireTime = longPreferencesKey("expire_time")
+        val WindowPosition = stringSetPreferencesKey("window_position")
+        val PrivacyAccepted = booleanPreferencesKey("privacy_accepted")
+        val RunInBackground = booleanPreferencesKey("run_in_background")
+        val RunLocalServer = booleanPreferencesKey("run_local_server")
+    }
 
 	@Parcelize
 	data class Settings(
@@ -41,17 +58,9 @@ object App {
 		var otpWindowPos: WindowPosition? = null,
 		@Deprecated("Privacy now added into SettingsView, so ignoring it.")
 		var privacyAccepted: Boolean = false,
+		var runInBackground: Boolean = false,
+        var runLocalServer: Boolean = false
 	) : Parcelable
-
-	object Key {
-		const val OTP_CODE_INTENT = "otp_code_intent"
-		const val OTP_ID_INTENT = "otp_id_intent"
-		const val OTP_CODE_COPY = "otp_code_copy"
-		val PresentMethod = stringSetPreferencesKey("present_method")
-		val ExpireTime = longPreferencesKey("expire_time")
-		val WindowPosition = stringSetPreferencesKey("window_position")
-		val PrivacyAccepted = booleanPreferencesKey("privacy_accepted")
-	}
 
 	@Parcelize
 	data class WindowPosition(
@@ -85,7 +94,9 @@ object App {
 			context.dataStore[Key.PresentMethod] ?: mutableSetOf(PresentMethod.Otp.NOTIFY),
 			context.dataStore[Key.ExpireTime] ?: MAX_OTP_SMS_EXPIRATION_TIME,
 			context.dataStore[Key.WindowPosition]?.let { WindowPosition.fromStringSet(it) },
-			context.dataStore[Key.PrivacyAccepted] ?: false
+			context.dataStore[Key.PrivacyAccepted] ?: false,
+			context.dataStore[Key.RunInBackground] ?: false,
+			context.dataStore[Key.RunLocalServer] ?: false
 		)
 	}
 
@@ -94,5 +105,7 @@ object App {
 		context.dataStore[Key.ExpireTime] = settings.expireTime
 		context.dataStore[Key.WindowPosition] = settings.otpWindowPos?.toStringSet() ?: setOf("0", "0")
 		context.dataStore[Key.PrivacyAccepted] = settings.privacyAccepted
+		context.dataStore[Key.RunInBackground] = settings.runInBackground
+		context.dataStore[Key.RunLocalServer] = settings.runLocalServer
 	}
 }

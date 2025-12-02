@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import ir.saltech.puyakhan.ApplicationLoader
 import ir.saltech.puyakhan.R
+import ir.saltech.puyakhan.data.util.startKeepAliveService
 import ir.saltech.puyakhan.ui.view.activity.NOTIFY_SERVICE_CHANNEL_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,7 @@ class KeepAliveService : Service() {
 		sendNotification()
 		serviceScope.launch {
 			while (!ApplicationLoader.isActivityLaunched) {
-				Log.i("KeepAliveService", "PuyaKhan runs a service to keep alive the app for listening new sms in xiaomi...")
+				Log.i("KeepAliveService", "PuyaKhan runs a service to keep alive the app for listening new sms...")
 				delay(4000)
 			}
 		}
@@ -44,6 +45,11 @@ class KeepAliveService : Service() {
 	override fun onDestroy() {
 		super.onDestroy()
 		serviceScope.cancel()
+        try {
+            startKeepAliveService()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 	}
 
 	override fun onBind(intent: Intent?): IBinder? {

@@ -5,13 +5,21 @@
 
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.VIBRATE" />
-	<uses-permission android:name="android.permission.RECEIVE_SMS" />
-	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.RECEIVE_SMS"
+        tools:ignore="SmsAndCallLogPolicy" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 	<uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- For LAN Communication -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
 
 	<uses-feature
 		android:name="android.hardware.telephony"
@@ -29,6 +37,7 @@
 		android:supportsRtl="true"
 		android:theme="@style/Theme.PuyaKhan"
 		tools:ignore="RtlEnabled"
+        android:usesCleartextTraffic="true"
 		tools:targetApi="33">
 		<activity
 			android:name=".ui.view.activity.BackgroundActivity"
@@ -60,10 +69,13 @@
 
 		<service
 			android:name=".data.service.KeepAliveService"
-			android:enabled="true"
 			android:exported="false"
-			android:foregroundServiceType="dataSync"
-			android:permission="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+			android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".data.service.LocalServerService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
 		<receiver
 			android:name=".data.receiver.StarterReceiver"
@@ -82,6 +94,9 @@
 			android:permission="android.permission.BROADCAST_SMS">
 			<intent-filter android:priority="999">
 				<action android:name="android.provider.Telephony.SMS_RECEIVED" />
+			</intent-filter>
+			<intent-filter android:priority="999">
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
 			</intent-filter>
 		</receiver>
 	</application>

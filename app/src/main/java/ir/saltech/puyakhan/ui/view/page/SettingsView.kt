@@ -39,6 +39,7 @@ import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -65,6 +66,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.puyakhan.R
 import ir.saltech.puyakhan.App
 import ir.saltech.puyakhan.App.PresentMethod
+import ir.saltech.puyakhan.ApplicationLoader
+import ir.saltech.puyakhan.data.util.XiaomiUtilities
+import ir.saltech.puyakhan.data.util.grantXiaomiPermissions
 import ir.saltech.puyakhan.ui.theme.PuyaKhanTheme
 import ir.saltech.puyakhan.ui.theme.Symbols
 import ir.saltech.puyakhan.ui.view.activity.OVERLAY_PERMISSIONS_REQUEST_CODE
@@ -73,7 +77,7 @@ import ir.saltech.puyakhan.ui.view.activity.permissionLauncher
 import ir.saltech.puyakhan.ui.view.component.compose.MinimalHelpText
 import ir.saltech.puyakhan.ui.view.component.compose.OpenReferenceButton
 import ir.saltech.puyakhan.ui.view.component.compose.SegmentedButtonOrder
-import ir.saltech.puyakhan.ui.view.model.OtpCodesVM
+import ir.saltech.puyakhan.ui.view.model.MainViewModel
 
 @Composable
 internal fun SettingsView(onPageChanged: (App.Page) -> Unit) {
@@ -114,8 +118,8 @@ private fun SettingsTopBar(onPageChanged: (App.Page) -> Unit) {
 
 @Composable
 private fun SettingsContent(
-	paddingValues: PaddingValues = PaddingValues(0.dp),
-	mainViewModel: OtpCodesVM = viewModel(),
+    paddingValues: PaddingValues = PaddingValues(0.dp),
+    mainViewModel: MainViewModel = viewModel(),
 ) {
 	val context = LocalContext.current
 	val appSettings: App.Settings = mainViewModel.appSettings ?: App.Settings()
@@ -144,6 +148,12 @@ private fun SettingsContent(
 				appSettings.expireTime = enteredExpiredTime
 				mainViewModel.saveAppSettings()
 			}
+			Spacer(modifier = Modifier.height(4.dp))
+			RunAppInBackgroundSwitch(appSettings.runInBackground) { runInBackground ->
+				ApplicationLoader.canRunInBackground = runInBackground
+				appSettings.runInBackground = runInBackground
+				mainViewModel.saveAppSettings()
+			}
 			Spacer(modifier = Modifier.height(24.dp))
 			Text(
 				stringResource(R.string.referenced_settings),
@@ -157,6 +167,9 @@ private fun SettingsContent(
 			GrantNotificationPermission(context)
 			GrantWindowOverlayPermission(context)
 			AllowBatteryOptimization(context)
+			if (XiaomiUtilities.isMIUI()) {
+				GrantMiUiPermission(context)
+			}
 			Spacer(modifier = Modifier.height(16.dp))
 			SomeUsefulHelps()
 			Row(
@@ -185,7 +198,12 @@ private fun SettingsContent(
 					modifier = Modifier
 						.clip(RoundedCornerShape(100.dp))
 						.clickable {
-							context.startActivity(Intent(Intent.ACTION_VIEW, "https://saltech.ir/terms".toUri()))
+							context.startActivity(
+								Intent(
+									Intent.ACTION_VIEW,
+									"https://saltech.ir/terms".toUri()
+								)
+							)
 						},
 					text = " ${stringResource(R.string.terms)} ",
 					style = MaterialTheme.typography.bodyMedium,
@@ -226,6 +244,16 @@ private fun GrantNotificationPermission(context: Context) {
 }
 
 @Composable
+private fun GrantMiUiPermission(context: Context) {
+	OpenReferenceButton(
+		title = stringResource(R.string.miui_permission_request_button),
+		contentDescription = stringResource(R.string.miui_permission_request_cd)
+	) {
+		grantXiaomiPermissions(context)
+	}
+}
+
+@Composable
 private fun AllowBatteryOptimization(context: Context) {
 	OpenReferenceButton(
 		title = stringResource(R.string.disable_battery_limitations_button),
@@ -242,11 +270,9 @@ private fun ExpireTimeSelection(currentTimeSelection: Long, onTimeChanged: (Long
 	}
 	Column(
 		modifier = Modifier
-			.padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
+			.padding(start = 8.dp, end = 8.dp)
 			.clip(
-				RoundedCornerShape(
-					topEnd = 8.dp, topStart = 8.dp, bottomEnd = 25.dp, bottomStart = 25.dp
-				)
+				RoundedCornerShape(8)
 			)
 			.background(MaterialTheme.colorScheme.surfaceVariant)
 	) {
@@ -286,6 +312,42 @@ private fun ExpireTimeSelection(currentTimeSelection: Long, onTimeChanged: (Long
 			Text(
 				stringResource(R.string.code_expiration_time_title),
 				textAlign = TextAlign.Center,
+				modifier = Modifier
+					.weight(1f)
+					.align(Alignment.CenterVertically)
+			)
+		}
+	}
+}
+
+@Composable
+private fun RunAppInBackgroundSwitch(currentStatus: Boolean, onSwitchChanged: (Boolean) -> Unit) {
+	var status by remember {
+		mutableStateOf(currentStatus)
+	}
+	Column(
+		modifier = Modifier
+			.padding(start = 8.dp, bottom = 8.dp, end = 8.dp)
+			.clip(
+				RoundedCornerShape(
+					topEnd = 8.dp, topStart = 8.dp, bottomEnd = 25.dp, bottomStart = 25.dp
+				)
+			)
+			.background(MaterialTheme.colorScheme.surfaceVariant)
+	) {
+		Row(
+			modifier = Modifier
+				.padding(horizontal = 16.dp)
+				.padding(top = 5.dp, bottom = 8.dp)
+				.fillMaxWidth()
+		) {
+			Switch(modifier = Modifier.padding(8.dp), checked = status, onCheckedChange = {
+				status = !status
+				onSwitchChanged(it) })
+			Spacer(modifier = Modifier.width(8.dp))
+			Text(
+				stringResource(R.string.run_in_background_title),
+				textAlign = TextAlign.Right,
 				modifier = Modifier
 					.weight(1f)
 					.align(Alignment.CenterVertically)
