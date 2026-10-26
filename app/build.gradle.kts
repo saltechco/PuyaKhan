@@ -7,20 +7,6 @@ plugins {
 }
 
 android {
-	signingConfigs {
-		getByName("debug") {
-			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
-			storePassword = "SalTech#1402"
-			keyAlias = "PuyaKhan"
-			keyPassword = "SalTech#1402"
-		}
-		create("release") {
-			storeFile = file("D:\\AndroidStudioProjects\\PuyaKhan\\AppKey.jks")
-			storePassword = "SalTech#1402"
-			keyAlias = "PuyaKhan"
-			keyPassword = "SalTech#1402"
-		}
-	}
 	namespace = "ir.saltech.puyakhan"
 	compileSdk = 36
 
@@ -35,7 +21,6 @@ android {
 		vectorDrawables {
 			useSupportLibrary = true
 		}
-		signingConfig = signingConfigs.getByName("release")
 		multiDexEnabled = true
 	}
 
@@ -44,7 +29,6 @@ android {
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 			)
-			signingConfig = signingConfigs.getByName("release")
 		}
 	}
 	compileOptions {

@@ -53,7 +53,7 @@ object OtpProcessor {
 				sms = sms.copy(body = Base64.UrlSafe.encode(message.toByteArray()))
 			)
 
-		Log.d(TAG, "New OTP Code : $receivedOtp")
+		Log.d(TAG, "OTP parsed and stored successfully")
 		OtpDataStore(context).addOtpCode(receivedOtp)
 
 		return receivedOtp
